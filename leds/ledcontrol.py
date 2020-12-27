@@ -1,14 +1,17 @@
 #!/usr/bin/python3
 
-from datetime import date
 import logging
 import random
 import time
-import RPi.GPIO as GPIO
+from typing import List, Tuple
+
+# hardware controllers
 import Adafruit_WS2801 as LED
 import Adafruit_GPIO.SPI as SPI
+import RPi.GPIO as GPIO
 
-from typing import List, Tuple
+# initialise logging to file
+import logger
 
 """
 The characteristic values for the first version of the headset are hardcoded
@@ -19,10 +22,9 @@ COUNT       = 30
 CROWN_RANGE = range(26)
 PILOT_RANGE = [ 28 ]
 
-class LEDHeadset:
+class Headset:
 
     def __init__(self,
-            hostname: str,
             crown_col: Tuple[int, int, int], pilot_col: Tuple[int, int, int],
             on_delay: float, off_delay: float,
             count: int             = COUNT,
@@ -35,9 +37,6 @@ class LEDHeadset:
 
         Params
         ------
-        hostname
-            hostname of the device the current instance of the headset runs on
-
         crown_col, pilot_col
             (r, g, b) values for the colour of the crown and pilot lights respectively
 
@@ -52,11 +51,6 @@ class LEDHeadset:
             lights (not blinking) respectively
 
         """
-        today = date.today().strftime('%Y%m%d')
-        log_path = f"logs/{hostname}_{today}.log"
-        logging.basicConfig(filename = log_path, filemode = 'a', level = logging.INFO,
-                format = '%(asctime)s.%(msecs)03d %(message)s', datefmt = '%H:%M:%S')
-
         self.crown_col = crown_col
         self.pilot_col = pilot_col
 
@@ -71,6 +65,8 @@ class LEDHeadset:
         self.pixels = LED.WS2801Pixels(count, spi=SPI.SpiDev(SPI_PORT, SPI_DEVICE), gpio=GPIO)
 
         logging.info('Initialisation complete')
+
+        self.pilot()
 
 
     def all_off(self) -> None:
@@ -119,23 +115,24 @@ class LEDHeadset:
         time.sleep(self.ON_DELAY)
         self.crown_off()
 
-    def crown_blink_wait(self, drift: float) -> None:
+    def crown_blink_wait(self, rand: float) -> None:
         """
         All LEDs in the crown should be on for ON_DELAY time, then off for
         OFF_DELAY.
 
-        When the headsets are not synchronised, the time the headset is off may
-        incur a (potentially negative) drift. That is, despite being triggered
-        periodically, there might be a rush or a delay until the lights actually
-        turn on. Therefore, it first waits and then turns the lights on.
+        This function must be called by a periodic timer with a period equal
+        to ON_DELAY + OFF_DELAY.
 
-        The amount of time to rush or delay is chosen uniformly at random from
-        a range given by the drift parameter.
+        When the headsets are not synchronised, the lights may not blink on the
+        clock, but instead incur a random delay, controlled by the rand param.
+
+        The amount of time delay is chosen uniformly at random from a range
+        given by the parameter.
         """
-        r = random.uniform(-drift, drift)
+        r = random.uniform(0, rand)
 
-        logging.info('Waiting ' + str(self.OFF_DELAY + r))
-        time.sleep(self.OFF_DELAY + r)
+        logging.info(f'Waiting {round(r,3)}')
+        time.sleep(r)
         self.crown_on()
         time.sleep(self.ON_DELAY)
         self.crown_off()
