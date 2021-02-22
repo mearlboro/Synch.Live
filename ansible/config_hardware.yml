@@ -1,0 +1,31 @@
+---
+
+- name: Basic raspi-config
+  hosts: players
+  become: true
+
+  vars:
+    TIMEZONE: "Europe/London"
+    XKBLAYOUT: "gb"
+    SPI: True
+    I2C: True
+    RGPIO: True
+
+  tasks:
+    - name: Change timezone
+      shell: "raspi-config nonint do_change_timezone {{ TIMEZONE }}"
+
+    - name: Change keyboard layout
+      shell: "raspi-config nonint do_configure_keyboard {{ XKBLAYOUT }}"
+
+    - name: Enable SPI
+      shell: "raspi-config nonint do_spi 0"
+      when: (SPI == True)
+
+    - name: Enable I2C
+      shell: "raspi-config nonint do_i2c 0"
+      when: (I2C == True)
+
+    - name: Enable Remote GPIO
+      shell: "raspi-config nonint do_rgpio 0"
+      when: (RGPIO == True)
