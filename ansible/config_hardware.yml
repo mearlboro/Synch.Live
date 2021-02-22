@@ -1,6 +1,7 @@
 ---
 
 - name: Basic raspi-config
+  tags: setup
   hosts: players
   become: true
 
@@ -18,14 +19,32 @@
     - name: Change keyboard layout
       shell: "raspi-config nonint do_configure_keyboard {{ XKBLAYOUT }}"
 
+    - name: Get SPI status
+      shell: "raspi-config nonint get_spi"
+      register: spi_status
+    - name: Print SPI status
+      debug:
+        msg: "SPI status is: {{ spi_status.stdout }}"
     - name: Enable SPI
       shell: "raspi-config nonint do_spi 0"
-      when: (SPI == True)
+      when: (SPI == True) and (spi_status.stdout != '0')
 
+    - name: Get I2C status
+      shell: "raspi-config nonint get_i2c"
+      register: i2c_status
+    - name: Print I2C status
+      debug:
+        msg: "I2C status is: {{ i2c_status.stdout }}"
     - name: Enable I2C
       shell: "raspi-config nonint do_i2c 0"
-      when: (I2C == True)
+      when: (I2C == True) and (i2c_status.stdout != '0')
 
+    - name: Get rGPIO status
+      shell: "raspi-config nonint get_rgpio"
+      register: rgpio_status
+    - name: Print rGPIO status
+      debug:
+        msg: "rGPIO status is: {{ rgpio_status.stdout }}"
     - name: Enable Remote GPIO
       shell: "raspi-config nonint do_rgpio 0"
-      when: (RGPIO == True)
+      when: (RGPIO == True) and (rgpio_status.stdout != '0')
