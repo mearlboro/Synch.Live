@@ -129,7 +129,10 @@ class Headset:
         The amount of time delay is chosen uniformly at random from a range
         given by the parameter.
         """
-        r = random.uniform(0, rand)
+        if rand:
+            r = random.uniform(0, rand)
+        else:
+            r = 0
 
         logging.info(f'Waiting {round(r,3)}')
         time.sleep(r)
