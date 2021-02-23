@@ -1,0 +1,18 @@
+127.0.0.1	localhost
+::1		localhost ip6-localhost ip6-loopback
+ff02::1		ip6-allnodes
+ff02::2		ip6-allrouters
+
+# Synch.Live
+192.168.100.1   router-netgear routr.synch.live
+192.168.100.100 player0  player0.synch.live
+192.168.100.101 player1  player1.synch.live
+192.168.100.102 player2  player2.synch.live
+192.168.100.103 player3  player3.synch.live
+192.168.100.104 player4  player4.synch.live
+192.168.100.105 player5  player5.synch.live
+192.168.100.106 player6  player6.synch.live
+192.168.100.107 player7  player7.synch.live
+192.168.100.108 player8  player8.synch.live
+192.168.100.109 player9  player9.synch.live
+192.168.100.110 player10 player10.synch.live
