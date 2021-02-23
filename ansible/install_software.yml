@@ -1,6 +1,7 @@
 ---
 
 - name: Install necessary software on all players
+  tags: setup
   hosts: players
   become: true
 
@@ -23,6 +24,7 @@
       state: latest
 
 - name: Install pip packages
+  tags: setup
   hosts: players
 
   tasks:

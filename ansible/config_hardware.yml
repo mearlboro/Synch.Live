@@ -51,6 +51,7 @@
 
 
 - name: Copy off other config files
+  tags: setup
   hosts: players
   become: true
 
