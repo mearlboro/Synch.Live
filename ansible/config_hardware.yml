@@ -80,3 +80,11 @@
         owner: root
         group: root
         mode: 0644
+
+    - name: Copy hwclock-set
+      copy:
+        src: lib/udev/hwclock-set
+        dest: /lib/udev/hwclock-set
+        owner: root
+        group: root
+        mode: 0755
