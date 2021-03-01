@@ -22,6 +22,12 @@
     apt:
       name: i2c-tools
       state: latest
+  - name: Install network time tools
+    apt:
+      name:
+        - ntp
+        - ntpdate
+
 
 - name: Install pip packages
   tags: setup
