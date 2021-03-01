@@ -1,0 +1,49 @@
+---
+
+- name: Install necessary software on all players
+  tags: setup
+  hosts: players
+  become: true
+
+  tasks:
+
+  - name: Update cache
+    apt:
+      update_cache: yes
+  - name: Install Python3, pip, and Python interfaces for SPI and GPIO
+    apt:
+      name:
+        - python3
+        - python3-pip
+        - python3-spidev
+        - python3-rpi.gpio
+      state: latest
+  - name: Install I2C interface tools
+    apt:
+      name: i2c-tools
+      state: latest
+  - name: Install network time tools
+    apt:
+      name:
+        - ntpdate
+
+
+- name: Install pip packages
+  tags: setup
+  hosts: players
+
+  tasks:
+
+  - name: Upgrade pip & setuptools
+    pip:
+      name:
+        - pip
+        - setuptools
+      state: latest
+  - name: Install pip packages
+    pip:
+      name:
+        - adafruit-ws2801
+        - logging==0.4.9.6
+        - asyncio
+
