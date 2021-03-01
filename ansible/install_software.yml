@@ -25,7 +25,6 @@
   - name: Install network time tools
     apt:
       name:
-        - ntp
         - ntpdate
 
 
