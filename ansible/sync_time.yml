@@ -1,0 +1,56 @@
+---
+
+- name: Set date and time
+  tags: setup, time
+  hosts: players
+  become: true
+
+  vars:
+    TIMEZONE: "Europe/London"
+    NTPSERVER: "0.uk.pool.ntp.org"
+
+  tasks:
+
+  - name: Copy off timesyncd.conf
+    copy:
+      src: etc/systemd/timesyncd.conf
+      dest: /etc/systemd
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: Remove ntp if installed
+    apt:
+      name: ntp
+      state: absent
+      purge: yes
+      autoremove: yes
+
+  - name: Change timezone
+    shell: "raspi-config nonint do_change_timezone {{ TIMEZONE }}"
+
+  - name: Start timesyncd service
+    shell: "systemctl restart systemd-timesyncd.service"
+
+  - name: Enable ntp
+    shell: "timedatectl set-ntp true"
+
+  - name: Sync time initialy
+    shell: "ntpdate {{ NTPSERVER }}"
+
+  - name: Sync hwclock
+    shell: hwclock -w
+
+
+- name: Get date and time and service status
+  tags: get, time
+  hosts: players
+
+  tasks:
+
+  - name: Get timedatectl status and timestamp from the system
+    shell: "timedatectl status && date +%Y-%m-%d%H-%M-%S.%2N"
+    register: timestat
+  - name: Print system time and status
+    debug:
+      var: timestat.stdout_lines
