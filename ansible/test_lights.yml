@@ -1,0 +1,51 @@
+---
+
+- name: Run WS2801 example
+  tags: test, now
+  hosts: players
+
+  tasks:
+  - name: Run WS2801 example
+    shell:
+      cmd: python3 ws2801_example.py
+      chdir: /home/pi/synch
+
+
+- name: Run mock loop example
+  tags: test, schedule
+  hosts: players
+
+  vars:
+    MINUTE: 10
+
+  tasks:
+  - name: Add cron job
+    cron:
+      name: synch-loop-test
+      minute: MINUTE
+      job: "python3 /home/pi/synch/mockloop.py"
+
+
+- name: Stop mock loop example
+  tags: test, stop
+  hosts: players
+  become: true
+
+  vars:
+    MINUTE: 10
+
+  tasks:
+  - name: Delete cron job
+    cron:
+      name: synch-loop-test
+      minute: MINUTE
+      job: "python3 /home/pi/synch/mockloop.py"
+      state: absent
+
+  - name: Stop process
+    shell: "pkill -f mockloop"
+    ignore_errors: yes
+
+  - name: Turn off leds
+    shell: "python3 /home/pi/synch/stop.py"
+
