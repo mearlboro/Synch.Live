@@ -28,13 +28,19 @@ def loop_blink(period):
 
     global rand
 
-    while rand:
+    while rand > 0:
         time.sleep(next(gen))
         logging.info(f'Tick')
 
         leds.crown_blink_wait(rand)
 
         rand -= 0.1
+
+    for _ in range(100):
+        time.sleep(next(gen))
+        logging.info(f'Tick')
+
+        leds.crown_blink_wait(0)
 
 
 leds = Headset((127, 63, 0), (0, 255, 0), 0.5, 2.5)

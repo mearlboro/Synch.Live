@@ -5,32 +5,15 @@ import random
 import time
 from typing import List, Tuple
 
-# hardware controllers
-import Adafruit_WS2801 as LED
-import Adafruit_GPIO.SPI as SPI
-import RPi.GPIO as GPIO
-
 # initialise logging to file
 import logger
-
-"""
-The characteristic values for the first version of the headset are hardcoded
-here. If you're building a new type of headset make sure the below reflect
-your setup.
-"""
-COUNT       = 30
-CROWN_RANGE = range(26)
-PILOT_RANGE = [ 28 ]
 
 class Headset:
 
     def __init__(self,
             crown_col: Tuple[int, int, int], pilot_col: Tuple[int, int, int],
             on_delay: float, off_delay: float,
-            count: int             = COUNT,
-            crown_range: List[int] = CROWN_RANGE,
-            pilot_range: List[int] = PILOT_RANGE,
-            ) -> None:
+        ) -> None:
         """
         Initialise WS2801 pixel array. The array is split into two parts, the 'crown'
         which will blink and the 'pilot' light which must be always on and pure green.
@@ -57,13 +40,6 @@ class Headset:
         self.ON_DELAY  = on_delay
         self.OFF_DELAY = off_delay
 
-        self.CROWN_RANGE = crown_range
-        self.PILOT_RANGE = pilot_range
-
-        SPI_PORT    = 0
-        SPI_DEVICE  = 0
-        self.pixels = LED.WS2801Pixels(count, spi=SPI.SpiDev(SPI_PORT, SPI_DEVICE), gpio=GPIO)
-
         logging.info('Initialisation complete')
 
         self.pilot()
@@ -73,8 +49,6 @@ class Headset:
         """
         Turn off all LEDs in the headset
         """
-        self.pixels.clear()
-        self.pixels.show()
         logging.info('All off')
 
 
@@ -82,9 +56,6 @@ class Headset:
         """
         Turn on all LEDs in the pilot range in the headset
         """
-        for i in self.PILOT_RANGE:
-            self.pixels.set_pixel(i, LED.RGB_to_color(*self.pilot_col))
-        self.pixels.show()
         logging.info('Pilot on')
 
 
@@ -92,18 +63,12 @@ class Headset:
         """
         Turn on all LEDS in the crown range in the headset
         """
-        for i in self.CROWN_RANGE:
-            self.pixels.set_pixel(i, LED.RGB_to_color(*self.crown_col))
-        self.pixels.show()
         logging.info('Crown on')
 
     def crown_off(self) -> None:
         """
         Turn off all LEDS in the crown range in the headset
         """
-        for i in self.CROWN_RANGE:
-            self.pixels.set_pixel(i, LED.RGB_to_color(0, 0, 0))
-        self.pixels.show()
         logging.info('Crown off')
 
 
