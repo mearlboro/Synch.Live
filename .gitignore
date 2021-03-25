@@ -1,0 +1,4 @@
+# ignore player-specific changes made to setup files by script or user
+setup/etc/*
+setup/boot/*
+setup/.ssh/*
