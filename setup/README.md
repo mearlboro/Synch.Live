@@ -1,8 +1,20 @@
 # Quickstart Synch.Live player
 
-You should first generate an SSH key for all players, by running the command below (with your preferred passphrase)
+The code and files in this directory are used to quickstart an SD card running Raspberry Pi OS Lite for a Synch.Live player hat. The steps are described in detail [here](https://mis.pm/synch-live-part-4#player-setup).
+
+### Network
+
+This setup expects a particular network configuration, on the subnet `192.168.100.0/24`. The router's IP address is assumed to be `192.168.100.1`. The IP addresses for the players are statically allocated, such that the machine with the hostname `player1` will be found at `192.168.100.101`. 
+
+Make sure that you modify lines 6 and 7 of the file `boot/wpa_supplicant.conf` with the network name (SSID) and password of your WiFi network.
+
+### SSH keys
+
+You should first generate an SSH key which will be used to communicate with all players, by running the command below (with your preferred passphrase):
 
         ssh-keygen -t ed25519 -N "passphrase" -C "$(whoami)@synch.live" -f .ssh/synchlive
+
+### Instructions
 
 Then, for each player headset that needs to be deployed:
 
