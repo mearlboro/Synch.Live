@@ -1,0 +1,10 @@
+---
+
+- name: reboot all players
+  hosts: players
+  become: true
+
+  tasks:
+    - name: reboot (wait 10sec)
+      reboot:
+        reboot_timeout: 10
