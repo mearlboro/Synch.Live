@@ -2,7 +2,7 @@
 
 You should first generate an SSH key for all players, by running the command below (with your preferred passphrase)
 
-        ssh-keygen -t dsa -N "passphrase" -C "$(whoami)@synch.live" -f .ssh/synchlive
+        ssh-keygen -t ed25519 -N "passphrase" -C "$(whoami)@synch.live" -f .ssh/synchlive
 
 Then, for each player headset that needs to be deployed:
 
