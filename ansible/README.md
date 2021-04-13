@@ -23,10 +23,6 @@ Ansible can send commands in parallel for all players, so you should use as argu
 
         ansible-playbook sync_time.yml -f 10
 
-You can also run steps 1-4 with a single command
-
-        ansible-playbook *.yml -f 10 --tags setup
-
 5. Reboot all the players, by running
 
         ansible-playbook reboot.yml -f 10 --tags reboot
