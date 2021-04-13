@@ -21,6 +21,10 @@
       group: pi
       mode: 0644
     with_fileglob: leds/*.py
+  - name: Create config/autostart folder
+    file:
+      path: /home/pi/.config/autostart
+      state: directory
   - name: Copy desktop file that turns on the pilot when the player is booted
     copy:
       src: leds/pilot_startup.desktop

@@ -4,7 +4,7 @@ The code and files in this directory are used to configure hardware and deploy s
 
 A detailed explanation of what is being setup, as well as a quick introduction to concepts in Ansible, can be read [here](https://mis.pm/synch-live-part-4#player-deploy).
 
-### Instructions
+### Setup Instructions
 
 First, [install Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html#installation-guide) on your machine. You will be usign this machine as a control node for the devices that need to be deployed.
 
@@ -13,12 +13,38 @@ Ansible can send commands in parallel for all players, so you should use as argu
 1. Boot up all players and make sure they have enough battery. Wait for a minute just to make sure all have booted.
 2. Configure hardware, by running
 
-        ansible-playbook config-hardware.yml -f 10
+        ansible-playbook config_hardware.yml -f 10
 
 3. Install necessary software, by running
 
-        ansible-playbook install-software.yml -f 10
+        ansible-playbook install_software.yml -f 10
 
-4. Reboot all the players, by running
+4. Make sure that the clock synchronisation daemon is installed and well configured
 
-        ansible-playbook reboot.yml -f 10
+        ansible-playbook sync_time.yml -f 10
+
+You can also run steps 1-4 with a single command
+
+        ansible-playbook *.yml -f 10 --tags setup
+
+5. Reboot all the players, by running
+
+        ansible-playbook reboot.yml -f 10 --tags reboot
+
+
+# Commanding the fleet
+
+To copy off the latest Python files used to control the leds/run the experiment
+
+        ansible-playbook synch_code.yml -f 10
+
+
+To synchronise the clocks for an experiment
+
+        ansible-playbook sync_time.yml -f 10 --tags experiment
+
+
+To shutdown all players
+
+        ansible-playbook reboot.yml -f 10 --tags shutdown
+

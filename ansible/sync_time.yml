@@ -1,7 +1,7 @@
 ---
 
 - name: Make sure the correct software and config is setup for time synchronisation
-  tags: setup, time
+  tags: setup
   hosts: players
   become: true
 
@@ -32,7 +32,7 @@
 
 
 - name: Synchronise clocks of all players
-  tags: time, experiment
+  tags: setup, experiment
   hosts: players
   become: true
 
@@ -55,7 +55,6 @@
 
 
 - name: Get date and time and service status
-  tags: get, time
   hosts: players
 
   tasks:

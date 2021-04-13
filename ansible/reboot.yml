@@ -24,5 +24,5 @@
   tags: shutdown
 
   tasks:
-    - name: shutdown (wait 10sec)
+    - name: shutdown (wait 60sec)
       shell: "shutdown"
