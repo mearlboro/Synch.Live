@@ -33,8 +33,8 @@ echo "setup_sd_card.sh: copying wireless network settings and SSH keys"
 sudo cp boot/* /media/$(whoami)/boot/
 
 cat .ssh/synchlive.pub > .ssh/authorized_keys
-mkdir /rootfs/home/pi/.ssh
-cp .ssh/authorized_keys /rootfs/home/pi/.ssh/authorized_keys
+mkdir /media/$(whoami)/rootfs/home/pi/.ssh
+cp .ssh/authorized_keys /media/$(whoami)/rootfs/home/pi/.ssh/authorized_keys
 
 umount /media/$(whoami)/boot
 umount /media/$(whoami)/rootfs
