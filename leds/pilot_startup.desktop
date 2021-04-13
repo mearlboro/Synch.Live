@@ -1,0 +1,5 @@
+[Desktop Entry]
+Name=pilot_startup
+Exec=/home/pi/synch/startup.py
+Type=application
+Name[en_US]=pilot_startup

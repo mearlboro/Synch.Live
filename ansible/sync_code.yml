@@ -20,5 +20,10 @@
       owner: pi
       group: pi
       mode: 0644
-    with_fileglob: leds/*
-
+    with_fileglob: leds/*.py
+  - name: Copy desktop file that turns on the pilot when the player is booted
+    copy:
+      src: leds/pilot_startup.desktop
+      dest: /home/pi/.config/autostart
+      owner: pi
+      group: pi
