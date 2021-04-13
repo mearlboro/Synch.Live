@@ -1,44 +1,56 @@
 ---
 
-- name: Set date and time
+- name: Make sure the correct software and config is setup for time synchronisation
   tags: setup, time
+  hosts: players
+  become: true
+
+  tasks:
+
+  - name: Make sure there are no conflicting packages
+    apt:
+      name:
+        - ntp
+        - ntpd
+        - ntpstat
+        - ntpdate
+      state: absent
+      purge: yes
+      autoremove: yes
+  - name: Make sure the chrony package is installed
+    apt:
+      name: chrony
+      state: latest
+
+  - name: Copy chrony.conf
+    copy:
+      src: etc/chrony/chrony.conf
+      dest: /etc/chrony/
+      owner: root
+      group: root
+      mode: 0644
+
+
+- name: Synchronise clocks of all players
+  tags: time, experiment
   hosts: players
   become: true
 
   vars:
     TIMEZONE: "Europe/London"
-    NTPSERVER: "0.uk.pool.ntp.org"
 
   tasks:
-
-  - name: Copy off timesyncd.conf
-    copy:
-      src: etc/systemd/timesyncd.conf
-      dest: /etc/systemd
-      owner: root
-      group: root
-      mode: 0644
-
-  - name: Remove ntp if installed
-    apt:
-      name: ntp
-      state: absent
-      purge: yes
-      autoremove: yes
 
   - name: Change timezone
     shell: "raspi-config nonint do_change_timezone {{ TIMEZONE }}"
 
-  - name: Start timesyncd service
-    shell: "systemctl restart systemd-timesyncd.service"
+  - name: Start NTP service
+    shell: "systemctl start chronyd"
 
-  - name: Enable ntp
-    shell: "timedatectl set-ntp true"
+  - name: Fetch time and correct any offsets
+    shell: "chronyc tracking; chronyc makestep"
 
-  - name: Sync time initialy
-    shell: "ntpdate {{ NTPSERVER }}"
-
-  - name: Sync hwclock
+  - name: Sync hwclock with system clock
     shell: hwclock -w
 
 
@@ -47,7 +59,6 @@
   hosts: players
 
   tasks:
-
   - name: Get timedatectl status and timestamp from the system
     shell: "timedatectl status && date +%Y-%m-%d%H-%M-%S.%2N"
     register: timestat
