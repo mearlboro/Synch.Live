@@ -48,7 +48,7 @@
     shell: "systemctl start chronyd"
 
   - name: Fetch time and correct any offsets
-    shell: "chronyc tracking; chronyc makestep"
+    shell: "chronyc -n tracking; chronyc makestep"
 
   - name: Sync hwclock with system clock
     shell: hwclock -w
