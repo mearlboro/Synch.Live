@@ -1,39 +1,25 @@
 ---
 
-- name: Install necessary software on all players
+- name: Install necessary software on all hosts
   tags: setup
-  hosts: players
+  hosts: all
   become: true
 
   tasks:
-
   - name: Update cache
     apt:
       update_cache: yes
-  - name: Install Python3, pip, and Python interfaces for SPI and GPIO
+
+  - name: Install network time tools
+    apt:
+      name: chrony
+      state: latest
+
+  - name: Install Python3 and pip
     apt:
       name:
         - python3
         - python3-pip
-        - python3-spidev
-        - python3-rpi.gpio
-      state: latest
-  - name: Install I2C interface tools
-    apt:
-      name: i2c-tools
-      state: latest
-  - name: Install network time tools
-    apt:
-      name:
-        - chrony
-
-
-- name: Install pip packages
-  tags: setup
-  hosts: players
-
-  tasks:
-
   - name: Upgrade pip & setuptools
     pip:
       name:
@@ -43,7 +29,29 @@
   - name: Install pip packages
     pip:
       name:
-        - adafruit-ws2801
         - logging==0.4.9.6
         - asyncio
+
+
+- name: Install necessary software on players
+  tags: setup
+  hosts: players
+  become: true
+
+  tasks:
+  - name: Install I2C tools and Python interfaces for SPI and GPIO
+    apt:
+      name:
+        - i2c-tools
+        - python3-spidev
+        - python3-rpi.gpio
+      state: latest
+  - name: Install I2C interface tools
+    apt:
+      state: latest
+
+  - name: Install pip package for the LED lights
+    pip:
+      name:
+        - adafruit-ws2801
 

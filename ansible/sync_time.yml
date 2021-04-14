@@ -2,11 +2,10 @@
 
 - name: Make sure the correct software and config is setup for time synchronisation
   tags: setup
-  hosts: players
+  hosts: all
   become: true
 
   tasks:
-
   - name: Make sure there are no conflicting packages
     apt:
       name:
@@ -33,14 +32,12 @@
 
 - name: Synchronise clocks of all players
   tags: setup, experiment
-  hosts: players
+  hosts: all
   become: true
-
   vars:
     TIMEZONE: "Europe/London"
 
   tasks:
-
   - name: Change timezone
     shell: "raspi-config nonint do_change_timezone {{ TIMEZONE }}"
 
