@@ -1,23 +1,50 @@
 ---
 
-- name: Basic raspi-config
+- name: Basic raspi-config for all hosts
   tags: setup
-  hosts: players
+  hosts: all
   become: true
-
   vars:
     XKBLAYOUT: "gb"
-    SPI: True
-    I2C: True
-    RGPIO: True
 
   tasks:
     - name: Change keyboard layout
       shell: "raspi-config nonint do_configure_keyboard {{ XKBLAYOUT }}"
 
+
+- name: Basic raspi-config for observer
+  hosts: observer
+  become: true
+  vars:
+    CAMERA: True
+
+  tasks:
+    - name: Get camera status
+      shell: "raspi-config nonint get_camera"
+      register: camera_status
+      changed_when: False
+    - name: Print camera status
+      debug:
+        msg: "Camera status is: {{ camera_status.stdout }}"
+    - name: Enable Camera
+      shell: "raspi-config nonint do_camera 0"
+      when: (CAMERA == True) and (camera_status.stdout != '0')
+
+
+- name: Basic raspi-config for players
+  tags: setup
+  hosts: players
+  become: true
+  vars:
+    SPI: True
+    I2C: True
+    RGPIO: True
+
+  tasks:
     - name: Get SPI status
       shell: "raspi-config nonint get_spi"
       register: spi_status
+      changed_when: False
     - name: Print SPI status
       debug:
         msg: "SPI status is: {{ spi_status.stdout }}"
@@ -28,6 +55,7 @@
     - name: Get I2C status
       shell: "raspi-config nonint get_i2c"
       register: i2c_status
+      changed_when: False
     - name: Print I2C status
       debug:
         msg: "I2C status is: {{ i2c_status.stdout }}"
@@ -38,6 +66,7 @@
     - name: Get rGPIO status
       shell: "raspi-config nonint get_rgpio"
       register: rgpio_status
+      changed_when: False
     - name: Print rGPIO status
       debug:
         msg: "rGPIO status is: {{ rgpio_status.stdout }}"
@@ -46,13 +75,13 @@
       when: (RGPIO == True) and (rgpio_status.stdout != '0')
 
 
-- name: Copy off other config files
+
+- name: Config files for all hosts
   tags: setup
-  hosts: players
+  hosts: all
   become: true
 
   tasks:
-
     - name: Copy hosts
       copy:
         src: etc/hosts
@@ -61,6 +90,13 @@
         group: root
         mode: 0644
 
+
+- name: Config files for players
+  tags: setup
+  hosts: players
+  become: true
+
+  tasks:
     - name: Copy config
       copy:
         src: boot/config.txt
