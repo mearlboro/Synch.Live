@@ -31,6 +31,35 @@
       name:
         - logging==0.4.9.6
         - asyncio
+        - apscheduler
+
+
+- name: Install necessary software on observer
+  tags: setup
+  hosts: observer
+  become: true
+
+  tasks:
+  - name: Install packages used by OpenCV
+    apt:
+      name:
+        - build-essential
+        - cmake
+        - libhdf5-dev
+        - libatlas-base-dev
+        - gfortran
+        - libavcodec-dev
+        - libavformat-dev
+        - libswscale-dev
+        - libv4l-dev
+      state: latest
+
+  - name: Install pip packages
+    pip:
+      name:
+        - opencv-contrib-python~=4.4.0.46
+        - picamera
+      state: latest
 
 
 - name: Install necessary software on players
