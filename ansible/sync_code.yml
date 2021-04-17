@@ -6,7 +6,7 @@
 
   tasks:
 
-  - name: Create synch folder
+  - name: Create synch folders
     file:
       path: "{{ item }}"
       state: directory
@@ -21,13 +21,9 @@
       group: pi
       mode: 0644
     with_fileglob: leds/*.py
-  - name: Create config/autostart folder
-    file:
-      path: /home/pi/.config/autostart
-      state: directory
-  - name: Copy desktop file that turns on the pilot when the player is booted
-    copy:
-      src: leds/pilot_startup.desktop
-      dest: /home/pi/.config/autostart
-      owner: pi
-      group: pi
+  - name: Add cron job that starts the pilot at boot
+    cron:
+      name: 'startup_pilot'
+      special_time: reboot
+      state: present
+      job: 'python3 /home/pi/synch/startup.py'
