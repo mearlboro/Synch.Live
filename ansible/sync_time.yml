@@ -30,7 +30,7 @@
       mode: 0644
 
 
-- name: Synchronise clocks of all players
+- name: Synchronise clocks of all players and observer
   tags: setup, experiment
   hosts: all
   become: true
@@ -47,16 +47,23 @@
   - name: Fetch time and correct any offsets
     shell: "chronyc -n tracking; chronyc makestep"
 
-  - name: Sync hwclock with system clock
+
+- name: Sync players hardware clock
+  tags: setup, experiemnt
+  hosts: players
+  become: true
+  tasks:
+  - name: Synch hwclock with system clock
     shell: hwclock -w
 
 
 - name: Get date and time and service status
-  hosts: players
-
+  hosts: all
+  tags: setup, experiment
+  become: true
   tasks:
-  - name: Get timedatectl status and timestamp from the system
-    shell: "timedatectl status && date +%Y-%m-%d%H-%M-%S.%2N"
+  - name: Get time daemon status and timestamp from the system
+    shell: "date +%Y-%m-%d%H-%M-%S.%2N; systemctl status chronyd"
     register: timestat
   - name: Print system time and status
     debug:
