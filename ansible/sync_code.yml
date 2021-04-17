@@ -1,5 +1,28 @@
 ---
 
+- name: copy tracking and streaming code on observer
+  tags: setup
+  hosts: observer
+
+  tasks:
+
+  - name: Create synch folder
+    file:
+      path: "{{ item }}"
+      state: directory
+    with_items:
+      - '/home/pi/synch'
+      - '/home/pi/logs'
+  - name: Copy Python scripts
+    copy:
+      src: "{{ item }}"
+      dest: /home/pi/synch
+      owner: pi
+      group: pi
+      mode: 0644
+    with_fileglob: camera/*.py
+
+
 - name: copy LED control code on all players
   tags: setup
   hosts: players
