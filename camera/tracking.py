@@ -13,9 +13,9 @@ import logger
 
 # TODO set at calibration time
 MIN_DETECT_COLOUR = np.array([20, 104, 70], np.uint8)
-MAX_DETECT_COLOUR = np.array([100, 255, 255], np.uint8)
+MAX_DETECT_COLOUR = np.array([127, 255, 255], np.uint8)
 MIN_DETECT_CONTOUR = 100
-MAX_DETECT_CONTOUR = 200
+MAX_DETECT_CONTOUR = 400
 
 def createTrackerByName(name: str) -> Any:
     """
@@ -51,7 +51,7 @@ def createTrackerByName(name: str) -> Any:
     return tracker
 
 
-def _drawTracked(
+def drawTrackedObj(
         frame:  np.ndarray,
         player: int,
         rect:   Tuple[int, int, int, int]
@@ -72,20 +72,13 @@ def _drawTracked(
     Returns
     ------
         updated frame
-
-    Side-effects
-    -----
-        log timestamp and centre of mass of detected boxes
     """
     (x, y, w, h) = rect
     frame = cv2.rectangle(frame, (x, y, w, h), (0, 255, 0), 2)
 
-    cv2.putText(frame, f"Player{player}", (x, y),
+    frame = cv2.putText(frame, f"Player{player}", (x, y),
         cv2.FONT_HERSHEY_SIMPLEX,
         0.5, (0, 255, 0))
-
-    # log x,y coordinate of bounding rectangle centre of mass
-    logging.info((player, x + w/2.0, y + h/2.0))
 
     return frame
 
@@ -108,21 +101,17 @@ def drawAnnotations(
     Returns
     -----
         updated frame
-
-    Side-effects
-    -----
-        log timestamp and centre of mass of detected boxes
     """
     timestamp = datetime.datetime.now()
-    cv2.putText(frame, timestamp.strftime("%y-%m-%d %H:%M:%S"),
-                (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 
+    frame = cv2.putText(frame, timestamp.strftime("%y-%m-%d %H:%M:%S"),
+                (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX,
                 0.5, (255, 255, 255), 1)
 
-    for i, box in enumerate(trackingBoxes):
+    for i, box in enumerate(boxes):
         # draw rectangle and label over the objects position in the video
-        _drawTracked(frame, i, tuple([int(x) for x in box]))
+        frame = drawTrackedObj(frame, i, tuple([int(x) for x in box]))
 
-    return frame 
+    return frame
 
 
 def detectObjectsInFrame(
@@ -141,21 +130,20 @@ def detectObjectsInFrame(
 
     Returns
     ------
-        updated frame with bounding boxes drawn on the video
-
         a list of tuples, with the coordinates of the bounding boxes of the
         detected objects, and the image with bounding boxes drawn on
-    """
-    # Resize image to make tracking easier
-    frame = imutils.resize(frame, width=400)
 
+    Side-effects
+    ------
+        centre of mass coordinates are logged for the detected boxes
+    """
     # Convert the frame in RGB color space to HSV
     hsvFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
     # Set range for what is the 'darkest' and 'lightest' green color we look for
     # even the darkest green will be very bright
-    green_lower = MIN_DETECT_COLOUR 
-    green_upper = MAX_DETECT_COLOUR 
+    green_lower = MIN_DETECT_COLOUR
+    green_upper = MAX_DETECT_COLOUR
 
     # create image mask by selecting the range of green hues from the HSV image
     green_mask = cv2.inRange(hsvFrame, green_lower, green_upper)
@@ -181,64 +169,10 @@ def detectObjectsInFrame(
             # make them slightly larger to help the tracking
             trackingBoxes.append((x - 1, y - 1, w + 1, h + 1))
 
-    logging.info(f"Found {len(trackingBoxes)} boxes in frame")
-    frame = drawAnnotations(frame, trackingBoxes)
+            # log x,y coordinate of bounding rectangle centre of mass
+            logging.info((i, x + w/2.0, y + h/2.0))
 
-    return frame, trackingBoxes
+    logging.info(f"Found {len(trackingBoxes)} boxes in frame.")
 
-
-def trackObjects(camera: PiCamera):
-    """
-    Perform object detection on the first frame and proceed to object tracking
-
-    Params
-    ------
-    camera
-        the PiCamera object, produces a stream of numpy arrays as frames, and
-        colours are encoded as BGR rather than RGB
-
-    Returns
-    ------
-        trajectories of tracked objects
-
-    Side-effects
-    ------
-        display the bounding boxes and object identifiers on the video
-        exit when the key pressed is Esc
-    """
-    frameNo = 0
-    multiTracker = cv2.MultiTracker_create()
-    trackingBoxes = []
-    
-    rawCapture = PiRGBArray(camera)
-
-    for frame in camera.capture_continuous(rawCapture, format="bgr",
-            use_video_port="true"):
-
-        image = frame.array
-
-        if frame is None:
-            logging.info('Error reading first frame. Exiting.')
-            exit(0)
-
-        if frameNo == 0:
-            logging.info('First detecting all objects in frame')
-            frame, trackingBoxes = detectObjectsInFrame(image)
-
-            for box in trackingBoxes:
-                multiTracker.add(createTrackerByName('CSRT'), image, box)
-
-        else:
-            return
-            success, newBoxes = multiTracker.update(image)
-
-            if not success:
-                logging.info(f"Tracking failed at frame {frameNo}")
-
-            for i, box in enumerate(newBoxes):
-                drawTracked(frame, i, tuple([int(x) for x in box]))
-
-        rawCapture.truncate(0)
-        frameNo += 1
-
+    return trackingBoxes
 
