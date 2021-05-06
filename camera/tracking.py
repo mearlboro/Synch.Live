@@ -1,6 +1,9 @@
 import cv2
+import datetime
+import imutils
 import logging
 import numpy as np
+from picamera import PiCamera
 import sys
 
 from typing import Any, List, Tuple, Optional, Union
@@ -8,6 +11,11 @@ from typing import Any, List, Tuple, Optional, Union
 # initialise logging to file
 import logger
 
+# TODO set at calibration time
+MIN_DETECT_COLOUR = np.array([20, 104, 70], np.uint8)
+MAX_DETECT_COLOUR = np.array([100, 255, 255], np.uint8)
+MIN_DETECT_CONTOUR = 100
+MAX_DETECT_CONTOUR = 200
 
 def createTrackerByName(name: str) -> Any:
     """
@@ -43,34 +51,7 @@ def createTrackerByName(name: str) -> Any:
     return tracker
 
 
-def readVideoFrame(vid: cv2.VideoCapture) -> Optional[np.ndarray]:
-    """
-    Read a single frame from video
-
-    Params
-    ------
-    vid
-        video file/stream
-
-    Returns
-    ------
-        numpy array with the data in a single frame
-
-    Side-effects
-    ------
-        may fail if there are no frames, or stream is interrupted, in which case
-        it returns None
-    """
-    success, frame = vid.read()
-
-    if not success:
-        logging.info('Failed to read video')
-        return None
-    else:
-        return frame
-
-
-def drawTracked(
+def _drawTracked(
         frame:  np.ndarray,
         player: int,
         rect:   Tuple[int, int, int, int]
@@ -91,6 +72,10 @@ def drawTracked(
     Returns
     ------
         updated frame
+
+    Side-effects
+    -----
+        log timestamp and centre of mass of detected boxes
     """
     (x, y, w, h) = rect
     frame = cv2.rectangle(frame, (x, y, w, h), (0, 255, 0), 2)
@@ -105,9 +90,44 @@ def drawTracked(
     return frame
 
 
+def drawAnnotations(
+        frame: np.ndarray, boxes: List[Tuple[int, int, int, int]]
+    ) -> np.ndarray:
+    """
+    Draws all necessary annotations (timestamp, tracked objects)
+    onto the given frame
+
+    Params
+    ------
+    frame
+        a single frame of a cv2.VideoCapture() or picamera stream
+    boxes
+        a list of 4-element tuples with the coordinates and size
+        of rectangles ( x, y, width, height )
+
+    Returns
+    -----
+        updated frame
+
+    Side-effects
+    -----
+        log timestamp and centre of mass of detected boxes
+    """
+    timestamp = datetime.datetime.now()
+    cv2.putText(frame, timestamp.strftime("%y-%m-%d %H:%M:%S"),
+                (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 
+                0.5, (255, 255, 255), 1)
+
+    for i, box in enumerate(trackingBoxes):
+        # draw rectangle and label over the objects position in the video
+        _drawTracked(frame, i, tuple([int(x) for x in box]))
+
+    return frame 
+
+
 def detectObjectsInFrame(
         frame: np.ndarray
-    ) -> List[Tuple[int, int, int, int]]:
+    ) -> Tuple[np.ndarray, List[Tuple[int, int, int, int]]]:
     """
     Gets the initial regions of interest (ROIs) to be tracked, which are green
     LEDs in a dark image. Uses a conversion to hue-saturation-luminosity to pick
@@ -117,23 +137,25 @@ def detectObjectsInFrame(
     Params
     ------
     frame
-        a single frame of a cv2.VideoCapture()
+        a single frame of a cv2.VideoCapture() or picamera stream
 
     Returns
     ------
-        a list of tuples, with the coordinates of the bounding boxes of the
-        detected objects
+        updated frame with bounding boxes drawn on the video
 
-    Side-effects
-    ------
-        display the bounding boxes and object identifiers on the video
+        a list of tuples, with the coordinates of the bounding boxes of the
+        detected objects, and the image with bounding boxes drawn on
     """
+    # Resize image to make tracking easier
+    frame = imutils.resize(frame, width=400)
+
     # Convert the frame in RGB color space to HSV
     hsvFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
     # Set range for what is the 'darkest' and 'lightest' green color we look for
-    green_lower = np.array([25, 52, 72], np.uint8)
-    green_upper = np.array([102, 255, 255], np.uint8)
+    # even the darkest green will be very bright
+    green_lower = MIN_DETECT_COLOUR 
+    green_upper = MAX_DETECT_COLOUR 
 
     # create image mask by selecting the range of green hues from the HSV image
     green_mask = cv2.inRange(hsvFrame, green_lower, green_upper)
@@ -153,75 +175,27 @@ def detectObjectsInFrame(
     for i, contour in enumerate(contours):
         box = cv2.contourArea(contour)
         # if the area of the detected object is big enough, but not too big
-        if(box > 20 and box < 100):
+        if(box >= MIN_DETECT_CONTOUR and box <= MAX_DETECT_CONTOUR):
             x, y, w, h = cv2.boundingRect(contour)
-
-            # draw rectangle and label over the objects position in the video
-            drawTracked(frame, i, (x, y, w, h))
 
             # make them slightly larger to help the tracking
             trackingBoxes.append((x - 1, y - 1, w + 1, h + 1))
 
-    cv2.imshow('Detection of Synch.Live players', frame)
+    logging.info(f"Found {len(trackingBoxes)} boxes in frame")
+    frame = drawAnnotations(frame, trackingBoxes)
 
-    return trackingBoxes
+    return frame, trackingBoxes
 
 
-def trackObjectsInVideo(
-        vid: cv2.VideoCapture, multiTracker: cv2.MultiTracker
-    ):
+def trackObjects(camera: PiCamera):
     """
-    Tracks objects in given video, drawing a video output with bounding boxes
+    Perform object detection on the first frame and proceed to object tracking
 
     Params
     ------
-    vid
-        video file/stream to track
-    multiTracker
-        openCV multiTracker initialised with bounding boxes of the objects to
-        track
-
-    Returns
-    ------
-        a list of lists representing trajectories of each object
-
-    Side-effects
-    ------
-        display the bounding boxes and object identifiers on the video
-        exit when the key pressed is Esc
-    """
-
-    while vid.isOpened():
-        frame = readVideoFrame(vid)
-
-        if frame is None:
-            logging.info('Error reading frame from video')
-            return
-
-        success, newBoxes = multiTracker.update(frame)
-
-        if not success:
-            logging.info('Tracking failed')
-            return
-
-        for i, box in enumerate(newBoxes):
-            drawTracked(frame, i, tuple([int(x) for x in box]))
-
-        cv2.imshow('Tracking of Synch.live players', frame)
-        # wait on any key to move to the next frame, and exit if it's Esc
-        if cv2.waitKey(1) & 0xFF == 27:
-            return
-
-
-def trackObjects(videoPath: str):
-    """
-    Create a VideoCapture object for a video/stream at the given path, then
-    perform object detection on the first frame and proceed to object tracking
-
-    Params
-    ------
-    videoPath
-        path of video file or stream
+    camera
+        the PiCamera object, produces a stream of numpy arrays as frames, and
+        colours are encoded as BGR rather than RGB
 
     Returns
     ------
@@ -232,27 +206,39 @@ def trackObjects(videoPath: str):
         display the bounding boxes and object identifiers on the video
         exit when the key pressed is Esc
     """
-    vid = cv2.VideoCapture(videoPath)
-
-    frame = readVideoFrame(vid)
-    if frame is None:
-        logging.info('Error reading first frame')
-
-    trackingBoxes = detectObjectsInFrame(frame)
-
+    frameNo = 0
     multiTracker = cv2.MultiTracker_create()
-    for box in trackingBoxes:
-        multiTracker.add(createTrackerByName('CSRT'), frame, box)
+    trackingBoxes = []
+    
+    rawCapture = PiRGBArray(camera)
 
-    trackObjectsInVideo(vid, multiTracker)
+    for frame in camera.capture_continuous(rawCapture, format="bgr",
+            use_video_port="true"):
 
-    # vid.stop() # for webcam
-    vid.release() # for file
+        image = frame.array
 
-if __name__ == '__main__':
+        if frame is None:
+            logging.info('Error reading first frame. Exiting.')
+            exit(0)
 
-    videoPath = "video/composite.mp4"
-    trackObjects(videoPath)
+        if frameNo == 0:
+            logging.info('First detecting all objects in frame')
+            frame, trackingBoxes = detectObjectsInFrame(image)
 
-    cv2.destroyAllWindows()
+            for box in trackingBoxes:
+                multiTracker.add(createTrackerByName('CSRT'), image, box)
+
+        else:
+            return
+            success, newBoxes = multiTracker.update(image)
+
+            if not success:
+                logging.info(f"Tracking failed at frame {frameNo}")
+
+            for i, box in enumerate(newBoxes):
+                drawTracked(frame, i, tuple([int(x) for x in box]))
+
+        rawCapture.truncate(0)
+        frameNo += 1
+
 
