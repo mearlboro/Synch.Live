@@ -22,25 +22,42 @@ lock = threading.Lock()
 
 # initialize a flask object
 app = Flask(__name__)
-# initialize the video stream and allow the camera sensor to
-# warmup
-vs = VideoStream(usePiCamera = 1).start()
-time.sleep(2.0)
+# initialize the video stream and allow the sensor to warm up
+vs = VideoStream(usePiCamera=1, resolution=(640,480), framerate=12).start()
+time.sleep(1)
 
 
 @app.route("/")
 def index():
-        return render_template("index.html")
+    return render_template("index.html")
 
 @app.route("/video_feed")
 def video_feed():
-    # return the response generated along with the specific media
-    # type (mime type)
+    """
+    Direct generated frame to webserver
+
+    Returns
+    ------
+        HTTP response of corresponding type containing the generated stream
+    """
     return Response(generate_frame(),
         mimetype = "multipart/x-mixed-replace; boundary=frame")
 
+
 def tracking():
-    # grab global references 
+    """
+    Tracking process, starting with initial object detection, then fetch a
+    new frame and track. Annotate image and produce a streamable output
+    via the global outputFrame variable.
+
+    Side-effects
+    ------
+        - produce a stream in outputFrame
+        - may acquire or release lock
+        - consumes the video stream
+        - updates the players dict every frame
+        - logs tracked positions to log file
+    """
     global vs, outputFrame, lock
 
     # initialize the motion detector
@@ -56,15 +73,14 @@ def tracking():
     boxes = detectObjectsInFrame(frame)
     frame_annot = drawAnnotations(frame, boxes)
 
-    # acquire the lock, set the output frame, and release the
-    # lock
+    # acquire the lock, set the output frame, and release the lock
     with lock:
         outputFrame = frame_annot.copy()
 
     # initialise multitracker on detected contours
     #for box in boxes:
     #    multiTracker.add(createTrackerByName('CSRT'), frame, box)
-    
+
     # loop over frames from the video stream and track
     while True:
         frame = vs.read()
@@ -72,8 +88,7 @@ def tracking():
         newBoxes = detectObjectsInFrame(frame)
         frame_annot = drawAnnotations(frame, newBoxes)
 
-        # acquire the lock, set the output frame, and release the
-        # lock
+        # acquire the lock, set the output frame, and release the lock
         with lock:
             outputFrame = frame_annot.copy()
 
