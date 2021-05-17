@@ -60,16 +60,14 @@ def tracking():
     """
     global vs, outputFrame, lock
 
-    # initialize the motion detector
-    multiTracker = cv2.MultiTracker_create()
-    trackingBoxes = []
-
     # read the first frame and detect objects
     frame = vs.read()
+
     if frame is None:
         logging.info('Error reading first frame. Exiting.')
         exit(0)
     logging.info('Detect all object in frame.')
+
     boxes = detectObjectsInFrame(frame)
     frame_annot = drawAnnotations(frame, boxes)
 
@@ -77,16 +75,15 @@ def tracking():
     with lock:
         outputFrame = frame_annot.copy()
 
-    # initialise multitracker on detected contours
-    #for box in boxes:
-    #    multiTracker.add(createTrackerByName('CSRT'), frame, box)
-
     # loop over frames from the video stream and track
     while True:
         frame = vs.read()
-        #_, newBoxes = multiTracker.update(frame)
-        newBoxes = detectObjectsInFrame(frame)
-        frame_annot = drawAnnotations(frame, newBoxes)
+        newBoxes = basicMultiTracker(frame, boxes)
+
+        if (len(newBoxes) == len(boxes)):
+            boxes = newBoxes
+
+        frame_annot = drawAnnotations(frame, boxes)
 
         # acquire the lock, set the output frame, and release the lock
         with lock:

@@ -51,6 +51,15 @@ def createTrackerByName(name: str) -> Any:
     return tracker
 
 
+def centreOfMass(box: Tuple[int, int, int, int]) -> Tuple[int, int]:
+    """
+    Get x,y coordinates for the centre of mass of a box
+    """
+    (x, y, w, h) = box
+
+    return (x + w/2.0, y + h/2.0)
+
+
 def drawTrackedObj(
         frame:  np.ndarray,
         player: int,
@@ -131,7 +140,7 @@ def detectObjectsInFrame(
     Returns
     ------
         a list of tuples, with the coordinates of the bounding boxes of the
-        detected objects, and the image with bounding boxes drawn on
+        detected objects
 
     Side-effects
     ------
@@ -159,7 +168,6 @@ def detectObjectsInFrame(
         cv2.CHAIN_APPROX_SIMPLE)
 
     trackingBoxes = []
-
     for i, contour in enumerate(contours):
         box = cv2.contourArea(contour)
         # if the area of the detected object is big enough, but not too big
@@ -169,10 +177,54 @@ def detectObjectsInFrame(
             # make them slightly larger to help the tracking
             trackingBoxes.append((x - 1, y - 1, w + 1, h + 1))
 
-            # log x,y coordinate of bounding rectangle centre of mass
-            logging.info((i, x + w/2.0, y + h/2.0))
+    # log x,y coordinate of bounding rectangle centre of mass
+    for i, box in enumerate(trackingBoxes):
+        logging.info(f'{i}, {centreOfMass(box)}')
 
     logging.info(f"Found {len(trackingBoxes)} boxes in frame.")
 
     return trackingBoxes
+
+
+def basicMultiTracker(
+        frame: np.ndarray, boxes: List[Tuple[int, int, int, int]]
+    ) -> List[Tuple[int, int, int, int]]:
+    """
+    Given contours of objects that were detected in the previous frame detect
+    them again in the current frame, then track based on the shortest distance
+    from the old contours
+
+    Params
+    ------
+    frame
+        a single frame of a cv2.VideoCapture() or picamera stream
+    boxes
+        a list of 4-element tuples with the coordinates and size
+        of rectangles ( x, y, width, height )
+
+    Returns
+    -----
+        a list of tuples, with the coordinates of the bounding boxes of the
+        detected objects, in the same order as the previous frame
+    """
+    # keep track of a detected object's centre of mass and preserve order
+    oldCM = dict(zip(range(len(boxes)), [ centreOfMass(box) for box in boxes ]))
+
+    # get new positions, centres of mass, and preserve order
+    newBoxes = detectObjectsInFrame(frame)
+    newBoxesDict = dict()
+
+    # go through new detected boxes and for each find the closest old one
+    for box in newBoxes:
+        minDist = 10000
+        boxId   = -1
+        for i in list(oldCM.keys()):
+            cmDist = np.linalg.norm(np.array(oldCM[i]) - np.array(centreOfMass(box)))
+            if (cmDist < minDist):
+                minDist = cmDist
+                boxId   = i
+        newBoxesDict[boxId] = box
+
+    # return newBoxes in the order of the dictionary keys
+    return [v for (k, v) in sorted(newBoxesDict.items())]
 
