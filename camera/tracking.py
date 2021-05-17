@@ -12,7 +12,7 @@ from typing import Any, List, Tuple, Optional, Union
 import logger
 
 # TODO set at calibration time
-MIN_DETECT_COLOUR = np.array([20, 104, 70], np.uint8)
+MIN_DETECT_COLOUR = np.array([50, 104, 70], np.uint8)
 MAX_DETECT_COLOUR = np.array([127, 255, 255], np.uint8)
 MIN_DETECT_CONTOUR = 100
 MAX_DETECT_CONTOUR = 400
@@ -167,15 +167,16 @@ def detectObjectsInFrame(
         cv2.RETR_TREE,
         cv2.CHAIN_APPROX_SIMPLE)
 
+    # go through detected contours and reject if not the wrong size or shape
     trackingBoxes = []
     for i, contour in enumerate(contours):
         box = cv2.contourArea(contour)
-        # if the area of the detected object is big enough, but not too big
         if(box >= MIN_DETECT_CONTOUR and box <= MAX_DETECT_CONTOUR):
             x, y, w, h = cv2.boundingRect(contour)
 
-            # make them slightly larger to help the tracking
-            trackingBoxes.append((x - 1, y - 1, w + 1, h + 1))
+            if (w / h >= 0.8 or w / h <= 1.2):
+                # make them slightly larger to help the tracking
+                trackingBoxes.append((x - 1, y - 1, w + 1, h + 1))
 
     # log x,y coordinate of bounding rectangle centre of mass
     for i, box in enumerate(trackingBoxes):
