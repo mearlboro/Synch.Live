@@ -68,8 +68,8 @@ def tracking():
         exit(0)
     logging.info('Detect all object in frame.')
 
-    boxes = detectObjectsInFrame(frame)
-    frame_annot = drawAnnotations(frame, boxes)
+    boxes = detect_colour(frame)
+    frame_annot = draw_annotations(frame, boxes)
 
     # acquire the lock, set the output frame, and release the lock
     with lock:
@@ -78,12 +78,12 @@ def tracking():
     # loop over frames from the video stream and track
     while True:
         frame = vs.read()
-        newBoxes = basicMultiTracker(frame, boxes)
+        newBoxes = EuclideanMultiTracker(frame, boxes)
 
         if (len(newBoxes) == len(boxes)):
             boxes = newBoxes
 
-        frame_annot = drawAnnotations(frame, boxes)
+        frame_annot = draw_annotations(frame, boxes)
 
         # acquire the lock, set the output frame, and release the lock
         with lock:

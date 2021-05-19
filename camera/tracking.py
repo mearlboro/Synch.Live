@@ -3,7 +3,6 @@ import datetime
 import imutils
 import logging
 import numpy as np
-from picamera import PiCamera
 import sys
 
 from typing import Any, List, Tuple, Optional, Union
@@ -12,55 +11,21 @@ from typing import Any, List, Tuple, Optional, Union
 import logger
 
 # TODO set at calibration time
-MIN_DETECT_COLOUR = np.array([50, 104, 70], np.uint8)
+MIN_DETECT_COLOUR = np.array([63, 127, 127], np.uint8)
 MAX_DETECT_COLOUR = np.array([127, 255, 255], np.uint8)
 MIN_DETECT_CONTOUR = 100
 MAX_DETECT_CONTOUR = 400
+MIN_DISTANCE = 20
 
-def createTrackerByName(name: str) -> Any:
-    """
-    Create single object tracker.
-
-    Params
-    ------
-    name
-        string name of openCV tracker
-
-    Returns
-    ----
-    cv2.Tracker onject of that type
-    """
-
-    OPENCV_OBJECT_TRACKERS = {
-        "CSRT":       cv2.TrackerCSRT_create,
-        "KCF":        cv2.TrackerKCF_create,
-        "BOOSTING":   cv2.TrackerBoosting_create,
-        "MIL":        cv2.TrackerMIL_create,
-        "TLD":        cv2.TrackerTLD_create,
-        "MEDIANFLOW": cv2.TrackerMedianFlow_create,
-        "MOSSE":      cv2.TrackerMOSSE_create
-    }
-
-    name = name.upper()
-    if (name in OPENCV_OBJECT_TRACKERS.keys()):
-        tracker = OPENCV_OBJECT_TRACKERS[name]()
-    else:
-        tracker = None
-        (f'Incorrect tracker name: {name}')
-
-    return tracker
-
-
-def centreOfMass(box: Tuple[int, int, int, int]) -> Tuple[int, int]:
+def centre_of_mass(box: Tuple[int, int, int, int]) -> np.ndarray:
     """
     Get x,y coordinates for the centre of mass of a box
     """
     (x, y, w, h) = box
+    return np.array([x + w/2, y + h/2]).astype(int)
 
-    return (x + w/2.0, y + h/2.0)
 
-
-def drawTrackedObj(
+def draw_bbox(
         frame:  np.ndarray,
         player: int,
         rect:   Tuple[int, int, int, int]
@@ -92,7 +57,7 @@ def drawTrackedObj(
     return frame
 
 
-def drawAnnotations(
+def draw_annotations(
         frame: np.ndarray, boxes: List[Tuple[int, int, int, int]]
     ) -> np.ndarray:
     """
@@ -118,14 +83,14 @@ def drawAnnotations(
 
     for i, box in enumerate(boxes):
         # draw rectangle and label over the objects position in the video
-        frame = drawTrackedObj(frame, i, tuple([int(x) for x in box]))
+        frame = draw_bbox(frame, i, tuple([int(x) for x in box]))
 
     return frame
 
 
-def detectObjectsInFrame(
+def detect_colour(
         frame: np.ndarray
-    ) -> Tuple[np.ndarray, List[Tuple[int, int, int, int]]]:
+    ) -> List[Tuple[int, int, int, int]]:
     """
     Gets the initial regions of interest (ROIs) to be tracked, which are green
     LEDs in a dark image. Uses a conversion to hue-saturation-luminosity to pick
@@ -147,7 +112,7 @@ def detectObjectsInFrame(
         centre of mass coordinates are logged for the detected boxes
     """
     # Convert the frame in RGB color space to HSV
-    hsvFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
     # Set range for what is the 'darkest' and 'lightest' green color we look for
     # even the darkest green will be very bright
@@ -155,7 +120,7 @@ def detectObjectsInFrame(
     green_upper = MAX_DETECT_COLOUR
 
     # create image mask by selecting the range of green hues from the HSV image
-    green_mask = cv2.inRange(hsvFrame, green_lower, green_upper)
+    green_mask = cv2.inRange(hsv_frame, green_lower, green_upper)
 
     # we look for punctiform green objects, so perform image dilation on mask
     # to emphasise these points
@@ -168,7 +133,7 @@ def detectObjectsInFrame(
         cv2.CHAIN_APPROX_SIMPLE)
 
     # go through detected contours and reject if not the wrong size or shape
-    trackingBoxes = []
+    bboxes = []
     for i, contour in enumerate(contours):
         box = cv2.contourArea(contour)
         if(box >= MIN_DETECT_CONTOUR and box <= MAX_DETECT_CONTOUR):
@@ -176,19 +141,19 @@ def detectObjectsInFrame(
 
             if (w / h >= 0.8 or w / h <= 1.2):
                 # make them slightly larger to help the tracking
-                trackingBoxes.append((x - 1, y - 1, w + 1, h + 1))
+                bboxes.append((x - 1, y - 1, w + 1, h + 1))
 
     # log x,y coordinate of bounding rectangle centre of mass
-    for i, box in enumerate(trackingBoxes):
-        logging.info(f'{i}, {centreOfMass(box)}')
+    for i, box in enumerate(bboxes):
+        logging.info(f'{i}, {centre_of_mass(box)}')
 
-    logging.info(f"Found {len(trackingBoxes)} boxes in frame.")
+    logging.info(f"Found {len(bboxes)} boxes in frame.")
 
-    return trackingBoxes
+    return bboxes
 
 
-def basicMultiTracker(
-        frame: np.ndarray, boxes: List[Tuple[int, int, int, int]]
+def EuclideanMultiTracker(
+        frame: np.ndarray, bboxes: List[Tuple[int, int, int, int]]
     ) -> List[Tuple[int, int, int, int]]:
     """
     Given contours of objects that were detected in the previous frame detect
@@ -201,31 +166,30 @@ def basicMultiTracker(
         a single frame of a cv2.VideoCapture() or picamera stream
     boxes
         a list of 4-element tuples with the coordinates and size
-        of rectangles ( x, y, width, height )
+        of bounding boxes ( x, y, width, height )
 
     Returns
     -----
         a list of tuples, with the coordinates of the bounding boxes of the
         detected objects, in the same order as the previous frame
     """
-    # keep track of a detected object's centre of mass and preserve order
-    oldCM = dict(zip(range(len(boxes)), [ centreOfMass(box) for box in boxes ]))
+    bbox_dict = dict(zip(range(len(bboxes)), bboxes))
 
-    # get new positions, centres of mass, and preserve order
-    newBoxes = detectObjectsInFrame(frame)
-    newBoxesDict = dict()
+    new_bboxes    = detect_colour(frame)
+    new_bbox_dict = dict()
 
-    # go through new detected boxes and for each find the closest old one
-    for box in newBoxes:
-        minDist = 10000
-        boxId   = -1
-        for i in list(oldCM.keys()):
-            cmDist = np.linalg.norm(np.array(oldCM[i]) - np.array(centreOfMass(box)))
-            if (cmDist < minDist):
-                minDist = cmDist
-                boxId   = i
-        newBoxesDict[boxId] = box
+    # go through new bounding boxes, and find closest box detected in the previous frame
+    # if it's not found, assume the same index
+    for i, box in enumerate(new_bboxes):
+        min_dist = MIN_DISTANCE
+        box_id   = i
+        for j in range(len(bboxes)):
+            dist = np.linalg.norm(centre_of_mass(bbox_dict[j]) - centre_of_mass(box))
+            if (dist < min_dist):
+                min_dist = dist
+                box_id   = j
+        new_bbox_dict[box_id] = box
 
     # return newBoxes in the order of the dictionary keys
-    return [v for (k, v) in sorted(newBoxesDict.items())]
+    return [v for (k, v) in sorted(new_bbox_dict.items())]
 
