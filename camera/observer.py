@@ -17,13 +17,13 @@ from tracking import *
 # initialize the output frame and a lock used to ensure thread-safe
 # exchanges of the output frames (useful when multiple browsers/tabs
 # are viewing the stream)
-outputFrame = None
+output_frame = None
 lock = threading.Lock()
 
 # initialize a flask object
 app = Flask(__name__)
 # initialize the video stream and allow the sensor to warm up
-vs = VideoStream(usePiCamera=1, resolution=(640,480), framerate=12).start()
+stream = VideoStream(usePiCamera=1, resolution=(640,480), framerate=12).start()
 time.sleep(1)
 
 
@@ -48,67 +48,66 @@ def tracking():
     """
     Tracking process, starting with initial object detection, then fetch a
     new frame and track. Annotate image and produce a streamable output
-    via the global outputFrame variable.
+    via the global output_frame variable.
 
     Side-effects
     ------
-        - produce a stream in outputFrame
         - may acquire or release lock
         - consumes the video stream
-        - updates the players dict every frame
+        - produce a video stream and send it to webserver
         - logs tracked positions to log file
     """
-    global vs, outputFrame, lock
+    global stream, output_frame, lock
 
     # read the first frame and detect objects
-    frame = vs.read()
+    frame = stream.read()
 
     if frame is None:
         logging.info('Error reading first frame. Exiting.')
         exit(0)
     logging.info('Detect all object in frame.')
 
-    boxes = detect_colour(frame)
-    frame_annot = draw_annotations(frame, boxes)
+    bboxes = detect_colour(frame)
+    frame_annot = draw_annotations(frame, bboxes)
 
     # acquire the lock, set the output frame, and release the lock
     with lock:
-        outputFrame = frame_annot.copy()
+        output_frame = frame_annot.copy()
 
     # loop over frames from the video stream and track
     while True:
-        frame = vs.read()
-        newBoxes = EuclideanMultiTracker(frame, boxes)
+        frame = stream.read()
+        new_bboxes = EuclideanMultiTracker(frame, bboxes)
 
-        if (len(newBoxes) == len(boxes)):
-            boxes = newBoxes
+        if (len(new_bboxes) == len(bboxes)):
+            bboxes = new_bboxes
 
-        frame_annot = draw_annotations(frame, boxes)
+        frame_annot = draw_annotations(frame, bboxes)
 
         # acquire the lock, set the output frame, and release the lock
         with lock:
-            outputFrame = frame_annot.copy()
+            output_frame = frame_annot.copy()
 
 
 def generate_frame():
     # grab global references to the output frame and lock variables
-    global outputFrame, lock
+    global output_frame, lock
     # loop over frames from the output stream
     while True:
         # wait until the lock is acquired
         with lock:
             # check if the output frame is available, otherwise skip
             # the iteration of the loop
-            if outputFrame is None:
+            if output_frame is None:
                 continue
             # encode the frame in JPEG format
-            (flag, encodedImage) = cv2.imencode(".jpg", outputFrame)
+            (flag, encoded_frame) = cv2.imencode(".jpg", output_frame)
             # ensure the frame was successfully encoded
             if not flag:
                 continue
         # yield the output frame in the byte format
         yield(b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + 
-            bytearray(encodedImage) + b'\r\n')
+            bytearray(encoded_frame) + b'\r\n')
 
 
 if __name__ == '__main__':
@@ -121,4 +120,4 @@ if __name__ == '__main__':
     app.run(host='192.168.100.100', port=8888, debug=True,
             threaded=True, use_reloader=False)
     # release the video stream pointer
-    vs.stop()
+    stream.stop()
