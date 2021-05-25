@@ -132,8 +132,9 @@ def detect_blobs(
 
     logging.info(f"Found {len(blobs)} blobs in frame.")
 
-    frame_annot = cv2.drawKeypoints(frame, blobs, np.array([]), (255,0,0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-    return frame_annot, blobs
+    #frame_annot = cv2.drawKeypoints(frame, blobs, np.array([]), (0, 0, 255),
+    #                                cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+    return  blobs
 
 
 def detect_colour(
@@ -161,22 +162,29 @@ def detect_colour(
     """
     # Convert the frame in RGB color space to HSV
     hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    #cv2.imwrite('hsv_frame.jpg', hsv_frame)
 
     # Set range for what is the 'darkest' and 'lightest' green color we look for
     # even the darkest green will be very bright
     green_lower = MIN_DETECT_COLOUR
     green_upper = MAX_DETECT_COLOUR
-
     # create image mask by selecting the range of green hues from the HSV image
     green_mask = cv2.inRange(hsv_frame, green_lower, green_upper)
+    #cv2.imwrite('green_mask.jpg', green_mask)
 
     # we look for punctiform green objects, so perform image dilation on mask
     # to emphasise these points
     kernel = np.ones((5, 5), "uint8")
     green_mask = cv2.dilate(green_mask, kernel)
+    #cv2.imwrite('green_mask_dilated.jpg', green_mask)
+
+    # select green areas from the image usign a bitwise and with the mask
+    res = cv2.bitwise_and(frame,frame, mask = green_mask)
+    res = cv2.cvtColor(res,cv2.COLOR_BGR2GRAY)
+    #cv2.imwrite('img_masked.jpg', res)
 
     # Find the contours of all green objects
-    contours, hierarchy = cv2.findContours(green_mask,
+    contours, hierarchy = cv2.findContours(res,
         cv2.RETR_TREE,
         cv2.CHAIN_APPROX_SIMPLE)
 
