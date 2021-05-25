@@ -11,6 +11,7 @@ from typing import Any, List, Tuple, Optional, Union
 import logger
 
 # TODO set at calibration time
+# colours are in BGR
 MIN_DETECT_COLOUR = np.array([63, 127, 127], np.uint8)
 MAX_DETECT_COLOUR = np.array([127, 255, 255], np.uint8)
 MIN_DETECT_CONTOUR = 100
@@ -88,6 +89,53 @@ def draw_annotations(
     return frame
 
 
+def detect_blobs(
+        frame: np.ndarray
+    ) -> List[cv2.KeyPoint]:
+    """
+    Gets the initial regions of interest (ROIs) to be tracked, which are green
+    LEDs in a dark image. Use blob detection to extract circular convex regions
+    of a certain area and bright colour
+
+    TODO: bug in OpenCV2 does not allow me to change blob colour
+
+    Params
+    ------
+    frame
+        a single frame of a cv2.VideoCapture() or picamera stream
+
+    Returns
+    ------
+        keypoints for each blob, consisting of centre of mass and radius of
+        detected blobs
+    """
+    # invert frame as the detector is preset on dark colours
+    inv_frame = cv2.bitwise_not(frame)
+
+    # initialise detector params so only circular dark objects get selected
+    # with an area within our bounds
+    params = cv2.SimpleBlobDetector_Params()
+    params.filterByCircularity = 1
+    params.minCircularity = 0.9
+    params.filterByArea = 1
+    params.minArea = MIN_DETECT_CONTOUR
+    params.maxArea = MAX_DETECT_CONTOUR
+    params.filterByColor = 1
+    params.blobColor = 0
+    detector = cv2.SimpleBlobDetector_create(params)
+
+    blobs = detector.detect(inv_frame)
+
+    # log x,y coordinate of blob's centre of mass
+    for i, blob in enumerate(blobs):
+        logging.info(f'{i}, {blob.pt}')
+
+    logging.info(f"Found {len(blobs)} blobs in frame.")
+
+    frame_annot = cv2.drawKeypoints(frame, blobs, np.array([]), (255,0,0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+    return frame_annot, blobs
+
+
 def detect_colour(
         frame: np.ndarray
     ) -> List[Tuple[int, int, int, int]]:
@@ -132,8 +180,8 @@ def detect_colour(
         cv2.RETR_TREE,
         cv2.CHAIN_APPROX_SIMPLE)
 
-    # go through detected contours and reject if not the wrong size or shape
     bboxes = []
+    # go through detected contours and reject if not the wrong size or shape
     for i, contour in enumerate(contours):
         box = cv2.contourArea(contour)
         if(box >= MIN_DETECT_CONTOUR and box <= MAX_DETECT_CONTOUR):
