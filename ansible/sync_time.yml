@@ -1,55 +1,69 @@
 ---
 
-- name: Set date and time
-  tags: setup, time
-  hosts: players
+- name: Make sure the correct software and config is setup for time synchronisation
+  tags: setup
+  hosts: all
   become: true
 
-  vars:
-    TIMEZONE: "Europe/London"
-    NTPSERVER: "0.uk.pool.ntp.org"
-
   tasks:
+  - name: Make sure there are no conflicting packages
+    apt:
+      name:
+        - ntp
+        - ntpd
+        - ntpstat
+        - ntpdate
+      state: absent
+      purge: yes
+      autoremove: yes
+  - name: Make sure the chrony package is installed
+    apt:
+      name: chrony
+      state: latest
 
-  - name: Copy off timesyncd.conf
+  - name: Copy chrony.conf
     copy:
-      src: etc/systemd/timesyncd.conf
-      dest: /etc/systemd
+      src: etc/chrony/chrony.conf
+      dest: /etc/chrony/
       owner: root
       group: root
       mode: 0644
 
-  - name: Remove ntp if installed
-    apt:
-      name: ntp
-      state: absent
-      purge: yes
-      autoremove: yes
 
+- name: Synchronise clocks of all players and observer
+  tags: setup, experiment
+  hosts: all
+  become: true
+  vars:
+    TIMEZONE: "Europe/London"
+
+  tasks:
   - name: Change timezone
     shell: "raspi-config nonint do_change_timezone {{ TIMEZONE }}"
 
-  - name: Start timesyncd service
-    shell: "systemctl restart systemd-timesyncd.service"
+  - name: Start NTP service
+    shell: "systemctl start chronyd"
 
-  - name: Enable ntp
-    shell: "timedatectl set-ntp true"
+  - name: Fetch time and correct any offsets
+    shell: "chronyc -n tracking; chronyc makestep"
 
-  - name: Sync time initialy
-    shell: "ntpdate {{ NTPSERVER }}"
 
-  - name: Sync hwclock
+- name: Sync players hardware clock
+  tags: setup, experiemnt
+  hosts: players
+  become: true
+  tasks:
+  - name: Synch hwclock with system clock
     shell: hwclock -w
 
 
 - name: Get date and time and service status
-  tags: get, time
-  hosts: players
-
+  hosts: all
+  tags: setup, experiment
+  become: true
   tasks:
-
-  - name: Get timedatectl status and timestamp from the system
-    shell: "timedatectl status && date +%Y-%m-%d%H-%M-%S.%2N"
+  - name: Get time daemon status and timestamp from the system
+    shell: "date +%Y-%m-%d%H-%M-%S.%2N; systemctl status chronyd"
     register: timestat
   - name: Print system time and status
     debug:
