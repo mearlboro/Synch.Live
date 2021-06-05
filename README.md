@@ -10,7 +10,7 @@ cycles through different colours and behaviours. The script is run
 immediately as an ansible command, so it's likely it won't be run in
 perfect sync. The choreography is done running after around a minute.
 
-    ansible-playbook test_lights.yml -t -t now -f 10
+    ansible-playbook test_lights.yml -t now -f 10
 
 ### Sync test
 #### Start

@@ -25,7 +25,6 @@
 - name: Stop mock loop example
   tags: test, stop
   hosts: players
-  become: true
 
   tasks:
   - name: Delete cron job
@@ -35,6 +34,7 @@
       state: absent
 
   - name: Stop process
+    become: true
     shell: "pkill -f mockloop"
     ignore_errors: yes
 
