@@ -15,31 +15,23 @@
   tags: test, schedule
   hosts: players
 
-  vars:
-    MINUTE: 10
-
   tasks:
   - name: Add cron job
     cron:
       name: synch-loop-test
-      minute: MINUTE
-      job: "python3 /home/pi/synch/mockloop.py"
-
+      minute: "{{ MINUTE }}"
+      job: 'while [ "10" -gt "$(date +\%S)" ]; do /bin/sleep 0.1; done; python3 /home/pi/synch/mockloop.py'
 
 - name: Stop mock loop example
   tags: test, stop
   hosts: players
   become: true
 
-  vars:
-    MINUTE: 10
-
   tasks:
   - name: Delete cron job
     cron:
       name: synch-loop-test
-      minute: MINUTE
-      job: "python3 /home/pi/synch/mockloop.py"
+      minute: "{{ MINUTE }}"
       state: absent
 
   - name: Stop process

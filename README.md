@@ -24,16 +24,17 @@ themselves until they sync. Then they keep on blinking periodically for
 another 100 seconds. If the clocks are the same, the test is a success
 when all hats blink in sync at the end.
 
-You should edit the variable `MINUTE` in `Run mock loop example` to
-schedule a time to start the test. The script will be run with cron.
+You should edit the value for variable `MINUTE` below to schedule a time
+to start the test. The script will be run with cron and will always start
+the test at 10 seconds after the specified minute.
 
-    ansible-playbook test_lights.yml -t schedule -f 10
+    ansible-playbook test_lights.yml -t schedule -f 10 --extra-vars MINUTE=30
 
 #### Stop
 
 To turn off all LEDs blinking and remove cronjob
 
-    ansible-playbook test_lights.yml -t stop -f 10
+    ansible-playbook test_lights.yml -t stop -f 10 --extra-vars MINUTE=30
 
 Make sure you update the `MINUTE` variable to match the cronjob created
 in the previous section.
