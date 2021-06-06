@@ -1,22 +1,16 @@
-import cv2
-import datetime
-import imutils
+from collections import OrderedDict
 import logging
 import numpy as np
-import sys
-
-from typing import Any, List, Tuple, Optional, Union
+from scipy.spatial import distance as dist
+from typing import List, Tuple
 
 # initialise logging to file
 import logger
 
-# TODO set at calibration time
-# colours are in BGR
-MIN_DETECT_COLOUR = np.array([63, 127, 127], np.uint8)
-MAX_DETECT_COLOUR = np.array([127, 255, 255], np.uint8)
-MIN_DETECT_CONTOUR = 100
-MAX_DETECT_CONTOUR = 400
-MIN_DISTANCE = 20
+
+# TODO: set at calibration time
+MIN_DISTANCE = 40
+LOST_FRAMES  = 50
 
 
 def centre_of_mass(box: Tuple[int, int, int, int]) -> np.ndarray:
@@ -27,239 +21,137 @@ def centre_of_mass(box: Tuple[int, int, int, int]) -> np.ndarray:
     return np.array([x + w/2, y + h/2]).astype(int)
 
 
-def log_detected(boxes: List[Tuple[int, int, int, int]]) -> None:
-    """
-    Write centre of mass of detected boxes to logfile
+class EuclideanMultiTracker():
+    def __init__(self,
+            min_distance: int = MIN_DISTANCE, lost_frames: int = LOST_FRAMES
+        ) -> None:
+        """
+        Given a number of bounding boxes from object detection, it tracks objects
+        using Euclidean distance between their centres of mass. Objects are tracked
+        with an ID in the `detected` dictionary. If an object is not found, track
+        for how many frames it was lost in the `vanished` dictionary.
 
-    Side-effects
-    ------
-    Write to logfile
-    """
-    for i, box in enumerate(boxes):
-        logging.info(f'{i+1}, {centre_of_mass(box)}')
-    logging.info(f"Found {len(boxes)} blobs in frame.")
+        Params
+        ------
+        min_distance
+            Two objects cannot come closer together than `min_distance`. This value
+            should be comfortably larger than the distance an object moves between
+            two frames
 
+        lost_frames
+            If the object is not found for more than `lost_frames`, it will no longer
+            be tracked.
+        """
+        self.next_id = 0
+        self.detected = OrderedDict()
+        self.vanished = OrderedDict()
 
-def draw_bbox(
-        frame:  np.ndarray,
-        player: int,
-        rect:   Tuple[int, int, int, int]
-    ) -> np.ndarray:
-    """
-    Draws bounding box of tracked object and object name on the frame
-
-    Params
-    ------
-    frame
-        a single frame of a cv2.VideoCapture()
-    player
-        the number identifying the current object being tracked
-    rect
-        a 4-element tuple with the coordinates and size of a rectangle
-        ( x, y, width, height )
-
-    Returns
-    ------
-        updated frame
-    """
-    (x, y, w, h) = rect
-    frame = cv2.rectangle(frame, (x, y, w, h), (0, 255, 0), 2)
-
-    frame = cv2.putText(frame, f"Player{player}", (x, y),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        0.5, (0, 255, 0))
-
-    return frame
+        self.min_distance = min_distance
+        self.lost_frames  = lost_frames
 
 
-def draw_annotations(
-        frame: np.ndarray, boxes: List[Tuple[int, int, int, int]]
-    ) -> np.ndarray:
-    """
-    Draws all necessary annotations (timestamp, tracked objects)
-    onto the given frame
+    def track(self, cmass: np.ndarray) -> None:
+        """
+        Assigns for a detected object an object ID, and stores it in the dicts
 
-    Params
-    ------
-    frame
-        a single frame of a cv2.VideoCapture() or picamera stream
-    boxes
-        a list of 4-element tuples with the coordinates and size
-        of rectangles ( x, y, width, height )
-
-    Returns
-    -----
-        updated frame
-    """
-    timestamp = datetime.datetime.now()
-    frame = cv2.putText(frame, timestamp.strftime("%y-%m-%d %H:%M:%S"),
-                (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX,
-                0.5, (255, 255, 255), 1)
-
-    for i, box in enumerate(boxes):
-        # draw rectangle and label over the objects position in the video
-        frame = draw_bbox(frame, i, tuple([int(x) for x in box]))
-
-    return frame
+        Params
+        -----
+        cmass
+            numpy array of shape (2,) containing a 2D centre of mass for the
+            object to be tracked
+        """
+        self.detected[self.next_id] = cmass
+        self.vanished[self.next_id] = 0
+        self.next_id += 1
 
 
-def detect_blobs(
-        frame: np.ndarray
-    ) -> List[cv2.KeyPoint]:
-    """
-    Gets the initial regions of interest (ROIs) to be tracked, which are green
-    LEDs in a dark image. Use blob detection to extract circular convex regions
-    of a certain area and bright colour
-
-    TODO: bug in OpenCV2 does not allow me to change blob colour
-
-    Params
-    ------
-    frame
-        a single frame of a cv2.VideoCapture() or picamera stream
-
-    Returns
-    ------
-        keypoints for each blob, consisting of centre of mass and radius of
-        detected blobs
-    """
-    # invert frame as the detector is preset on dark colours
-    inv_frame = cv2.bitwise_not(frame)
-
-    # initialise detector params so only circular dark objects get selected
-    # with an area within our bounds
-    params = cv2.SimpleBlobDetector_Params()
-    params.filterByCircularity = 1
-    params.minCircularity = 0.9
-    params.filterByArea = 1
-    params.minArea = MIN_DETECT_CONTOUR
-    params.maxArea = MAX_DETECT_CONTOUR
-    params.filterByColor = 1
-    params.blobColor = 0
-    detector = cv2.SimpleBlobDetector_create(params)
-
-    blobs = detector.detect(inv_frame)
-
-    # frame_annot = cv2.drawKeypoints(frame, blobs, np.array([]), (0,255,0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-
-    bboxes = [ cv2.boundingRect(blob) for blob in blobs ]
-    log_detected(bboxes)
-
-    return bboxes
+    def untrack(self, obj: int) -> None:
+        """
+        Drop the object with key `obj` from dictionaries, as it is no longer
+        being tracked
+        """
+        del self.detected[obj]
+        del self.vanished[obj]
 
 
-def detect_colour(
-        frame: np.ndarray,
-        dump: bool = False
-    ) -> List[Tuple[int, int, int, int]]:
-    """
-    Gets the initial regions of interest (ROIs) to be tracked, which are green
-    LEDs in a dark image. Uses a conversion to hue-saturation-luminosity to pick
-    out the green objects in the image, and a dilation filter to emphasise the
-    point-sized ROIs into bigger objects.
+    def update(
+            self, bboxes: List[Tuple[int, int, int, int]]
+        ) -> OrderedDict:
+        """
+        Update centre of mass position of each object in the tracker, depending
+        on whether it was found or lost.
 
-    Params
-    ------
-    frame
-        a single frame of a cv2.VideoCapture() or picamera stream
+        Params
+        ------
+        bboxes
+            bounding boxes returned by an object detector, list of tuples
+            with form (x, y, w, h)
 
-    Returns
-    ------
-        a list of tuples, with the coordinates of the bounding boxes of the
-        detected objects
+        Returns
+        ------
+        the dictionary of tracked objects
+        """
 
-    Side-effects
-    ------
-        centre of mass coordinates are logged for the detected boxes
-    """
-    # Convert the frame in RGB color space to HSV
-    hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        if len(bboxes) == 0:
+            logging.info("Nothing detected")
 
-    # Set range for what is the 'darkest' and 'lightest' green color we look for
-    # even the darkest green will be very bright
-    green_lower = MIN_DETECT_COLOUR
-    green_upper = MAX_DETECT_COLOUR
+            for i in self.vanished.keys():
+                self.vanished[i] += 1
+                if self.vanished[i] > self.lost_frames:
+                    self.untrack(i)
 
-    # create image mask by selecting the range of green hues from the HSV image
-    green_mask = cv2.inRange(hsv_frame, green_lower, green_upper)
+            # don't update and return previously detected objects
+            return self.detected
 
-    if dump:
-        cv2.imwrite('hsv_frame.jpg', hsv_frame)
-        cv2.imwrite('green_mask.jpg', green_mask)
+        new_cmass = np.array([centre_of_mass(bbox) for bbox in bboxes])
 
-    # we look for punctiform green objects, so perform image dilation on mask
-    # to emphasise these points
-    kernel = np.ones((5, 5), "uint8")
-    green_mask = cv2.dilate(green_mask, kernel)
-    if dump:
-        cv2.imwrite('green_mask_dilated.jpg', green_mask)
+        if len(self.detected) == 0:
+            logging.info(f"Registering {len(bboxes)} objects in the tracker")
+            for c in new_cmass:
+                self.track(c)
 
-    res = cv2.bitwise_and(frame,frame, mask = green_mask)
-    if dump:
-        cv2.imwrite('img_masked.jpg', res)
-    res = cv2.cvtColor(res,cv2.COLOR_BGR2GRAY)
-    if dump:
-        cv2.imwrite('img_masked_cvt.jpg', res)
+        else:
+            logging.info(f"Updating {len(bboxes)} objects in the tracker")
 
-    # Find the contours of all green objects
-    contours, hierarchy = cv2.findContours(res,
-        cv2.RETR_TREE,
-        cv2.CHAIN_APPROX_SIMPLE)
+            old_ids   = list(self.detected.keys())
+            old_cmass = list(self.detected.values())
 
-    bboxes = []
-    # go through detected contours and reject if not the wrong size or shape
-    for i, contour in enumerate(contours):
-        box = cv2.contourArea(contour)
-        if(box >= MIN_DETECT_CONTOUR and box <= MAX_DETECT_CONTOUR):
-            x, y, w, h = cv2.boundingRect(contour)
+            # we compute euclidean distances between all pairs of new and old
+            # centres of mass and then sort them
+            D = dist.cdist(np.array(old_cmass), new_cmass)
+            rows = D.min(axis=1).argsort()
+            cols = D.argmin(axis=1)[rows]
 
-            if (w / h >= 0.8 or w / h <= 1.2):
-                # make them slightly larger to help the tracking
-                bboxes.append((x - 1, y - 1, w + 2, h + 2))
+            # we go through distances computed between pairs of objects and
+            # assign the new position based on smallest distance
+            # TODO: use Hungarian algoritm
+            # https://pypi.org/project/hungarian-algorithm/
+            usedRows = set()
+            usedCols = set()
+            for (row, col) in zip(rows, cols):
+                if row in usedRows or col in usedCols:
+                    continue
+                i = old_ids[row]
+                self.detected[i] = new_cmass[col]
+                self.vanished[i] = 0
 
-    log_detected(bboxes)
+                usedRows.add(row)
+                usedCols.add(col)
 
-    return bboxes
+            # we also register for tracking the objects that were not used and check
+            # if anything disappeared
+            unusedRows = set(range(0, D.shape[0])).difference(usedRows)
+            unusedCols = set(range(0, D.shape[1])).difference(usedCols)
 
+            if D.shape[0] >= D.shape[1]:
+                for row in unusedRows:
+                    i = old_ids[row]
+                    self.vanished[i] += 1
+                    if self.vanished[i] > self.lost_frames:
+                        self.untrack(i)
 
-def EuclideanMultiTracker(
-        frame: np.ndarray, bboxes: List[Tuple[int, int, int, int]]
-    ) -> List[Tuple[int, int, int, int]]:
-    """
-    Given contours of objects that were detected in the previous frame detect
-    them again in the current frame, then track based on the shortest distance
-    from the old contours
+            else:
+                for col in unusedCols:
+                    self.track(new_cmass[col])
 
-    Params
-    ------
-    frame
-        a single frame of a cv2.VideoCapture() or picamera stream
-    boxes
-        a list of 4-element tuples with the coordinates and size
-        of bounding boxes ( x, y, width, height )
-
-    Returns
-    -----
-        a list of tuples, with the coordinates of the bounding boxes of the
-        detected objects, in the same order as the previous frame
-    """
-    bbox_dict = dict(zip(range(len(bboxes)), bboxes))
-
-    new_bboxes    = detect_colour(frame)
-    new_bbox_dict = dict()
-
-    # go through new bounding boxes, and find closest box detected in the previous frame
-    # if it's not found, assume the same index
-    for i, box in enumerate(new_bboxes):
-        min_dist = MIN_DISTANCE
-        box_id   = i
-        for j in range(len(bboxes)):
-            dist = np.linalg.norm(centre_of_mass(bbox_dict[j]) - centre_of_mass(box))
-            if (dist < min_dist):
-                min_dist = dist
-                box_id   = j
-        new_bbox_dict[box_id] = box
-
-    # return newBoxes in the order of the dictionary keys
-    return [v for (k, v) in sorted(new_bbox_dict.items())]
-
+        return self.detected

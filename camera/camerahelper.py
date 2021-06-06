@@ -1,3 +1,6 @@
+import cv2
+from collections import OrderedDict
+import datetime
 from imutils.video import VideoStream
 import logging
 import numpy as np
@@ -11,7 +14,8 @@ from typing import Any, List, Tuple, Generator
 import logger
 
 # import tracking code
-from tracking import *
+from detection import detect_colour, draw_annotations
+from tracking  import EuclideanMultiTracker
 
 # initialize the output frame and a lock used to ensure thread-safe
 # exchanges of the output frames (useful when multiple browsers/tabs
@@ -28,6 +32,8 @@ codec = cv2.VideoWriter_fourcc(*'MJPG')
 date  = datetime.datetime.now().strftime('%y-%m-%d_%H%M')
 video_writer = cv2.VideoWriter(f'output_{date}.avi', codec, 12.0, (640, 480))
 
+positions = OrderedDict()
+
 
 def tracking(annotate: bool = True, record: bool = True) -> None:
     """
@@ -43,7 +49,7 @@ def tracking(annotate: bool = True, record: bool = True) -> None:
         - updates the players dict every frame
         - logs tracked positions to log file
     """
-    global video_stream, video_writer, output_frame, lock
+    global video_stream, video_writer, output_frame, lock, positions
 
     # read the first frame and detect objects
     with lock:
@@ -54,9 +60,12 @@ def tracking(annotate: bool = True, record: bool = True) -> None:
     if frame is None:
         logging.info('Error reading first frame. Exiting.')
         exit(0)
-    logging.info('Detect all object in frame.')
 
-    bboxes = detect_colour(frame)
+    bboxes    = detect_colour(frame)
+
+    tracker   = EuclideanMultiTracker()
+    positions = tracker.update(bboxes)
+
     if annotate:
         frame = draw_annotations(frame, bboxes)
 
@@ -71,10 +80,8 @@ def tracking(annotate: bool = True, record: bool = True) -> None:
             if record:
                 video_writer.write(frame)
 
-        new_bboxes = EuclideanMultiTracker(frame, bboxes)
-
-        if (len(new_bboxes) == len(bboxes)):
-            bboxes    = new_bboxes
+        bboxes    = detect_colour(frame)
+        positions = tracker.update(bboxes)
 
         if annotate:
             frame = draw_annotations(frame, bboxes)
