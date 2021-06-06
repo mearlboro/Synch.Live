@@ -6,7 +6,7 @@ from picamera import PiCamera
 import threading
 import time
 
-from typing import Any, List, Tuple, Optional, Union
+from typing import List, Tuple, Generator
 
 # initialise logging to file
 import logger
@@ -23,8 +23,13 @@ lock = threading.Lock()
 # initialize a flask object
 app = Flask(__name__)
 # initialize the video stream and allow the sensor to warm up
-stream = VideoStream(usePiCamera=1, resolution=(640,480), framerate=12).start()
+video_stream = VideoStream(usePiCamera=1, resolution=(640,480), framerate=12).start()
 time.sleep(1)
+
+# define video writer to save the stream
+codec = cv2.VideoWriter_fourcc(*'MJPG')
+date  = datetime.datetime.now().strftime('%y-%m-%d_%H%M')
+video_writer    = cv2.VideoWriter(f'output_{date}.avi', codec, 12.0, (640, 480))
 
 
 @app.route("/")
@@ -44,7 +49,8 @@ def video_feed():
         mimetype = "multipart/x-mixed-replace; boundary=frame")
 
 
-def tracking():
+
+def tracking(annotate: bool = True, record: bool = True) -> None:
     """
     Tracking process, starting with initial object detection, then fetch a
     new frame and track. Annotate image and produce a streamable output
@@ -52,15 +58,18 @@ def tracking():
 
     Side-effects
     ------
+        - produce a stream in output_frame
         - may acquire or release lock
         - consumes the video stream
-        - produce a video stream and send it to webserver
         - logs tracked positions to log file
     """
-    global stream, output_frame, lock
+    global video_stream, video_writer, output_frame, lock
 
     # read the first frame and detect objects
-    frame = stream.read()
+    with lock:
+        frame = video_stream.read()
+        if record:
+            video_writer.write(frame)
 
     if frame is None:
         logging.info('Error reading first frame. Exiting.')
@@ -68,28 +77,34 @@ def tracking():
     logging.info('Detect all object in frame.')
 
     bboxes = detect_colour(frame)
-    frame_annot = draw_annotations(frame, bboxes)
+    if annotate:
+        frame = draw_annotations(frame, bboxes)
 
     # acquire the lock, set the output frame, and release the lock
     with lock:
-        output_frame = frame_annot.copy()
+        output_frame = frame.copy()
 
     # loop over frames from the video stream and track
     while True:
-        frame = stream.read()
+        with lock:
+            frame = video_stream.read()
+            if record:
+                video_writer.write(frame)
+
         new_bboxes = EuclideanMultiTracker(frame, bboxes)
 
         if (len(new_bboxes) == len(bboxes)):
             bboxes = new_bboxes
 
-        frame_annot = draw_annotations(frame, bboxes)
+        if annotate:
+            frame = draw_annotations(frame, bboxes)
 
         # acquire the lock, set the output frame, and release the lock
         with lock:
-            output_frame = frame_annot.copy()
+            output_frame = frame.copy()
 
 
-def generate_frame():
+def generate_frame() -> Generator[bytes, None, None]:
     # grab global references to the output frame and lock variables
     global output_frame, lock
     # loop over frames from the output stream
@@ -106,7 +121,7 @@ def generate_frame():
             if not flag:
                 continue
         # yield the output frame in the byte format
-        yield(b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + 
+        yield(b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' +
             bytearray(encoded_frame) + b'\r\n')
 
 
@@ -119,5 +134,6 @@ if __name__ == '__main__':
     # start the flask app
     app.run(host='192.168.100.100', port=8888, debug=True,
             threaded=True, use_reloader=False)
-    # release the video stream pointer
-    stream.stop()
+    # release the video stream and writer pointers
+    video_stream.stop()
+    video_writer.release()
