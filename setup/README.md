@@ -16,10 +16,14 @@ You should first generate an SSH key which will be used to communicate with all 
 
 ### Instructions
 
-Then, for each player headset that needs to be deployed:
+Then, for each Raspberry Pi in the system (headset or observer) that needs to be deployed:
 
 1. Install Raspberry Pi OS Lite onto the SD card
 2. Make sure SD card is mounted. Two partitions are expected: `boot` and `rootfs`
 3. Run the setup script for the current player number
 
         ./setup_sd_card.sh 1
+
+   or with the parameter set to 0 for the observer
+
+        ./setup_sd_card.sh 0
