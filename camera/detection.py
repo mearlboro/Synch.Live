@@ -10,10 +10,9 @@ from typing import Any, List, Tuple, Optional, Union
 # initialise logging to file
 import logger
 
-# TODO set at calibration time
-# colours are in BGR
-MIN_DETECT_COLOUR = np.array([63, 127, 127], np.uint8)
-MAX_DETECT_COLOUR = np.array([127, 255, 255], np.uint8)
+# defaults to bright green
+MIN_DETECT_HSV = np.array([ 50, 100, 140], np.uint8)
+MAX_DETECT_HSV = np.array([ 85, 255, 255], np.uint8)
 MIN_DETECT_CONTOUR = 100
 MAX_DETECT_CONTOUR = 400
 
@@ -96,7 +95,9 @@ def draw_annotations(
 
 
 def detect_blobs(
-        frame: np.ndarray
+        frame: np.ndarray,
+        min_area: int = MIN_DETECT_CONTOUR,
+        max_area: int = MAX_DETECT_CONTOUR
     ) -> List[cv2.KeyPoint]:
     """
     Gets the initial regions of interest (ROIs) to be tracked, which are green
@@ -109,6 +110,8 @@ def detect_blobs(
     ------
     frame
         a single frame of a cv2.VideoCapture() or picamera stream
+    min_area, max_area
+        minimum and maximum area a blob requires to be detected
 
     Returns
     ------
@@ -124,8 +127,8 @@ def detect_blobs(
     params.filterByCircularity = 1
     params.minCircularity = 0.9
     params.filterByArea = 1
-    params.minArea = MIN_DETECT_CONTOUR
-    params.maxArea = MAX_DETECT_CONTOUR
+    params.minArea = min_area
+    params.maxArea = max_area
     params.filterByColor = 1
     params.blobColor = 0
     detector = cv2.SimpleBlobDetector_create(params)
@@ -141,7 +144,11 @@ def detect_blobs(
 
 def detect_colour(
         frame: np.ndarray,
-        dump: bool = False
+        min_hsv: np.ndarray = MIN_DETECT_HSV,
+        max_hsv: np.ndarray = MAX_DETECT_HSV,
+        min_contour: int    = MIN_DETECT_CONTOUR,
+        max_contour: int    = MAX_DETECT_CONTOUR,
+        dump: bool          = False
     ) -> List[Tuple[int, int, int, int]]:
     """
     Gets the initial regions of interest (ROIs) to be tracked, which are green
@@ -153,6 +160,11 @@ def detect_colour(
     ------
     frame
         a single frame of a cv2.VideoCapture() or picamera stream
+    min_contour, max_contour
+        minimum and maximum perimeter a rectangle requires to be detected
+    min_hsv, max_hsv
+        numpy arrays of shape (3,) where the elements represent HSV values to
+        be used as colour range for the objects to be detected
 
     Returns
     ------
@@ -166,13 +178,8 @@ def detect_colour(
     # Convert the frame in RGB color space to HSV
     hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-    # Set range for what is the 'darkest' and 'lightest' green color we look for
-    # even the darkest green will be very bright
-    green_lower = MIN_DETECT_COLOUR
-    green_upper = MAX_DETECT_COLOUR
-
     # create image mask by selecting the range of green hues from the HSV image
-    green_mask = cv2.inRange(hsv_frame, green_lower, green_upper)
+    green_mask = cv2.inRange(hsv_frame, min_hsv, max_hsv)
 
     if dump:
         cv2.imwrite('hsv_frame.jpg', hsv_frame)
@@ -189,8 +196,6 @@ def detect_colour(
     if dump:
         cv2.imwrite('img_masked.jpg', res)
     res = cv2.cvtColor(res,cv2.COLOR_BGR2GRAY)
-    if dump:
-        cv2.imwrite('img_masked_cvt.jpg', res)
 
     # Find the contours of all green objects
     contours, hierarchy = cv2.findContours(res,
@@ -201,7 +206,7 @@ def detect_colour(
     # go through detected contours and reject if not the wrong size or shape
     for i, contour in enumerate(contours):
         box = cv2.contourArea(contour)
-        if(box >= MIN_DETECT_CONTOUR and box <= MAX_DETECT_CONTOUR):
+        if(box >= min_contour and box <= max_contour):
             x, y, w, h = cv2.boundingRect(contour)
 
             if (w / h >= 0.8 or w / h <= 1.2):
