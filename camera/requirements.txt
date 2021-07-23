@@ -1,0 +1,6 @@
+click
+imutils
+matplotlib
+numpy
+opencv-contrib-python~=4.4.0.46
+typing

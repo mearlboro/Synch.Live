@@ -192,10 +192,10 @@ def detect_colour(
     if dump:
         cv2.imwrite('green_mask_dilated.jpg', green_mask)
 
-    res = cv2.bitwise_and(frame,frame, mask = green_mask)
+    res = cv2.bitwise_and(frame, frame, mask = green_mask)
     if dump:
         cv2.imwrite('img_masked.jpg', res)
-    res = cv2.cvtColor(res,cv2.COLOR_BGR2GRAY)
+    res = cv2.cvtColor(res, cv2.COLOR_BGR2GRAY)
 
     # Find the contours of all green objects
     contours, hierarchy = cv2.findContours(res,
