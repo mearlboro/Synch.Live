@@ -11,6 +11,14 @@ from typing import Any, List, Tuple, Optional, Union
 
 from detection import detect_colour, draw_annotations
 
+def dump_trajectories(traj: List[List[np.ndarray]], out: str) -> None:
+    """
+    Save trajectories to specified filename in media folder
+    """
+    nptraj = np.array(traj)
+    nptraj.dump(f'../media/trajectories/{out}')
+
+
 def get_opencv_tracker(name: str) -> Any:
     """
     Create single OpenCV object tracker by name.
@@ -47,7 +55,7 @@ def get_opencv_tracker(name: str) -> Any:
 
 def opencv_multitracking(
         vid: cv2.VideoCapture, multiTracker: cv2.MultiTracker, out: str
-    ):
+    ) -> None:
     """
     Tracks objects in given video, drawing a video output with bounding boxes,
     and dumping coordinates of centre of mass as numpy array
@@ -77,7 +85,8 @@ def opencv_multitracking(
 
         if not success:
             print('Failed to read frame from video')
-            continue
+            dump_trajectories(traj, out)
+            return
 
         success, newBoxes = multiTracker.update(frame)
 
@@ -92,12 +101,8 @@ def opencv_multitracking(
         cv2.imshow('Tracking of Synch.live players', frame)
         # wait on any key to move to the next frame, and exit if it's Esc
         if cv2.waitKey(1) & 0xFF == 27:
-            nptraj = np.array(traj)
-            nptraj.dump(f'../media/trajectories/{out}')
+            dump_trajectories(traj, out)
             return
-
-        nptraj = np.array(traj)
-        nptraj.dump(f'../media/trajectories/{out}')
 
 
 @click.command()
@@ -148,8 +153,7 @@ def plot(filename: str, out: str):
     for i in range(N):
         plt.plot(X[:, i, 0], X[:, i, 1])
     plt.title(f'Synch live player trajectories for video {filename}')
-    plt.savefig(out)
-    #plt.show()
+    plt.savefig(f'../media/plots/{out}')
 
 
 @click.group()
