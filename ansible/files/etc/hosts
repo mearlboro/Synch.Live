@@ -5,7 +5,7 @@ ff02::2		ip6-allrouters
 
 # Synch.Live
 192.168.100.1   router-netgear routr.synch.live
-192.168.100.100 player0  player0.synch.live
+192.168.100.100 observer observer.synch.live
 192.168.100.101 player1  player1.synch.live
 192.168.100.102 player2  player2.synch.live
 192.168.100.103 player3  player3.synch.live

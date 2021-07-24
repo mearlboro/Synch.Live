@@ -1,0 +1,28 @@
+---
+
+- name: shutdown all lights
+  hosts: players
+  tags: shutdown, reboot
+
+  tasks:
+    - name: run stop.py
+      shell: "python3 synch/stop.py"
+
+- name: reboot all players
+  hosts: players
+  become: true
+  tags: reboot
+
+  tasks:
+    - name: reboot (wait 10sec)
+      reboot:
+        reboot_timeout: 10
+
+- name: shutdown all players
+  hosts: players
+  become: true
+  tags: shutdown
+
+  tasks:
+    - name: shutdown (wait 60sec)
+      shell: "shutdown"

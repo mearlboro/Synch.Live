@@ -1,12 +1,35 @@
 ---
 
+- name: copy tracking and streaming code on observer
+  tags: setup
+  hosts: observer
+
+  tasks:
+
+  - name: Create synch folder
+    file:
+      path: "{{ item }}"
+      state: directory
+    with_items:
+      - '/home/pi/synch'
+      - '/home/pi/logs'
+  - name: Copy Python scripts
+    copy:
+      src: "{{ item }}"
+      dest: /home/pi/synch
+      owner: pi
+      group: pi
+      mode: 0644
+    with_fileglob: camera/*.py
+
+
 - name: copy LED control code on all players
   tags: setup
   hosts: players
 
   tasks:
 
-  - name: Create synch folder
+  - name: Create synch folders
     file:
       path: "{{ item }}"
       state: directory
@@ -20,5 +43,10 @@
       owner: pi
       group: pi
       mode: 0644
-    with_fileglob: leds/*
-
+    with_fileglob: leds/*.py
+  - name: Add cron job that starts the pilot at boot
+    cron:
+      name: 'startup_pilot'
+      special_time: reboot
+      state: present
+      job: 'python3 /home/pi/synch/startup.py'

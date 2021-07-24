@@ -8,8 +8,11 @@
 #   - You can enter hostnames or ip addresses
 #   - A hostname/ip can be a member of multiple groups
 
+[observer]
+192.168.100.100
+
 [players]
 192.168.100.[101:110]
 
-[players:vars]
+[all:vars]
 ansible_python_interpreter=/usr/bin/python3
