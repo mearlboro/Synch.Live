@@ -16,7 +16,7 @@ def dump_trajectories(traj: List[List[np.ndarray]], out: str) -> None:
     Save trajectories to specified filename in media folder
     """
     nptraj = np.array(traj)
-    nptraj.dump(f'../media/trajectories/{out}')
+    nptraj.dump(out)
 
 
 def get_opencv_tracker(name: str) -> Any:
@@ -153,7 +153,7 @@ def plot(filename: str, out: str):
     for i in range(N):
         plt.plot(X[:, i, 0], X[:, i, 1])
     plt.title(f'Synch live player trajectories for video {filename}')
-    plt.savefig(f'../media/plots/{out}')
+    plt.savefig(out)
 
 
 @click.group()
