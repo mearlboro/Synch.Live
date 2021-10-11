@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from hungarian_algorithm import algorithm
 import logging
 import numpy as np
 from scipy.spatial import distance as dist
@@ -43,14 +44,14 @@ class EuclideanMultiTracker():
             be tracked.
         """
         self.next_id = 0
-        self.detected = OrderedDict()
-        self.vanished = OrderedDict()
+        self.detected  = OrderedDict()
+        self.vanished  = OrderedDict()
 
         self.min_distance = min_distance
         self.lost_frames  = lost_frames
 
 
-    def track(self, cmass: np.ndarray) -> None:
+    def track(self, box: np.ndarray) -> None:
         """
         Assigns for a detected object an object ID, and stores it in the dicts
 
@@ -60,7 +61,7 @@ class EuclideanMultiTracker():
             numpy array of shape (2,) containing a 2D centre of mass for the
             object to be tracked
         """
-        self.detected[self.next_id] = cmass
+        self.detected[self.next_id] = box
         self.vanished[self.next_id] = 0
         self.next_id += 1
 
@@ -103,55 +104,40 @@ class EuclideanMultiTracker():
             # don't update and return previously detected objects
             return self.detected
 
-        new_cmass = np.array([centre_of_mass(bbox) for bbox in bboxes])
-
         if len(self.detected) == 0:
             logging.info(f"Registering {len(bboxes)} objects in the tracker")
-            for c in new_cmass:
-                self.track(c)
+            [ self.track(bbox) for bbox in bboxes ]
 
         else:
             logging.info(f"Updating {len(bboxes)} objects in the tracker")
 
             old_ids   = list(self.detected.keys())
-            old_cmass = list(self.detected.values())
+            old_cmass = np.array([ centre_of_mass(bbox)
+                            for bbox in list(self.detected.values()) ])
+            new_cmass = np.array([centre_of_mass(bbox) for bbox in bboxes])
 
-            # we compute euclidean distances between all pairs of new and old
-            # centres of mass and then sort them
-            D = dist.cdist(np.array(old_cmass), new_cmass)
-            rows = D.min(axis=1).argsort()
-            cols = D.argmin(axis=1)[rows]
+            # we compute Euclidean distances between all pairs of new and old
+            # centres of mass and then place them in a weighted bipartite graph
+            # stored as a dict of dicts
+            dists = dist.cdist(old_cmass, new_cmass)
+            ddict = dict()
+            for i in range(len(old_cmass)):
+                ddict[old_ids[i]] = dict()
+                for j in range(len(new_cmass)):
+                    # manually modify 0 values to avoid bug in algorithm
+                    # cf. https://github.com/benchaplin/hungarian-algorithm/issues/4#issuecomment-668621678
+                    ddict[old_ids[i]][f'n{j}'] = dists[i][j] if dists[i][j] else 0.01
 
-            # we go through distances computed between pairs of objects and
-            # assign the new position based on smallest distance
-            # TODO: use Hungarian algoritm
-            # https://pypi.org/project/hungarian-algorithm/
-            usedRows = set()
-            usedCols = set()
-            for (row, col) in zip(rows, cols):
-                if row in usedRows or col in usedCols:
-                    continue
-                i = old_ids[row]
-                self.detected[i] = new_cmass[col]
-                self.vanished[i] = 0
+            # use Hungarian algorithm to assign the object ID to the new position
+            matches = algorithm.find_matching(ddict, matching_type = 'min')
 
-                usedRows.add(row)
-                usedCols.add(col)
-
-            # we also register for tracking the objects that were not used and check
-            # if anything disappeared
-            unusedRows = set(range(0, D.shape[0])).difference(usedRows)
-            unusedCols = set(range(0, D.shape[1])).difference(usedCols)
-
-            if D.shape[0] >= D.shape[1]:
-                for row in unusedRows:
-                    i = old_ids[row]
-                    self.vanished[i] += 1
-                    if self.vanished[i] > self.lost_frames:
-                        self.untrack(i)
-
-            else:
-                for col in unusedCols:
-                    self.track(new_cmass[col])
+            for ((old_id, new_id), distance) in matches:
+                if distance <= self.min_distance:
+                    self.detected[old_id] = bboxes[int(new_id[1:])]
+                    self.vanished[old_id] = 0
+                else:
+                    self.vanished[old_id] += 1
+                    if self.vanished[old_id] > self.lost_frames:
+                        self.untrack(old_id)
 
         return self.detected

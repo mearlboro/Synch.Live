@@ -1,4 +1,5 @@
 click
+hungarian-algorithm
 imutils
 matplotlib
 numpy
