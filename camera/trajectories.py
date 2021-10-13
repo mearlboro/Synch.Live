@@ -166,7 +166,7 @@ def realtime_multitracking(
 @click.command()
 @click.option('--filename', help = 'Video file to track', required = True)
 @click.option('--tracker',  help = 'OpenCV tracker to use', default = 'CSRT')
-@click.option('--realtime', help = "If set, don't use OpenCV, but real-time tracker", default = False)
+@click.option('--realtime', help = "If set, don't use OpenCV, but real-time tracker", is_flag = True, default = False)
 @click.option('--out',      help = 'Filename of numpy array dumped', required = True)
 def track(filename: str, tracker: str, realtime: bool, out: str):
     """

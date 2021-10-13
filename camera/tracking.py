@@ -14,14 +14,6 @@ MIN_DISTANCE = 10
 LOST_FRAMES  = 50
 
 
-def centre_of_mass(box: Tuple[int, int, int, int]) -> np.ndarray:
-    """
-    Get x,y coordinates for the centre of mass of a box
-    """
-    (x, y, w, h) = box
-    return np.array([x + w/2, y + h/2]).astype(int)
-
-
 class EuclideanMultiTracker():
     def __init__(self,
             min_distance: int = MIN_DISTANCE, lost_frames: int = LOST_FRAMES
@@ -111,10 +103,11 @@ class EuclideanMultiTracker():
         else:
             logging.info(f"Updating {len(bboxes)} objects in the tracker")
 
+            cmass = lambda x, y, w, h: np.array([x + w/2, y + h/2]).astype(int)
+
             old_ids   = list(self.detected.keys())
-            old_cmass = np.array([ centre_of_mass(bbox)
-                            for bbox in list(self.detected.values()) ])
-            new_cmass = np.array([centre_of_mass(bbox) for bbox in bboxes])
+            old_cmass = np.array([ cmass(*bbox) for bbox in list(self.detected.values()) ])
+            new_cmass = np.array([ cmass(*bbox) for bbox in bboxes ])
 
             # we compute Euclidean distances between all pairs of new and old
             # centres of mass
@@ -122,8 +115,6 @@ class EuclideanMultiTracker():
 
             # use Hungarian algorithm to match an object's old and new positions
             rows, cols = linear_sum_assignment(dists)
-            print(rows)
-            print(cols)
 
             not_updated = set(old_ids)
             for (old_id, new_id) in zip(rows, cols):

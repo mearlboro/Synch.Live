@@ -210,8 +210,7 @@ def detect_colour(
             x, y, w, h = cv2.boundingRect(contour)
 
             if (w / h >= 0.8 or w / h <= 1.2):
-                # make them slightly larger to help the tracking
-                bboxes.append((x - 1, y - 1, w + 2, h + 2))
+                bboxes.append((x, y, w, h))
 
     log_detected(bboxes)
 
