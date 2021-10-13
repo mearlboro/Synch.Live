@@ -1,8 +1,8 @@
 from collections import OrderedDict
-from hungarian_algorithm import algorithm
 import logging
 import numpy as np
 from scipy.spatial import distance as dist
+from scipy.optimize import linear_sum_assignment
 from typing import List, Tuple
 
 # initialise logging to file
@@ -10,7 +10,7 @@ import logger
 
 
 # TODO: set at calibration time
-MIN_DISTANCE = 40
+MIN_DISTANCE = 10
 LOST_FRAMES  = 50
 
 
@@ -117,27 +117,22 @@ class EuclideanMultiTracker():
             new_cmass = np.array([centre_of_mass(bbox) for bbox in bboxes])
 
             # we compute Euclidean distances between all pairs of new and old
-            # centres of mass and then place them in a weighted bipartite graph
-            # stored as a dict of dicts
+            # centres of mass
             dists = dist.cdist(old_cmass, new_cmass)
-            ddict = dict()
-            for i in range(len(old_cmass)):
-                ddict[old_ids[i]] = dict()
-                for j in range(len(new_cmass)):
-                    # manually modify 0 values to avoid bug in algorithm
-                    # cf. https://github.com/benchaplin/hungarian-algorithm/issues/4#issuecomment-668621678
-                    ddict[old_ids[i]][f'n{j}'] = dists[i][j] if dists[i][j] else 0.01
 
-            # use Hungarian algorithm to assign the object ID to the new position
-            matches = algorithm.find_matching(ddict, matching_type = 'min')
+            # use Hungarian algorithm to match an object's old and new positions
+            rows, cols = linear_sum_assignment(dists)
+            print(rows)
+            print(cols)
 
-            for ((old_id, new_id), distance) in matches:
-                if distance <= self.min_distance:
-                    self.detected[old_id] = bboxes[int(new_id[1:])]
+            not_updated = set(old_ids)
+            for (old_id, new_id) in zip(rows, cols):
+                    self.detected[old_id] = bboxes[new_id]
                     self.vanished[old_id] = 0
-                else:
-                    self.vanished[old_id] += 1
-                    if self.vanished[old_id] > self.lost_frames:
-                        self.untrack(old_id)
+                    not_updated.remove(old_id)
+            for i in not_updated:
+                self.vanished[i] += 1
+                if self.vanished[i] > self.lost_frames:
+                    self.untrack(i)
 
         return self.detected
