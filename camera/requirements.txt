@@ -1,5 +1,6 @@
 click
 imutils
+jpype1
 matplotlib
 numpy
 opencv-contrib-python~=4.4.0.46
