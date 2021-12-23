@@ -3,6 +3,7 @@ from collections import OrderedDict
 import datetime
 from imutils.video import FileVideoStream, VideoStream
 import logging
+import numpy as np
 import threading
 import time
 
@@ -12,12 +13,21 @@ from typing import Any, List, Tuple, Generator
 import logger
 
 # import tracking code
+from emergence import EmergenceCalculator
 from detection import detect_colour, draw_annotations
 from tracking  import EuclideanMultiTracker
 
+def compute_macro(X: np.ndarray) -> np.ndarray:
+    """
+    """
+    V = np.mean(X, axis = 0)
+    V = V[np.newaxis, :]
+    return V
+
 
 class VideoProcessor():
-
+    """
+    """
     def __init__(self, use_picamera: bool = True, video: str = 'media/video/3.avi'):
         """
         """
@@ -40,7 +50,13 @@ class VideoProcessor():
         date  = datetime.datetime.now().strftime('%y-%m-%d_%H%M')
         self.video_writer = cv2.VideoWriter(f'output_{date}.avi', codec, 12.0, (640, 480))
 
+        # positions and trajectories of tracked objects
         self.positions = OrderedDict()
+        self.trajectories = list()
+
+        # initialise emergence calculator
+        self.calc = EmergenceCalculator(compute_macro)
+        self.psi  = 0
 
 
     def tracking(self, annotate: bool = True, record: bool = True) -> None:
@@ -87,6 +103,11 @@ class VideoProcessor():
 
             bboxes = detect_colour(frame)
             self.positions = tracker.update(bboxes)
+
+            # compute emergence of positions and update psi
+            X = [ [ x + w/2, y + h/2 ]
+                    for (x, y, w, h) in self.positions.values() ]
+            self.psi = self.calc.update_and_compute(np.array(X))
 
             if annotate:
                 frame = draw_annotations(frame, bboxes)

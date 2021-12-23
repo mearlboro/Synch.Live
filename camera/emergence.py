@@ -18,7 +18,7 @@ import jpype as jp
 # initialise logging to file
 import logger
 
-INFODYNAMICS_PATH = 'infodynamics.jar'
+INFODYNAMICS_PATH = 'camera/infodynamics.jar'
 SAMPLE_THRESHOLD = 10
 
 def javify(Xi):
@@ -66,7 +66,10 @@ def compute_macro(X):
 
 
 class EmergenceCalculator():
-    def __init__(self, use_correction=True):
+    def __init__(self,
+            macro_fun, #: Callable[[np.ndarray], np.ndarray],
+            use_correction=True
+        ) -> None:
         """
         Construct the emergence calculator by setting member variables and
         checking the JVM is started. The JIDT calculators will be initialised
@@ -86,6 +89,8 @@ class EmergenceCalculator():
         self.sample_counter = 0
 
         self.use_correction = use_correction
+
+        self.compute_macro = macro_fun
 
         if not jp.isJVMStarted():
             logging.info('Starting JVM...')
@@ -147,7 +152,7 @@ class EmergenceCalculator():
     def update_and_compute(self, X):
         """
         """
-        V = compute_macro(X)
+        V = self.compute_macro(X)
 
         psi = 0.
         if not self.is_initialised:
@@ -161,6 +166,8 @@ class EmergenceCalculator():
         self.past_X = X
         self.past_V = V
         self.sample_counter += 1
+
+        logging.info(f'Psi: {psi}')
 
         return psi
 
@@ -180,7 +187,7 @@ def test(filename, threshold = SAMPLE_THRESHOLD):
         number of timesteps to wait before calculation, at least as many as the
         dimension of the system
     """
-    calc = EmergenceCalculator()
+    calc = EmergenceCalculator(compute_macro)
 
     X = np.load(filename, allow_pickle=True)
     for i in range(len(X)):
