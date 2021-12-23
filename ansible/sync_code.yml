@@ -21,6 +21,13 @@
       group: pi
       mode: 0644
     with_fileglob: camera/*.py
+  - name: Copy infodynamics
+    copy:
+      src: camera/infodynamics.jar
+      dest: /home/pi/synch
+      owner: pi
+      group: pi
+      mode: 0644
 
 
 - name: copy LED control code on all players

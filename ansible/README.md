@@ -28,6 +28,11 @@ Ansible can send commands in parallel for all players, so you should use as argu
         ansible-playbook reboot.yml -f 10 --tags reboot
 
 
+To only run ansible for the `observer` (note the comma at the end)
+
+        ansible-playbook install_software.yml -i observer,
+
+
 # Commanding the fleet
 
 To copy off the latest Python files used to control the leds/run the experiment
