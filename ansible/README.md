@@ -49,3 +49,23 @@ To shutdown all players
 
         ansible-playbook reboot.yml -f 10 --tags shutdown
 
+
+# Raspbian Buster get update issue (2021/12/20)
+
+Given some changes in the source repos of Raspberry Pi OS this error may appear when 
+running Ansible to update packages
+
+        Get:1 http://archive.raspberrypi.org/debian buster InRelease [32.6 kB]
+        Get:2 http://raspbian.raspberrypi.org/raspbian buster InRelease [15.0 kB]
+        Reading package lists... Done
+        E: Repository 'http://archive.raspberrypi.org/debian buster InRelease' changed its 'Suite' value from 'testing' to 'oldstable'
+        N: This must be accepted explicitly before updates for this repository can be applied. See apt-secure(8) manpage for details.
+        E: Repository 'http://raspbian.raspberrypi.org/raspbian buster InRelease' changed its 'Suite' value from 'stable' to 'oldstable'
+        N: This must be accepted explicitly before updates for this repository can be applied. See apt-secure(8) manpage for details.
+
+
+The only fix I found so far is to SSH into the Pi and run
+
+        sudo apt update --allow-releaseinfo-change
+
+A way to include this in the config will appear at some point.
