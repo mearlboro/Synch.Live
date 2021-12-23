@@ -12,7 +12,7 @@ app = Flask(__name__)
 app.debug    = True
 app.threaded = True
 
-proc = VideoProcessor(use_picamera = True)
+proc = VideoProcessor(use_picamera = False)
 
 @app.route("/")
 def index():
