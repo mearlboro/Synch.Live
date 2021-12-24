@@ -1,5 +1,5 @@
 import click
-from flask import Response, Flask, render_template
+from flask import Response, Flask, jsonify, render_template
 import threading
 import time
 from typing import List, Tuple
@@ -17,6 +17,10 @@ proc = VideoProcessor(use_picamera = True)
 @app.route("/")
 def index():
     return render_template("index.html")
+
+@app.route("/psi")
+def return_psi():
+    return jsonify(proc.Psi)
 
 @app.route("/calibrate")
 def calibrate():

@@ -59,6 +59,11 @@ class VideoProcessor():
         self.psi  = 0
 
 
+    @property
+    def Psi(self) -> float:
+        return self.psi
+
+
     def tracking(self, annotate: bool = True, record: bool = True) -> None:
         """
         Tracking process, starting with initial object detection, then fetch a
