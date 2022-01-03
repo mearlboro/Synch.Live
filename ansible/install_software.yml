@@ -25,13 +25,14 @@
       name:
         - pip
         - setuptools
+      executable: pip3
       state: latest
   - name: Install pip packages
     pip:
       name:
         - logging==0.4.9.6
         - asyncio
-        - apscheduler
+      executable: pip3
 
 
 - name: Install necessary software on observer
@@ -57,11 +58,15 @@
   - name: Install pip packages
     pip:
       name:
-        - flask
-        - flask-socketio
+        - click
+        - Flask
+        - Flask-socketio
         - imutils
+        - JPype1
         - opencv-contrib-python~=4.4.0.46
         - picamera
+        - typing
+      executable: pip3
       state: latest
 
 
@@ -86,4 +91,5 @@
     pip:
       name:
         - adafruit-ws2801
+      executable: pip3
 
