@@ -29,7 +29,10 @@ def compute_macro(X: np.ndarray) -> np.ndarray:
 class VideoProcessor():
     """
     """
-    def __init__(self, use_picamera: bool, video: str = ''):
+    def __init__(
+            self, use_picamera: bool, video: str = '',
+            record: bool = False, annotate: bool = True
+        ):
         """
         """
         # initialize the output frame and a lock used to ensure thread-safe
@@ -39,6 +42,9 @@ class VideoProcessor():
         self.lock = threading.Lock()
 
         self.running = True
+
+        self.record   = record
+        self.annotate = annotate
 
         # initialize the video stream and allow the sensor to warm up
         if use_picamera:
@@ -54,9 +60,10 @@ class VideoProcessor():
             self.video_stream = FileVideoStream(video).start()
 
         # define video writer to save the stream
-        codec = cv2.VideoWriter_fourcc(*'MJPG')
-        date  = datetime.datetime.now().strftime('%y-%m-%d_%H%M')
-        self.video_writer = cv2.VideoWriter(f'../media/video/output_{date}.avi', codec, 12.0, (640, 480))
+        if self.record:
+            codec = cv2.VideoWriter_fourcc(*'MJPG')
+            date  = datetime.datetime.now().strftime('%y-%m-%d_%H%M')
+            self.video_writer = cv2.VideoWriter(f'../media/video/output_{date}.avi', codec, 12.0, (640, 480))
 
         # positions and trajectories of tracked objects
         self.positions = OrderedDict()
@@ -72,7 +79,7 @@ class VideoProcessor():
         return self.psi
 
 
-    def tracking(self, annotate: bool = True, record: bool = True) -> None:
+    def tracking(self) -> None:
         """
         Tracking process, starting with initial object detection, then fetch a
         new frame and track. Annotate image and produce a streamable output
@@ -89,7 +96,7 @@ class VideoProcessor():
         # read the first frame and detect objects
         with self.lock:
             frame = self.video_stream.read()
-            if record:
+            if self.record:
                 self.video_writer.write(frame)
 
         if frame is None:
@@ -100,7 +107,7 @@ class VideoProcessor():
         tracker = EuclideanMultiTracker()
         self.positions = tracker.update(bboxes)
 
-        if annotate:
+        if self.annotate:
             frame = draw_annotations(frame, bboxes)
 
         # acquire the lock, set the output frame, and release the lock
@@ -112,7 +119,7 @@ class VideoProcessor():
             with self.lock:
                 frame = self.video_stream.read()
 
-                if record:
+                if self.record:
                     self.video_writer.write(frame)
 
             if frame is not None:
@@ -124,7 +131,7 @@ class VideoProcessor():
                         for (x, y, w, h) in self.positions.values() ]
                 self.psi = self.calc.update_and_compute(np.array(X))
 
-                if annotate:
+                if self.annotate:
                     frame = draw_annotations(frame, bboxes)
 
                 # acquire the lock, set the output frame, and release the lock
@@ -134,6 +141,8 @@ class VideoProcessor():
 
     def generate_frame(self) -> Generator[bytes, None, None]:
         """
+        Generate a JPEG frame from the output_frame created in tracking encoded
+        as byte array
         """
         while self.running:
             # wait until the lock is acquired
@@ -160,7 +169,9 @@ class VideoProcessor():
 
         logging.info('Stopping video streamer...')
         self.video_stream.stop()
-        logging.info('Stopping video writer...')
-        self.video_writer.release()
+
+        if self.record:
+            logging.info('Stopping video writer...')
+            self.video_writer.release()
 
         self.calc.exit()
