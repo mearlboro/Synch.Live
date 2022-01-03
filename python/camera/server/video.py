@@ -38,6 +38,8 @@ class VideoProcessor():
         self.output_frame = None
         self.lock = threading.Lock()
 
+        self.running = True
+
         # initialize the video stream and allow the sensor to warm up
         if use_picamera:
             self.video_stream = VideoStream(usePiCamera = 1,
@@ -106,32 +108,34 @@ class VideoProcessor():
             self.output_frame = frame.copy()
 
         # loop over frames from the video stream and track
-        while True:
+        while self.running:
             with self.lock:
                 frame = self.video_stream.read()
+
                 if record:
                     self.video_writer.write(frame)
 
-            bboxes = detect_colour(frame)
-            self.positions = tracker.update(bboxes)
+            if frame is not None:
+                bboxes = detect_colour(frame)
+                self.positions = tracker.update(bboxes)
 
-            # compute emergence of positions and update psi
-            X = [ [ x + w/2, y + h/2 ]
-                    for (x, y, w, h) in self.positions.values() ]
-            self.psi = self.calc.update_and_compute(np.array(X))
+                # compute emergence of positions and update psi
+                X = [ [ x + w/2, y + h/2 ]
+                        for (x, y, w, h) in self.positions.values() ]
+                self.psi = self.calc.update_and_compute(np.array(X))
 
-            if annotate:
-                frame = draw_annotations(frame, bboxes)
+                if annotate:
+                    frame = draw_annotations(frame, bboxes)
 
-            # acquire the lock, set the output frame, and release the lock
-            with self.lock:
-                self.output_frame = frame.copy()
+                # acquire the lock, set the output frame, and release the lock
+                with self.lock:
+                    self.output_frame = frame.copy()
 
 
     def generate_frame(self) -> Generator[bytes, None, None]:
         """
         """
-        while True:
+        while self.running:
             # wait until the lock is acquired
             with self.lock:
                 # check if the output frame is available, otherwise skip
@@ -148,9 +152,15 @@ class VideoProcessor():
                 bytearray(encoded_frame) + b'\r\n')
 
 
-    def stop(self) -> None:
+    def exit(self) -> None:
         """
-        Release the video stream and writer pointers
+        Release the video stream and writer pointers and gracefully exit the JVM
         """
+        self.running = False
+
+        logging.info('Stopping video streamer...')
         self.video_stream.stop()
+        logging.info('Stopping video writer...')
         self.video_writer.release()
+
+        self.calc.exit()
