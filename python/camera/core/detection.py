@@ -8,7 +8,7 @@ import sys
 from typing import Any, List, Tuple, Optional, Union
 
 # initialise logging to file
-import logger
+import camera.core.logger
 
 # defaults to bright green
 MIN_DETECT_HSV = np.array([ 50, 100, 140], np.uint8)

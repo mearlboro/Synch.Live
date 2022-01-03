@@ -10,78 +10,52 @@ Rosas FE*, Mediano PAM*, Jensen HJ, Seth AK, Barrett AB, Carhart-Harris RL, et a
 causal emergence in multivariate data_](https://doi.org/10.1371/journal.pcbi.1008289).
 PLoS Comput Biol 16(12):e1008289.
 
+
 ## Contents
 
-The code in the `camera` folder is to be run by the **observer** system, and
-deployed via Ansible.
+The `camera` package contains three sub packages, `core`, `server` and `tools`.
 
-* `camerahelper.py` - helper code used for fetching frames from the sensor and
-streaming
+### `core`
+A package including all the core tools for performing image detection, tracking,
+and emergence computation on a video file of flocking.
+
 - `detection.py` - use HSV filters on an OpenCV image to detect the lights of
 the players on each frame
-- `emergence_calculator.py` - calculate emergence values
-- `hsv_range.py` - tools for extracting colour ranges from an image
+- `emergence.py` - calculate emergence values given trajectories of players
 - `logger.py` - logging setup to be used when the system runs live
-- `server.py` - runs a Flask app to stream the camera footage and a web control
-panel for running experiments
 - `tracking.py` - impplements a real-time tracker to be used when the system
 runs live
+
+The code in `emergence.py` is contributed by [Dr. Pedro Mediano](https://github.com/pmediano).
+
+### `server`
+
+- `server.py` - runs a Flask app to stream the camera footage and a web control
+panel for running experiments
+- `local.py` - runs a Flask app to stream some video footage and a web control
+panel for running experiments
+* `video.py` - helper code used for fetching frames from the sensor or from a video
+file and streaming
+
+### `tools`
+A package that can be used to run the tools in `core` for development and testing
+on an environment that is not the Observer.
+
+- `hsv_range.py` - tools for extracting colour ranges from an image
 - `trajectories.py` - extracts and plots trajectories from a video recorded in
 the experiment, but using non-real time OpenCV trackers
 
-The `media` folder contains footage of players from the first pilot and other
-related multimedia
-* example video files are in `media/video` and snapshots from them in `media/img`
-* example trajectory files extracted from those videos are in the `media/trajectories`
-folder and use the `.np` extension
-* plots of these trajectories in `media/plots`
 
-## Running the code for development
+## Setup Notes
 
-To run parts of the code locally you must install the pkgs in `camera/requirements.txt`
+### Packaging
 
-We recommend packaging with `pipenv` and the code should be run inside a `pipenv`
-shell in the `camera/` folder
+    $ cd python
+    $ pip install -e .
 
-    $ cd python/camera
-    $ pipenv shell requirements.txt
-
-
-### Extracting and plotting trajectories
-
-To extract trajectorie from video using non-real time tracking use
-
-    $ python trajectories.py track --filename $video_file --out $traj_file
-
-The extracted trajectories will be saved as a numpy dump.
-
-
-To plot the extracted trajectories use
-
-    $ python trajectories.py plot --filename $traj_file --out $image_file
-
-
-### Image processing tools
-
-To inspect colours of an image, and produce HSV values of colour ranges
-
-    $ python hsv_range.py --filename $image_file
-
-An OpenCV GUI with sliders for hue, saturation and value for the lower and
-higher ends of the colour range to be selected from the image.
-Move sliders to replace excluded colour with black until the desired range is
-found.
-
-### Calculating emergence
-
-The code in `emergence_calculator.py` is contributed by [Dr. Pedro Mediano](https://github.com/pmediano)
-using the [Java Information Dynamics Toolkit (JIDT)](https://github.com/jlizier/jidt/)
-by [Dr. Joe Lizier](https://github.com/jlizier).
-
-To test the emergence calculator on the trajectories, run
-
-    $ python emergence_calculator.py --filename $traj_file
-
+### infordynamics.jar
+`emergence.py` uses the [Java Information Dynamics Toolkit (JIDT)](https://github.com/jlizier/jidt/)
+by [Dr. Joe Lizier](https://github.com/jlizier). A copy is included in the current repository.
 
 The version used is a slightly modified `v1.5-dist` rebuilt with `ant` and is included in
 the `camera/` folder as `infodynamics.jar`. The JIDT code is called using JPype.
@@ -100,3 +74,61 @@ by commenting out the following lines:
 Finally an `infodynamics.jar` package is built by calling
 
     $ ant jar
+
+
+## Running the code for development
+
+To run parts of the code locally you must install the pkgs in `python/camera/requirements.txt`
+
+We recommend packaging with `pipenv` and the code should be run inside a `pipenv`
+shell in the `camera/` folder. The `pipenv` only requires installing the requirements
+once unless more packages are added.
+
+    $ cd python/camera
+    $ pipenv install -r requirements.txt
+    $ pipenv shell
+
+### Extracting and plotting trajectories
+
+To extract trajectorie from video using non-real time tracking use
+
+    $ cd python/camera/tools
+    $ python trajectories.py track --filename $video_file --out $traj_file
+
+The extracted trajectories will be saved as a numpy dump.
+
+To plot the extracted trajectories use
+
+    $ cd python/camera/tools
+    $ python trajectories.py plot --filename $traj_file --out $image_file
+
+
+### Image processing tools
+
+To inspect colours of an image, and produce HSV values of colour ranges
+
+    $ cd python/camera/tools
+    $ python hsv_range.py --filename $image_file
+
+An OpenCV GUI with sliders for hue, saturation and value for the lower and
+higher ends of the colour range to be selected from the image.
+Move sliders to replace excluded colour with black until the desired range is
+found.
+
+
+### Calculating emergence
+
+To test the emergence calculator on the trajectories, run
+
+    $ cd python/camera/core
+    $ python emergence.py --filename $traj_file
+
+
+### Mocking the streaming server
+
+Then to run a local server mocking the PiCamera by feeding in video footage from `media`
+
+    $ cd python
+    $ python camera/server/local.py
+
+

@@ -11,23 +11,45 @@
       path: "{{ item }}"
       state: directory
     with_items:
-      - '/home/pi/synch'
+      - '/home/pi/camera/core'
+      - '/home/pi/camera/server'
+      - '/home/pi/camera/templates'
       - '/home/pi/logs'
-  - name: Copy Python scripts
+      - '/home/pi/media/video'
+      - '/home/pi/media/trajectories'
+  - name: Copy core Python scripts
     copy:
       src: "{{ item }}"
-      dest: /home/pi/synch
+      dest: /home/pi/camera/core
       owner: pi
       group: pi
       mode: 0644
-    with_fileglob: camera/*.py
+    with_fileglob: camera/core/*.py
   - name: Copy infodynamics
     copy:
-      src: camera/infodynamics.jar
-      dest: /home/pi/synch
+      src: camera/core/infodynamics.jar
+      dest: /home/pi/camera/core
       owner: pi
       group: pi
       mode: 0644
+  - name: Copy Flask Python code
+    copy:
+      src: "{{ item }}"
+      dest: /home/pi/camera/server
+      owner: pi
+      group: pi
+      mode: 0644
+    with_items:
+      - camera/server/observer.py
+      - camera/server/video.py
+  - name: Copy Flask templates
+    copy:
+      src: "{{ item }}"
+      dest: /home/pi/camera/server/templates
+      owner: pi
+      group: pi
+      mode: 0644
+    with_fileglob: camera/server/templates/*.html
 
 
 - name: copy LED control code on all players
@@ -41,16 +63,17 @@
       path: "{{ item }}"
       state: directory
     with_items:
-      - '/home/pi/synch'
+      - '/home/pi/leds'
       - '/home/pi/logs'
   - name: Copy LED light control Python scripts
     copy:
       src: "{{ item }}"
-      dest: /home/pi/synch
+      dest: /home/pi/leds
       owner: pi
       group: pi
       mode: 0644
-    with_fileglob: leds/*.py
+    with_fileglob: python/leds/*.py
+
   - name: Add cron job that starts the pilot at boot
     cron:
       name: 'startup_pilot'

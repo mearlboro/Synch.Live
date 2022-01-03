@@ -6,7 +6,7 @@ from scipy.optimize import linear_sum_assignment
 from typing import List, Tuple
 
 # initialise logging to file
-import logger
+import camera.core.logger
 
 
 # TODO: set at calibration time

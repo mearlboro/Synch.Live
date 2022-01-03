@@ -12,7 +12,7 @@ app = Flask(__name__)
 app.debug    = True
 app.threaded = True
 
-proc = VideoProcessor(use_picamera = False)
+proc = VideoProcessor(use_picamera = False, video = '../media/video/3.avi')
 
 @app.route("/")
 def index():
@@ -51,5 +51,5 @@ def video_feed():
 if __name__ == '__main__':
 
     # start the flask app
-    app.run(host='192.168.100.2', port=8888, debug=True,
+    app.run(host='0.0.0.0', port=8888, debug=True,
             threaded=True, use_reloader=False)

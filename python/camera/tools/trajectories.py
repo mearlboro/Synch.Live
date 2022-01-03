@@ -9,8 +9,8 @@ import time
 
 from typing import Any, List, Tuple, Optional, Union
 
-from detection import detect_colour, draw_annotations
-from tracking import EuclideanMultiTracker
+from camera.core.detection import detect_colour, draw_annotations
+from camera.core.tracking import EuclideanMultiTracker
 
 
 def dump_trajectories(traj: List[List[np.ndarray]], out: str) -> None:

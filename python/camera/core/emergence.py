@@ -11,14 +11,15 @@ Pedro Mediano, Oct 2021
 """
 
 import click
+import jpype as jp
 import logging
 import numpy as np
-import jpype as jp
+import os
 
 # initialise logging to file
-import logger
+import camera.core.logger
 
-INFODYNAMICS_PATH = 'camera/infodynamics.jar'
+INFODYNAMICS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'infodynamics.jar')
 SAMPLE_THRESHOLD = 10
 
 def javify(Xi):

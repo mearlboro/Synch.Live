@@ -51,5 +51,5 @@ def video_feed():
 if __name__ == '__main__':
 
     # start the flask app
-    app.run(host='192.168.100.2', port=8888, debug=True,
+    app.run(host='0.0.0.0', port=8888, debug=True,
             threaded=True, use_reloader=False)

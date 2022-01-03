@@ -4,18 +4,19 @@ import datetime
 from imutils.video import FileVideoStream, VideoStream
 import logging
 import numpy as np
+import os
 import threading
 import time
 
 from typing import Any, List, Tuple, Generator
 
 # initialise logging to file
-import logger
+import camera.core.logger
 
 # import tracking code
-from emergence import EmergenceCalculator
-from detection import detect_colour, draw_annotations
-from tracking  import EuclideanMultiTracker
+from camera.core.emergence import EmergenceCalculator
+from camera.core.detection import detect_colour, draw_annotations
+from camera.core.tracking  import EuclideanMultiTracker
 
 def compute_macro(X: np.ndarray) -> np.ndarray:
     """
@@ -28,7 +29,7 @@ def compute_macro(X: np.ndarray) -> np.ndarray:
 class VideoProcessor():
     """
     """
-    def __init__(self, use_picamera: bool = True, video: str = 'media/video/3.avi'):
+    def __init__(self, use_picamera: bool, video: str = ''):
         """
         """
         # initialize the output frame and a lock used to ensure thread-safe
@@ -41,14 +42,19 @@ class VideoProcessor():
         if use_picamera:
             self.video_stream = VideoStream(usePiCamera = 1,
                 resolution = (640, 480), framerate = 12).start()
+
+            time.sleep(1)
         else:
+            if not os.path.isfile(video):
+                raise ValueError(f'No such file: {video}')
+                exit(0)
+
             self.video_stream = FileVideoStream(video).start()
-        time.sleep(1)
 
         # define video writer to save the stream
         codec = cv2.VideoWriter_fourcc(*'MJPG')
         date  = datetime.datetime.now().strftime('%y-%m-%d_%H%M')
-        self.video_writer = cv2.VideoWriter(f'output_{date}.avi', codec, 12.0, (640, 480))
+        self.video_writer = cv2.VideoWriter(f'../media/video/output_{date}.avi', codec, 12.0, (640, 480))
 
         # positions and trajectories of tracked objects
         self.positions = OrderedDict()
