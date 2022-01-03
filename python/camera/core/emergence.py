@@ -16,13 +16,15 @@ import logging
 import numpy as np
 import os
 
+from typing import Callable, Iterable
+
 # initialise logging to file
 import camera.core.logger
 
 INFODYNAMICS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'infodynamics.jar')
 SAMPLE_THRESHOLD = 10
 
-def javify(Xi):
+def javify(Xi: np.ndarray) -> jp.JArray:
     """
     Convert a numpy array into a Java array to pass to the JIDT classes and
     functions.
@@ -34,6 +36,11 @@ def javify(Xi):
     Xi
         numpy array of shape (D,) or (1,D) representing one 'micro' part of the
         system or one value of the macroscopic feature
+
+    Returns
+    ------
+    jXi
+        the Xi array cast to Java Array
     """
     if len(Xi.shape) == 1:
         D = Xi.shape[0]
@@ -46,19 +53,19 @@ def javify(Xi):
     return jXi
 
 
-def compute_macro(X):
+def compute_macro(X: Iterable[np.ndarray]) -> np.ndarray:
     """
     Computes a supervenient macroscopic feature.
 
-    Parameters
-    ----------
+    Params
+    ------
     X : iter of np.ndarray
-        Each element of X contains a 1D np.ndarray representing one 'micro'
-        part of the system.
+        each element of X contains a 1D numpy array of shape (1,T) representing one
+        'micro' part of the system.
 
     Returns
     -------
-    V : np.ndarray
+    V
         Macroscopic feature of interest of D-dimensions of shape (1,D)
     """
     V = np.mean(X, axis = 0)
@@ -68,8 +75,8 @@ def compute_macro(X):
 
 class EmergenceCalculator():
     def __init__(self,
-            macro_fun, #: Callable[[np.ndarray], np.ndarray],
-            use_correction=True
+            macro_fun: Callable[[np.ndarray], np.ndarray],
+            use_correction: bool = True
         ) -> None:
         """
         Construct the emergence calculator by setting member variables and
@@ -78,13 +85,13 @@ class EmergenceCalculator():
 
         Parameters
         ----------
+        macro_fun: Callable
+            a function that takes an iter of numpy arrays of the same shape (1,T)
+            and returns a numpy array of shape (1,D)
         use_correction : bool
             Whether to use the 1st-order lattice correction for emergence
             calculation.
         """
-
-        self.past_X = None
-        self.past_V = None
 
         self.is_initialised = False
         self.sample_counter = 0
@@ -101,7 +108,7 @@ class EmergenceCalculator():
         logging.info('Successfully initialised EmergenceCalculator')
 
 
-    def initialise_calculators(self, X, V):
+    def initialise_calculators(self, X: np.ndarray, V: np.ndarray) -> None:
         """
         """
         self.N = len(X)
@@ -120,7 +127,7 @@ class EmergenceCalculator():
         self.is_initialised = True
 
 
-    def update_calculators(self, V):
+    def update_calculators(self, V: np.ndarray) -> None:
         """
         """
         jV = javify(V)
@@ -130,7 +137,7 @@ class EmergenceCalculator():
             calc.addObservations(javify(Xip), jV)
 
 
-    def compute_psi(self, V):
+    def compute_psi(self, V: np.ndarray) -> float:
         """
         """
         self.vmiCalc.finaliseAddObservations()
@@ -150,7 +157,7 @@ class EmergenceCalculator():
         return psi
 
 
-    def update_and_compute(self, X):
+    def update_and_compute(self, X: Iterable[np.ndarray]) -> float:
         """
         """
         V = self.compute_macro(X)
@@ -168,25 +175,26 @@ class EmergenceCalculator():
         self.past_V = V
         self.sample_counter += 1
 
-        logging.info(f'Psi: {psi}')
+        logging.info(f'Psi {self.sample_counter}: {psi}')
 
         return psi
 
 
+    def exit(self) -> None:
+        """
+        Gracefully shut down JVM. Call whenever done with the calculator.
+        """
+        if jp.isJVMStarted():
+            logging.info('Shutting down JVM...')
+            jp.shutdownJVM()
+
+
 @click.command()
-@click.option('--filename',  help = 'Numpy array dump of trajectories', required = True)
-@click.option('--threshold', help = 'Number of timesteps to wait before calculation')
-def test(filename, threshold = SAMPLE_THRESHOLD):
+@click.option('--filename',  help = 'Numpy array dump of microscopic features of the system', required = True)
+@click.option('--threshold', help = 'Number of timesteps to wait before calculation, at least as many as the dimenstions of the system')
+def test(filename: str, threshold: int = SAMPLE_THRESHOLD) -> None:
     """
     Test the emergence calculator on the trajectories specified in `filename`.
-
-    Params
-    ------
-    filename
-        path to a numpy dump of the trajectories (microscopic) features of the system
-    threshold
-        number of timesteps to wait before calculation, at least as many as the
-        dimension of the system
     """
     calc = EmergenceCalculator(compute_macro)
 
@@ -195,6 +203,8 @@ def test(filename, threshold = SAMPLE_THRESHOLD):
         psi = calc.update_and_compute(X[i])
         if psi:
             print(f't{i}: {psi}')
+
+    calc.exit()
 
 
 if __name__ == "__main__":
