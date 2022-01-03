@@ -1,10 +1,6 @@
-# Synch.Live video library
+# Synch.Live camera code
 
-This branch contains development for the **observer** system equipped with the
-RPi Camera Module, as well as example media files and code that can be used
-offline for testing and analysis.
-
-Mainly the code on this branch performs object detection and object tracking to
+The code in this package performs object detection and object tracking to
 produce trajectories, and computes information-theoretical causal emergence of
 these trajectories using the positions of each player and the centre of mass of
 the group as described in:
@@ -17,7 +13,7 @@ PLoS Comput Biol 16(12):e1008289.
 ## Contents
 
 The code in the `camera` folder is to be run by the **observer** system, and
-deployed via Ansible (for config, see branch `dev-ansible`):
+deployed via Ansible.
 
 * `camerahelper.py` - helper code used for fetching frames from the sensor and
 streaming
@@ -47,6 +43,7 @@ To run parts of the code locally you must install the pkgs in `camera/requiremen
 We recommend packaging with `pipenv` and the code should be run inside a `pipenv`
 shell in the `camera/` folder
 
+    $ cd python/camera
     $ pipenv shell requirements.txt
 
 

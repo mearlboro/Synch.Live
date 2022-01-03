@@ -98,7 +98,8 @@ class EuclideanMultiTracker():
 
         if len(self.detected) == 0:
             logging.info(f"Registering {len(bboxes)} objects in the tracker")
-            [ self.track(bbox) for bbox in bboxes ]
+            for bbox in bboxes:
+                self.track(bbox)
 
         else:
             logging.info(f"Updating {len(bboxes)} objects in the tracker")
@@ -120,7 +121,8 @@ class EuclideanMultiTracker():
             for (old_id, new_id) in zip(rows, cols):
                     self.detected[old_id] = bboxes[new_id]
                     self.vanished[old_id] = 0
-                    not_updated.remove(old_id)
+                    if old_id in not_updated:
+                        not_updated.remove(old_id)
             for i in not_updated:
                 self.vanished[i] += 1
                 if self.vanished[i] > self.lost_frames:
