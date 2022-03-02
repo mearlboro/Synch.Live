@@ -114,6 +114,8 @@ class EuclideanMultiTracker():
             # centres of mass
             dists = dist.cdist(old_cmass, new_cmass)
 
+            # import ipdb; ipdb.set_trace()
+
             # use Hungarian algorithm to match an object's old and new positions
             rows, cols = linear_sum_assignment(dists)
 
