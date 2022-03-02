@@ -134,6 +134,10 @@ class EuclideanMultiTracker():
 
 
 
+            ## TODO: From here until the Hungarian algorithm assignment, this
+            ## could be refactored into MotionModel, so that in the future it
+            ## may be generalised as maximum likelihood assignment instead of
+            ## minimum distance
             num_detections = len(bboxes)
             predicted_pos = np.array([mm.predict_mean() for mm in self.momodels])
 
@@ -201,6 +205,11 @@ class EuclideanMultiTracker():
         return self.detected
 
 
+## TODO: Refactor this class into an abstract one, and then make children with
+## specific time series models -- i.e. Kalman, max-likelihood Kalman, constant
+## (the one in the previous implementation), fixed velocity, etc
+
+## TODO: Update docstrings
 class MotionModel():
     """
     """
@@ -232,17 +241,21 @@ class MotionModel():
         the dictionary of tracked objects
         """
         self.trajectory = []
+
+        # These parameters are for position+velocity Kalman filter
         A = [[1,0,1,0], [0,1,0,1], [0,0,1,0], [0,0,0,1]]
         C = np.eye(4)
-        # A = [[1., 0.], [0., 1.]]
-        # C = [[1., 0.], [0., 1.]]
-        self.kf = KalmanFilter(transition_matrices=A, observation_matrices=C,
-                observation_offsets=np.array([0,0,0,0]))
-
-        # self.state_mean = [0,0]
-        # self.state_cov  = [[1,0], [0,1]]
         self.state_mean = np.array([0,0,0,0])
         self.state_cov  = np.eye(4)
+
+        # These parameters are for position only Kalman filter
+        # A = [[1., 0.], [0., 1.]]
+        # C = [[1., 0.], [0., 1.]]
+        # self.state_mean = [0,0]
+        # self.state_cov  = [[1,0], [0,1]]
+
+        self.kf = KalmanFilter(transition_matrices=A, observation_matrices=C,
+                observation_offsets=np.array([0,0,0,0]))
 
         self.update(bbox)
 
@@ -289,6 +302,7 @@ class MotionModel():
         # if self.kf.observation_offsets is None:
         #     self.kf.observation_offsets = np.array([0., 0., 0., 0.])
         obs = np.dot(self.kf.observation_matrices, m) + self.kf.observation_offsets
+        # NOTE: If the position-only filter is used, the next line should be only 'return obs'
         return obs[:2]
 
 
