@@ -70,7 +70,7 @@ class VideoProcessor():
         return self.psi
 
 
-    def tracking(self, annotate: bool = True, record: bool = True) -> None:
+    def tracking(self, annotate: bool = True, record: bool = False) -> None:
         """
         Tracking process, starting with initial object detection, then fetch a
         new frame and track. Annotate image and produce a streamable output
@@ -99,7 +99,7 @@ class VideoProcessor():
         self.positions = tracker.update(bboxes)
 
         if annotate:
-            frame = draw_annotations(frame, bboxes)
+            frame = draw_annotations(frame, self.positions.values())
 
         # acquire the lock, set the output frame, and release the lock
         with self.lock:
@@ -121,7 +121,7 @@ class VideoProcessor():
             self.psi = self.calc.update_and_compute(np.array(X))
 
             if annotate:
-                frame = draw_annotations(frame, bboxes)
+                frame = draw_annotations(frame, self.positions.values())
 
             # acquire the lock, set the output frame, and release the lock
             with self.lock:
