@@ -14,24 +14,36 @@ from typing import Any, List, Tuple, Generator
 import camera.core.logger
 
 # import tracking code
-from camera.core.emergence import EmergenceCalculator
+from camera.core.emergence import EmergenceCalculator, compute_macro
 from camera.core.detection import detect_colour, draw_annotations
 from camera.core.tracking  import EuclideanMultiTracker
-
-def compute_macro(X: np.ndarray) -> np.ndarray:
-    """
-    """
-    V = np.mean(X, axis = 0)
-    V = V[np.newaxis, :]
-    return V
 
 
 class VideoProcessor():
     """
+	Helper class which fetches frames from a vidstream, applies object detection
+	and tracking, and computes emergence values based on the object positions &
+	a macroscopic feature of the system.
     """
-    def __init__(self, use_picamera: bool, video: str = ''):
+
+    def __init__(self, use_picamera: bool,
+            record: bool = True, annotate: bool = True, video: str = ''):
         """
+		Params
+		------
+			use_picamera
+				enable if it's run on a RaspberryPi system with a PiCamera
+			record
+				enable to dump the video stream to a file to disk, location is
+				media/video
+			annotate
+				enable to show tracking bounding boxes on the stream
+			video
+				location of video stream if use_picamera is not enabled
         """
+        self.record = record
+        self.annotate = annotate
+
         # initialize the output frame and a lock used to ensure thread-safe
         # exchanges of the output frames (useful when multiple browsers/tabs
         # are viewing the stream)
@@ -52,13 +64,13 @@ class VideoProcessor():
             self.video_stream = FileVideoStream(video).start()
 
         # define video writer to save the stream
-        codec = cv2.VideoWriter_fourcc(*'MJPG')
-        date  = datetime.datetime.now().strftime('%y-%m-%d_%H%M')
-        self.video_writer = cv2.VideoWriter(f'../media/video/output_{date}.avi', codec, 12.0, (640, 480))
+        if self.record:
+            codec = cv2.VideoWriter_fourcc(*'MJPG')
+            date  = datetime.datetime.now().strftime('%y-%m-%d_%H%M')
+            self.video_writer = cv2.VideoWriter(f'../media/video/output_{date}.avi', codec, 12.0, (640, 480))
 
-        # positions and trajectories of tracked objects
+        # positions of tracked objects
         self.positions = OrderedDict()
-        self.trajectories = list()
 
         # initialise emergence calculator
         self.calc = EmergenceCalculator(compute_macro)
@@ -67,27 +79,47 @@ class VideoProcessor():
 
     @property
     def Psi(self) -> float:
+        """
+        Compute causal emergence for the current state
+
+        Params
+        ------
+            None
+
+        Returns
+        ------
+            Psi computation for the positions of all detected points with respect
+            to their centre of mass
+        """
         return self.psi
 
 
-    def tracking(self, annotate: bool = True, record: bool = False) -> None:
+    def tracking(self) -> None:
         """
         Tracking process, starting with initial object detection, then fetch a
         new frame and track. Annotate image and produce a streamable output
-        via the global output_frame variable.
+        via the global `output_frame` variable.
+
+        Params
+        ------
+            None
+
+        Returns
+        ------
+            None
 
         Side-effects
         ------
             - produce a stream in output_frame
             - may acquire or release lock
             - consumes the video stream
-            - updates the players dict every frame
+            - updates the positions dict every frame
             - logs tracked positions to log file
         """
         # read the first frame and detect objects
         with self.lock:
             frame = self.video_stream.read()
-            if record:
+            if self.record:
                 self.video_writer.write(frame)
 
         if frame is None:
@@ -98,7 +130,7 @@ class VideoProcessor():
         tracker = EuclideanMultiTracker()
         self.positions = tracker.update(bboxes)
 
-        if annotate:
+        if self.annotate:
             frame = draw_annotations(frame, self.positions.values())
 
         # acquire the lock, set the output frame, and release the lock
@@ -109,7 +141,7 @@ class VideoProcessor():
         while True:
             with self.lock:
                 frame = self.video_stream.read()
-                if record:
+                if self.record:
                     self.video_writer.write(frame)
 
             bboxes = detect_colour(frame)
@@ -120,7 +152,7 @@ class VideoProcessor():
                     for (x, y, w, h) in self.positions.values() ]
             self.psi = self.calc.update_and_compute(np.array(X))
 
-            if annotate:
+            if self.annotate:
                 frame = draw_annotations(frame, self.positions.values())
 
             # acquire the lock, set the output frame, and release the lock
@@ -130,6 +162,16 @@ class VideoProcessor():
 
     def generate_frame(self) -> Generator[bytes, None, None]:
         """
+        Encode the current output frame as a bytearray of a JPEG image
+
+        Params
+        ------
+            None
+
+        Returns
+        ------
+            a generator that produces a stream of bytes with the frame wrapped
+            in a HTML response
         """
         while True:
             # wait until the lock is acquired
@@ -151,6 +193,16 @@ class VideoProcessor():
     def stop(self) -> None:
         """
         Release the video stream and writer pointers
+
+        Params
+        ------
+            None
+
+        Returns
+        ------
+            None
         """
         self.video_stream.stop()
-        self.video_writer.release()
+
+        if self.record:
+            self.video_writer.release()

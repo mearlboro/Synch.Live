@@ -12,7 +12,9 @@ app = Flask(__name__)
 app.debug    = True
 app.threaded = True
 
-proc = VideoProcessor(use_picamera = False, video = '../media/video/3.avi')
+proc = VideoProcessor(
+    use_picamera = False, video = '../media/video/3.avi',
+    record = False, annotate = True)
 
 @app.route("/")
 def index():
