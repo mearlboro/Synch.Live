@@ -14,7 +14,7 @@ import camera.core.logger
 MIN_DETECT_HSV = np.array([ 50, 100, 140], np.uint8)
 MAX_DETECT_HSV = np.array([ 85, 255, 255], np.uint8)
 MIN_DETECT_CONTOUR = 100
-MAX_DETECT_CONTOUR = 400
+MAX_DETECT_CONTOUR = 500
 
 
 def log_detected(boxes: List[Tuple[int, int, int, int]]) -> None:
