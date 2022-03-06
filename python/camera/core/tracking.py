@@ -95,9 +95,10 @@ class EuclideanMultiTracker():
         # import ipdb; ipdb.set_trace()
 
         if len(self.momodels) == 0:
-            logging.info("First detection, initialising motion models")
-            self.momodels = [MotionModel(bb) for bb in bboxes]
-            self.detected = dict(zip(range(self.num_players), bboxes))
+            if len(bboxes):
+                logging.info("First detection, initialising motion models")
+                self.momodels = [MotionModel(bb) for bb in bboxes]
+                self.detected = dict(zip(range(self.num_players), bboxes))
 
         # if len(bboxes) == 0:
         #     logging.info("Nothing detected")

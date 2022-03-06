@@ -27,7 +27,8 @@ class VideoProcessor():
     """
 
     def __init__(self, use_picamera: bool,
-            record: bool = True, annotate: bool = True, video: str = ''):
+            record: bool = True, annotate: bool = True,
+            video: str = '', record_path = 'media/video'):
         """
 		Params
 		------
@@ -67,7 +68,7 @@ class VideoProcessor():
         if self.record:
             codec = cv2.VideoWriter_fourcc(*'MJPG')
             date  = datetime.datetime.now().strftime('%y-%m-%d_%H%M')
-            self.video_writer = cv2.VideoWriter(f'../media/video/output_{date}.avi', codec, 12.0, (640, 480))
+            self.video_writer = cv2.VideoWriter(f'{record_path}/output_{date}.avi', codec, 12.0, (640, 480))
 
         # positions of tracked objects
         self.positions = OrderedDict()
@@ -75,6 +76,11 @@ class VideoProcessor():
         # initialise emergence calculator
         self.calc = EmergenceCalculator(compute_macro)
         self.psi  = 0
+
+        logging.info("Initialised VideoProcessor and emergence calculator with params:")
+        logging.info(f"use_picamera: {use_picamera}")
+        logging.info(f"record: {record}")
+        logging.info(f"annotate: {annotate}")
 
 
     @property
@@ -147,13 +153,14 @@ class VideoProcessor():
             bboxes = detect_colour(frame)
             self.positions = tracker.update(bboxes)
 
-            # compute emergence of positions and update psi
-            X = [ [ x + w/2, y + h/2 ]
-                    for (x, y, w, h) in self.positions.values() ]
-            self.psi = self.calc.update_and_compute(np.array(X))
+            if len(self.positions.keys()) > 1:
+                # compute emergence of positions and update psi
+                X = [ [ x + w/2, y + h/2 ]
+                        for (x, y, w, h) in self.positions.values() ]
+                self.psi = self.calc.update_and_compute(np.array(X))
 
-            if self.annotate:
-                frame = draw_annotations(frame, self.positions.values())
+                if self.annotate:
+                    frame = draw_annotations(frame, self.positions.values())
 
             # acquire the lock, set the output frame, and release the lock
             with self.lock:
