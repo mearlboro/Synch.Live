@@ -75,8 +75,8 @@ class EuclideanMultiTracker():
 
 
     def update(
-            self, bboxes: List[Tuple[int, int, int, int]]
-        ) -> OrderedDict:
+            self, bboxes: List[Tuple[float, float, float, float]]
+        ) -> OrderedDict
         """
         Update centre of mass position of each object in the tracker, depending
         on whether it was found or lost.
@@ -141,7 +141,7 @@ class EuclideanMultiTracker():
             num_detections = len(bboxes)
             predicted_pos = np.array([mm.predict_mean() for mm in self.momodels])
 
-            cmass = lambda x, y, w, h: np.array([x + w/2, y + h/2]).astype(int)
+            cmass = lambda x, y, w, h: np.array([x + w/2, y + h/2])
             new_cmass = np.array([ cmass(*bbox) for bbox in bboxes ])
 
             # we compute Euclidean distances between all pairs of new and old
