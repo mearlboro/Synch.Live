@@ -28,7 +28,8 @@ def log_detected(boxes: List[Tuple[float, float, float, float]]) -> None:
     for i, box in enumerate(boxes):
         logging.info(f'{i+1}, {box}')
 
-    logging.info(f"Found {len(boxes)} blobs in frame.")
+    if len(boxes):
+        logging.info(f"Found {len(boxes)} blobs in frame.")
 
 
 def draw_bbox(

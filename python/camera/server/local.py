@@ -14,7 +14,7 @@ app.threaded = True
 
 proc = VideoProcessor(
     use_picamera = False, video = '../media/video/3.avi',
-    record = False, annotate = True)
+    record = False, annotate = True, record_path = '../media/video')
 
 @app.route("/")
 def index():

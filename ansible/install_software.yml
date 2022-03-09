@@ -32,6 +32,7 @@
       name:
         - logging==0.4.9.6
         - asyncio
+        - typing
       executable: pip3
 
 
@@ -65,7 +66,7 @@
         - JPype1
         - opencv-contrib-python~=4.4.0.46
         - picamera
-        - typing
+        - pykalman
       executable: pip3
       state: latest
 
