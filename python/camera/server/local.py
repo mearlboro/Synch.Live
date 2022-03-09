@@ -13,8 +13,10 @@ app = Flask(__name__)
 app.debug    = True
 app.threaded = True
 
-proc = VideoProcessor(use_picamera = False, video = '../media/video/2.avi',
-                      record = False, annotate = True)
+proc = VideoProcessor(
+    use_picamera = False, video = '../media/video/3.avi',
+    record = False, annotate = True, record_path = '../media/video')
+
 
 def handler(signum, frame):
     res = input("Do you want to exit? Press y.")
