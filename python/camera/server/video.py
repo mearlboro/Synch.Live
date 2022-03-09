@@ -131,7 +131,7 @@ class VideoProcessor():
         self.positions = tracker.update(bboxes)
 
         if self.annotate:
-            frame = draw_annotations(frame, self.positions.values())
+            frame = draw_annotations(frame, self.positions)
 
         # acquire the lock, set the output frame, and release the lock
         with self.lock:
@@ -149,11 +149,11 @@ class VideoProcessor():
 
             # compute emergence of positions and update psi
             X = [ [ x + w/2, y + h/2 ]
-                    for (x, y, w, h) in self.positions.values() ]
+                    for (x, y, w, h) in self.positions ]
             self.psi = self.calc.update_and_compute(np.array(X))
 
             if self.annotate:
-                frame = draw_annotations(frame, self.positions.values())
+                frame = draw_annotations(frame, self.positions)
 
             # acquire the lock, set the output frame, and release the lock
             with self.lock:

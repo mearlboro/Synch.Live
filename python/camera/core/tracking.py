@@ -76,7 +76,7 @@ class EuclideanMultiTracker():
 
     def update(
             self, bboxes: List[Tuple[float, float, float, float]]
-        ) -> OrderedDict
+        ) -> List[Tuple[float, float, float, float]]:
         """
         Update centre of mass position of each object in the tracker, depending
         on whether it was found or lost.
@@ -165,7 +165,7 @@ class EuclideanMultiTracker():
                 else:
                     self.detected[i] = self.momodels[i].predict_bbox()
 
-            for mm, bbox in zip(self.momodels, self.detected.values()):
+            for mm, bbox in zip(self.momodels, self.detected):
                 mm.update(bbox)
 
 
