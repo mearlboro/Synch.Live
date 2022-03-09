@@ -13,10 +13,17 @@
     with_items:
       - '/home/pi/camera/core'
       - '/home/pi/camera/server'
-      - '/home/pi/camera/templates'
+      - '/home/pi/camera/server/templates'
       - '/home/pi/logs'
       - '/home/pi/media/video'
       - '/home/pi/media/trajectories'
+  - name: Copy setup.py
+    copy:
+      src: setup.py
+      dest: /home/pi/
+      owner: pi
+      group: pi
+      mode: 0644
   - name: Copy core Python scripts
     copy:
       src: "{{ item }}"
@@ -40,6 +47,7 @@
       group: pi
       mode: 0644
     with_items:
+      - camera/server/__init__.py
       - camera/server/observer.py
       - camera/server/video.py
   - name: Copy Flask templates
