@@ -1,15 +1,13 @@
-from collections import OrderedDict
 import logging
 import numpy as np
 from scipy.spatial import distance as dist
 from scipy.optimize import linear_sum_assignment
 from typing import List, Tuple
-from pykalman import KalmanFilter
 
 # initialise logging to file
 import camera.core.logger
 
-# import matplotlib.pyplot as plt
+from camera.core.motion_model import ConstantMotionModel, KFMotionModel
 
 
 # TODO: set at calibration time
@@ -41,13 +39,14 @@ class EuclideanMultiTracker():
             be tracked.
         """
         self.next_id = 0
-        self.detected  = OrderedDict()
-        self.vanished  = OrderedDict()
+        self.detected  = []
         self.momodels  = []
 
         self.min_distance = min_distance
         self.lost_frames  = lost_frames
         self.num_players  = num_players
+
+        self.MoMoClass = ConstantMotionModel
 
 
     def track(self, box: np.ndarray) -> None:
@@ -92,54 +91,26 @@ class EuclideanMultiTracker():
         the dictionary of tracked objects
         """
 
-        # import ipdb; ipdb.set_trace()
-
         if len(self.momodels) == 0:
+            # No momodels so far -- initialise one for each bbox
             logging.info("First detection, initialising motion models")
-            self.momodels = [MotionModel(bb) for bb in bboxes]
-            self.detected = dict(zip(range(self.num_players), bboxes))
+            self.momodels = [self.MoMoClass(bb) for bb in bboxes]
+            self.detected = bboxes
 
-        # if len(bboxes) == 0:
-        #     logging.info("Nothing detected")
-
-        #     for i in self.vanished.keys():
-        #         self.vanished[i] += 1
-        #         if self.vanished[i] > self.lost_frames:
-        #             self.untrack(i)
-
-        #     # don't update and return previously detected objects
-        #     return self.detected
-
-        # if len(self.detected) == 0:
-        #     logging.info(f"Registering {len(bboxes)} objects in the tracker")
-        #     for bbox in bboxes:
-        #         self.track(bbox)
+        elif len(bboxes) == 0:
+            # No bboxes detected -- update all models manually
+            logging.info("Nothing detected, using all motion models")
+            for i, mm in enumerate(self.momodels):
+                self.detected[i] = mm.predict_bbox()
+                mm.update(self.detected[i])
 
         else:
+            # Some boxes detected -- running Hungarian algorithm
             logging.info(f"Updating {len(bboxes)} objects in the tracker")
 
-
-
-            # current_pos = np.vstack([mm.trajectory[-1] for mm in self.momodels])
-            # predicted_pos = np.vstack([mm.predict_mean() for mm in self.momodels])
-            # print('=================')
-            # print(current_pos)
-            # print(predicted_pos)
-            # print('=================')
-            # plt.figure(figsize=(10,10))
-            # plt.scatter(current_pos[:,0], current_pos[:,1], 'g')
-            # plt.scatter(predicted_pos[:,0], predicted_pos[:,1], 'r')
-            # plt.show()
-
-
-
-
-            ## TODO: From here until the Hungarian algorithm assignment, this
-            ## could be refactored into MotionModel, so that in the future it
-            ## may be generalised as maximum likelihood assignment instead of
-            ## minimum distance
             num_detections = len(bboxes)
-            predicted_pos = np.array([mm.predict_mean() for mm in self.momodels])
+            num_momodels   = len(self.momodels)
+            predicted_pos = np.array([mm.predict() for mm in self.momodels])
 
             cmass = lambda x, y, w, h: np.array([x + w/2, y + h/2])
             new_cmass = np.array([ cmass(*bbox) for bbox in bboxes ])
@@ -147,16 +118,16 @@ class EuclideanMultiTracker():
             # we compute Euclidean distances between all pairs of new and old
             # centres of mass
             dists = dist.cdist(predicted_pos, new_cmass)
-            assert(dists.shape == (self.num_players, num_detections))
+            assert(dists.shape == (num_momodels, num_detections))
 
             # use Hungarian algorithm to match an object's old and new positions
             rows, cols = linear_sum_assignment(dists)
-            A = np.zeros([self.num_players, num_detections])
+            A = np.zeros([num_momodels, num_detections])
             A[rows, cols] = 1
 
             # match detected bboxes against known motion models. If a motion
             # model has no matching detection, update with its mean prediction
-            for i in range(self.num_players):
+            for i in range(num_momodels):
                 if A[i,:].sum() > 0.5:
                     idx = np.where(A[i,:] > 0.5)[0][0]
                     self.detected[i] = bboxes[idx]
@@ -168,158 +139,16 @@ class EuclideanMultiTracker():
             for mm, bbox in zip(self.momodels, self.detected):
                 mm.update(bbox)
 
+            if num_momodels < num_detections <= self.num_players:
+                # More detections than momodels -- create new ones
+                logging.info(f"Initialising extra objects in the tracker")
+                for i in range(num_detections):
+                    # Find detections that were not matched with previous momodels
+                    if A[:,i].sum() < 0.5:
+                        idx = np.where(A[:,i] < 0.5)[0][0]
+                        self.momodels.append(self.MoMoClass(bboxes[idx]))
 
-            """
-            cmass = lambda x, y, w, h: np.array([x + w/2, y + h/2]).astype(int)
-
-            old_ids   = list(self.detected.keys())
-            old_cmass = np.array([ cmass(*bbox) for bbox in list(self.detected.values()) ])
-            new_cmass = np.array([ cmass(*bbox) for bbox in bboxes ])
-
-            # we compute Euclidean distances between all pairs of new and old
-            # centres of mass
-            dists = dist.cdist(old_cmass, new_cmass)
-
-            # import ipdb; ipdb.set_trace()
-
-            # use Hungarian algorithm to match an object's old and new positions
-            rows, cols = linear_sum_assignment(dists)
-
-
-            ###########
-            cost = dists[rows, cols].sum()
-            if len(rows) != 10 or len(rows) != 10 or cost > 100:
-                import ipdb; ipdb.set_trace()
-            ###########
-
-            not_updated = set(old_ids)
-            for (old_id, new_id) in zip(rows, cols):
-                    self.detected[old_id] = bboxes[new_id]
-                    self.vanished[old_id] = 0
-                    if old_id in not_updated:
-                        not_updated.remove(old_id)
-            for i in not_updated:
-                self.vanished[i] += 1
-                if self.vanished[i] > self.lost_frames:
-                    self.untrack(i)
-            """
 
         return self.detected
 
-
-## TODO: Refactor this class into an abstract one, and then make children with
-## specific time series models -- i.e. Kalman, max-likelihood Kalman, constant
-## (the one in the previous implementation), fixed velocity, etc
-
-## TODO: Update docstrings
-class MotionModel():
-    """
-    """
-    def cmass(self, x, y, w, h):
-        """
-        Params
-        ------
-        bboxes
-            bounding boxes returned by an object detector, list of tuples
-            with form (x, y, w, h)
-
-        Returns
-        ------
-        the dictionary of tracked objects
-        """
-        return np.array([x + w/2, y + h/2]).astype(int)
-
-
-    def __init__(self, bbox):
-        """
-        Params
-        ------
-        bboxes
-            bounding boxes returned by an object detector, list of tuples
-            with form (x, y, w, h)
-
-        Returns
-        ------
-        the dictionary of tracked objects
-        """
-        self.trajectory = []
-
-        # These parameters are for position+velocity Kalman filter
-        A = [[1,0,1,0], [0,1,0,1], [0,0,1,0], [0,0,0,1]]
-        C = np.eye(4)
-        self.state_mean = np.array([0,0,0,0])
-        self.state_cov  = np.eye(4)
-
-        # These parameters are for position only Kalman filter
-        # A = [[1., 0.], [0., 1.]]
-        # C = [[1., 0.], [0., 1.]]
-        # self.state_mean = [0,0]
-        # self.state_cov  = [[1,0], [0,1]]
-
-        self.kf = KalmanFilter(transition_matrices=A, observation_matrices=C,
-                observation_offsets=np.array([0,0,0,0]))
-
-        self.update(bbox)
-
-
-    def update(self, bbox):
-        """
-        Params
-        ------
-        bboxes
-            bounding boxes returned by an object detector, list of tuples
-            with form (x, y, w, h)
-
-        Returns
-        ------
-        the dictionary of tracked objects
-        """
-        p = self.cmass(*bbox)
-        if len(self.trajectory) == 0:
-            v = np.array([0,0])
-        else:
-            v = p - self.trajectory[-1]
-
-        self.trajectory.append(p)
-        obs = np.hstack([p, v])
-        self.state_mean, self.state_cov = self.kf.filter_update(self.state_mean, self.state_cov, obs)
-
-        self.h = bbox[2]
-        self.w = bbox[3]
-
-
-    def predict_mean(self):
-        """
-        Params
-        ------
-        bboxes
-            bounding boxes returned by an object detector, list of tuples
-            with form (x, y, w, h)
-
-        Returns
-        ------
-        the dictionary of tracked objects
-        """
-        m, s = self.kf.filter_update(self.state_mean, self.state_cov)
-        # if self.kf.observation_offsets is None:
-        #     self.kf.observation_offsets = np.array([0., 0., 0., 0.])
-        obs = np.dot(self.kf.observation_matrices, m) + self.kf.observation_offsets
-        # NOTE: If the position-only filter is used, the next line should be only 'return obs'
-        return obs[:2]
-
-
-    def predict_bbox(self):
-        """
-        Params
-        ------
-        bboxes
-            bounding boxes returned by an object detector, list of tuples
-            with form (x, y, w, h)
-
-        Returns
-        ------
-        the dictionary of tracked objects
-        """
-        m = self.predict_mean()
-        return (m[0] - self.w/2, m[1] - self.h/2, self.w, self.h)
 
