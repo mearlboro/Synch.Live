@@ -239,4 +239,5 @@ class VideoProcessor():
             logging.info('Stopping video writer...')
             self.video_writer.release()
 
-        self.calc.exit()
+        if self.task == 'Psi': 
+            self.calc.exit()
