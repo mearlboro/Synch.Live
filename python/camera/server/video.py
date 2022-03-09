@@ -32,7 +32,7 @@ class VideoProcessor():
 	and tracking, and computes emergence values based on the object positions &
 	a macroscopic feature of the system.
     """
-    def __init__(self, use_picamera: bool,
+    def __init__(self, use_picamera: bool, task: str = '',
             record: bool = True, annotate: bool = True,
             video: str = '', record_path = 'media/video'):
         """
@@ -40,6 +40,10 @@ class VideoProcessor():
 		------
 			use_picamera
 				enable if it's run on a RaspberryPi system with a PiCamera
+            task: { 'emergence', '' }
+                if set, after tracking, run a task on the trajectories, specified
+                by this param
+                # TODO: add new tasks
 			record
 				enable to dump the video stream to a file to disk, location is
 				media/video
@@ -50,7 +54,8 @@ class VideoProcessor():
         """
         self.running = True
 
-        self.record = record
+        self.task     = task
+        self.record   = record
         self.annotate = annotate
 
         # initialize the output frame and a lock used to ensure thread-safe
@@ -82,11 +87,16 @@ class VideoProcessor():
         self.positions = OrderedDict()
 
         # initialise emergence calculator
-        self.calc = EmergenceCalculator(compute_macro)
         self.psi  = 0
+        if task == 'Psi':
+            logging.info("Initilised EmergenceCalculator")
+            self.calc = EmergenceCalculator(compute_macro)
+        elif task == '':
+            logging.info("No task specified, continuing")
 
-        logging.info("Initialised VideoProcessor and emergence calculator with params:")
+        logging.info("Initialised VideoProcessor with params:")
         logging.info(f"use_picamera: {use_picamera}")
+        logging.info(f"task: {task}")
         logging.info(f"record: {record}")
         logging.info(f"annotate: {annotate}")
 
@@ -163,11 +173,12 @@ class VideoProcessor():
                 bboxes = detect_colour(frame)
                 self.positions = tracker.update(bboxes)
 
-            if len(self.positions.keys()) > 1:
-                # compute emergence of positions and update psi
-                X = [ [ x + w/2, y + h/2 ]
-                        for (x, y, w, h) in self.positions.values() ]
-                self.psi = self.calc.update_and_compute(np.array(X))
+                if self.task == 'emergence':
+                    if len(self.positions.keys()) > 1:
+                        # compute emergence of positions and update psi
+                        X = [ [ x + w/2, y + h/2 ]
+                                for (x, y, w, h) in self.positions.values() ]
+                        self.psi = self.calc.update_and_compute(np.array(X))
 
                 if self.annotate:
                     frame = draw_annotations(frame, self.positions.values())
