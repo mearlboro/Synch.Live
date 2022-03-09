@@ -129,6 +129,13 @@ To test the emergence calculator on the trajectories, run
 Then to run a local server mocking the PiCamera by feeding in video footage from `media`
 
     $ cd python
-    $ python camera/server/local.py
+    $ python camera/server/server.py local
 
+
+### Running the Observer
+
+> **Note**: this can only be run on a RaspberryPi with a PiCamera attached.
+
+    $ cd python
+    $ python camera/server/server.py observer
 
