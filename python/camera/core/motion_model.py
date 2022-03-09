@@ -75,8 +75,8 @@ class ConstantMotionModel(MotionModel):
 
     def update(self, bbox):
         self.pos = self.cmass(*bbox)
-        self.h = bbox[2]
-        self.w = bbox[3]
+        self.h = bbox[3]
+        self.w = bbox[2]
 
     def predict(self):
         return self.pos
