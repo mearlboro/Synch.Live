@@ -1,5 +1,6 @@
 import click
 from flask import Response, Flask, jsonify, render_template
+import signal
 import threading
 import time
 from typing import List, Tuple
@@ -12,7 +13,17 @@ app = Flask(__name__)
 app.debug    = True
 app.threaded = True
 
-proc = VideoProcessor(use_picamera = True)
+proc = VideoProcessor(use_picamera = True, record = True, annotate = True)
+
+
+def handler(signum, frame):
+    res = input("Do you want to exit? Press y.")
+    if res == 'y':
+        proc.exit()
+        exit(1)
+
+signal.signal(signal.SIGINT, handler)
+
 
 @app.route("/")
 def index():
