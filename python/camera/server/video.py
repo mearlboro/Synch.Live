@@ -73,7 +73,6 @@ class VideoProcessor():
         else:
             if not os.path.isfile(video):
                 raise ValueError(f'No such file: {video}')
-                exit(0)
 
             self.video_stream = FileVideoStream(video).start()
 
@@ -88,7 +87,7 @@ class VideoProcessor():
 
         # initialise emergence calculator
         self.psi  = 0
-        if task == 'Psi':
+        if task == 'emergence':
             logging.info("Initilised EmergenceCalculator")
             self.calc = EmergenceCalculator(compute_macro)
         elif task == '':
@@ -239,5 +238,5 @@ class VideoProcessor():
             logging.info('Stopping video writer...')
             self.video_writer.release()
 
-        if self.task == 'Psi': 
+        if self.task == 'emergence': 
             self.calc.exit()
