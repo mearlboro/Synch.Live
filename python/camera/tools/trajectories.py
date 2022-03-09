@@ -79,7 +79,6 @@ def opencv_multitracking(
         exit when the key pressed is Esc
     """
 
-    coord = list()
     traj  = list()
 
     while vid.isOpened():
@@ -145,14 +144,8 @@ def realtime_multitracking(
         trackingBoxes = detect_colour(frame)
         newBoxes = tracker.update(trackingBoxes)
 
-        print(newBoxes)
-
-        if not success:
-            print('Tracking failed')
-            continue
-
-        draw_annotations(frame, list(newBoxes.values()))
-        cmass = [ np.array([x+w/2, y+h/2]) for (x, y, w, h) in newBoxes.values() ]
+        draw_annotations(frame, newBoxes)
+        cmass = [ np.array([x+w/2, y+h/2]) for (x, y, w, h) in newBoxes ]
         traj.append(cmass)
 
         cv2.imshow('Tracking of Synch.live players', frame)
