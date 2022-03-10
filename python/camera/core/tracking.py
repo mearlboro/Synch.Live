@@ -59,8 +59,7 @@ class EuclideanMultiTracker():
             numpy array of shape (2,) containing a 2D centre of mass for the
             object to be tracked
         """
-        self.detected[self.next_id] = box
-        self.vanished[self.next_id] = 0
+        self.detected.append(box)
         self.next_id += 1
 
 
@@ -70,7 +69,6 @@ class EuclideanMultiTracker():
         being tracked
         """
         del self.detected[obj]
-        del self.vanished[obj]
 
 
     def update(

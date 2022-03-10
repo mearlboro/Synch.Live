@@ -54,14 +54,12 @@ def draw_bbox(
     ------
         updated frame
     """
-    # Obtain frame width and height
-    fw = frame.shape[1]
-    fh = frame.shape[0]
 
     (x, y, w, h) = rect
-    frame = cv2.rectangle(frame, (int(x*fw), int(y*fh), int(w*fw), int(h*fh)), (0, 255, 0), 2)
+    frame = cv2.rectangle(frame, (int(x), int(y), int(w), int(h)),
+                          (0, 255, 0), 2)
 
-    frame = cv2.putText(frame, f"Player{player}", (int(x*fw), int(y*fh)),
+    frame = cv2.putText(frame, f"Player{player}", (int(x), int(y)),
         cv2.FONT_HERSHEY_SIMPLEX,
         0.5, (0, 255, 0))
 
@@ -69,7 +67,8 @@ def draw_bbox(
 
 
 def draw_annotations(
-        frame: np.ndarray, boxes: List[Tuple[float, float, float, float]]
+        frame: np.ndarray, boxes: List[Tuple[float, float, float, float]],
+        normalised: bool = True
     ) -> np.ndarray:
     """
     Draws all necessary annotations (timestamp, tracked objects)
@@ -80,9 +79,11 @@ def draw_annotations(
     frame
         a single frame of a cv2.VideoCapture() or picamera stream
     boxes
-        a list of 4-element tuples with the coordinates and size
-        of rectangles ( x, y, width, height ), normalised to the
-        size of the image
+        a list of 4-element tuples with the coordinates and size of rectangles
+        ( x, y, width, height ), that may be normalised to the size of the image
+    normalsied
+        if set, then the boxes are normalised with image size, so they need to
+        be multiplied with the image size
 
     Returns
     -----
@@ -93,8 +94,16 @@ def draw_annotations(
                 (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX,
                 0.5, (255, 255, 255), 1)
 
+    # Obtain frame width and height
+    fw = frame.shape[1]
+    fh = frame.shape[0]
+
     for i, box in enumerate(boxes):
         # draw rectangle and label over the objects position in the video
+        if normalised:
+            (x, y, w, h) = box
+            box = (x * fw, y * fh, w * fw, h * fh)
+
         frame = draw_bbox(frame, i + 1, box)
 
     return frame
