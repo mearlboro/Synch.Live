@@ -1,7 +1,8 @@
-import sys
+import sys, os
 from flask import Flask, jsonify, render_template
 from flask.wrappers import Response
 import signal
+import logging
 
 # import files performing calibration and tracking
 from video import VideoProcessor
@@ -9,13 +10,26 @@ from video import VideoProcessor
 def create_app(server_type):
     app = Flask(__name__)
     app.debug = True
+    app.config['RECORD_PATH'] = os.environ.get('RECORD_PATH', default='../media/video')
+    app.config['VIDEO_PATH'] = os.environ.get('VIDEO_PATH', default='../media/video/3.avi')
 
+    logging.info(f"Creating {server_type} server")
     if server_type == 'local':
+        logging.info(f"Using preloaded video stream at {app.config['VIDEO_PATH']}")
         proc = VideoProcessor(
-            use_picamera = False, video = '../media/video/3.avi',
-            record = False, annotate = True, record_path = '../media/video')
+            use_picamera = False,
+            record = False,
+            annotate = True,
+            video = app.config['VIDEO_PATH'],
+            record_path = app.config['RECORD_PATH']
+        )
     elif server_type == 'observer':
-        proc = VideoProcessor(use_picamera = True, record = True, annotate = True)
+        proc = VideoProcessor(
+            use_picamera = True,
+            record = True,
+            annotate = True,
+            record_path=app.config['RECORD_PATH']
+        )
     else:
         raise ValueError(f"Unsupported Server Type: {server_type}")
 
@@ -75,7 +89,9 @@ if __name__ == '__main__':
     server_type='observer'
     if len(sys.argv) > 1:
         server_type = sys.argv[1]
-    print(f"Starting {server_type} server")
     # start the flask app
-    create_app(server_type).run(host='0.0.0.0', port=8888, debug=True,
+    host = os.environ.get('HOST', default='0.0.0.0')
+    port = int(os.environ.get('PORT', default='8888'))
+    logging.info(f"Starting server, listening on {host} at port {port}")
+    create_app(server_type).run(host=host, port=port, debug=True,
             threaded=True, use_reloader=False)

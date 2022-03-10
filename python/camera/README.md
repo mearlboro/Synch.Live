@@ -131,6 +131,16 @@ Then to run a local server mocking the PiCamera by feeding in video footage from
     $ cd python
     $ python camera/server/server.py local
 
+To use different video streams you can use an environmental variable
+
+    $ cd python
+    $ VIDEO_PATH='../media/video/2.avi' python camera/server/server.py local
+
+or 
+
+    $ cd python
+    $ export VIDEO_PATH='../media/video/1.avi'
+    $ python camera/server/server.py local
 
 ### Running the Observer
 
@@ -138,4 +148,6 @@ Then to run a local server mocking the PiCamera by feeding in video footage from
 
     $ cd python
     $ python camera/server/server.py observer
+
+
 
