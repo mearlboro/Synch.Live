@@ -1,18 +1,14 @@
 import sys
-import click
-from flask import Response, Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template
+from flask.wrappers import Response
 import signal
-import threading
-import time
-from typing import List, Tuple
 
 # import files performing calibration and tracking
 from video import VideoProcessor
 
 def create_app(server_type):
     app = Flask(__name__)
-    app.debug    = True
-    app.threaded = True
+    app.debug = True
 
     if server_type == 'local':
         proc = VideoProcessor(
@@ -26,7 +22,7 @@ def create_app(server_type):
     def handler(signum, frame):
         res = input("Do you want to exit? Press y.")
         if res == 'y':
-            proc.exit()
+            proc.stop()
             exit(1)
 
     signal.signal(signal.SIGINT, handler)
@@ -40,14 +36,21 @@ def create_app(server_type):
     def return_psi():
         return jsonify(proc.Psi)
 
-    @app.route("/calibrate")
-    def calibrate():
-        # start a thread that will perform motion detection
-        t = threading.Thread(target=proc.tracking)
-        t.daemon = True
-        t.start()
+    @app.route("/start_tracking")
+    def start_tracking():
+        if proc.running:
+            return "Tracker is already running."
+        else:
+            proc.start()
+            return "Started Tracker."
 
-        return render_template("calibrate.html")
+    @app.route("/stop_tracking")
+    def stop_tracking():
+        if proc.running:
+            proc.stop()
+            return "Successfully stopped tracker."
+        else:
+            return "Tracker was not running."
 
     @app.route("/observe")
     def observe():

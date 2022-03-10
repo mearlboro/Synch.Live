@@ -52,8 +52,7 @@ class VideoProcessor():
 			video
 				location of video stream if use_picamera is not enabled
         """
-        self.running = True
-
+        self.running  = False
         self.task     = task
         self.record   = record
         self.annotate = annotate
@@ -62,6 +61,10 @@ class VideoProcessor():
         # exchanges of the output frames (useful when multiple browsers/tabs
         # are viewing the stream)
         self.output_frame = None
+        
+        self.tracking_thread = threading.Thread(target=self.tracking)
+        self.tracking_thread.daemon = True
+
         self.lock = threading.Lock()
 
         # initialize the video stream and allow the sensor to warm up
@@ -115,7 +118,6 @@ class VideoProcessor():
             to their centre of mass
         """
         return self.psi
-
 
     def tracking(self) -> None:
         """
@@ -216,8 +218,12 @@ class VideoProcessor():
             yield(b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' +
                 bytearray(encoded_frame) + b'\r\n')
 
+    def start(self) -> None:
+        if not self.tracking_thread.is_alive():
+            self.running = True
+            self.tracking_thread.run()
 
-    def exit(self) -> None:
+    def stop(self) -> None:
         """
         Release the video stream and writer pointers and gracefully exit the JVM
 
@@ -229,14 +235,16 @@ class VideoProcessor():
         ------
             None
         """
+        logging.info('Stopping tracking thread...')
         self.running = False
 
-        logging.info('Stopping video streamer...')
+        logging.info('Closing video streamer...')
         self.video_stream.stop()
 
         if self.record:
-            logging.info('Stopping video writer...')
+            logging.info('Closing video writer...')
             self.video_writer.release()
 
         if self.task == 'emergence': 
+            logging.info('Closing JVM...')
             self.calc.exit()
