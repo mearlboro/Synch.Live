@@ -1,5 +1,5 @@
 import sys, os
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, redirect, url_for
 from flask.wrappers import Response
 import signal
 import logging
@@ -52,19 +52,15 @@ def create_app(server_type):
 
     @app.route("/start_tracking")
     def start_tracking():
-        if proc.running:
-            return "Tracker is already running."
-        else:
+        if not proc.running:
             proc.start()
-            return "Started Tracker."
+        return redirect(url_for("index"))
 
     @app.route("/stop_tracking")
     def stop_tracking():
         if proc.running:
             proc.stop()
-            return "Successfully stopped tracker."
-        else:
-            return "Tracker was not running."
+        return redirect(url_for("index"))
 
     @app.route("/observe")
     def observe():

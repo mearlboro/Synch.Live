@@ -66,7 +66,6 @@ class VideoProcessor():
         self.output_frame = None
         
         self.tracking_thread = threading.Thread(target=self.tracking)
-        self.tracking_thread.daemon = True
         self.lock = threading.Lock()
 
 
@@ -194,7 +193,6 @@ class VideoProcessor():
         if not self.tracking_thread.is_alive():
             # reinitialise tracking_thread in case previous run crashed
             self.tracking_thread = threading.Thread(target=self.tracking)
-            self.tracking_thread.daemon = True
 
             # initialize the video stream and allow the sensor to warm up
             if self.use_picamera:
