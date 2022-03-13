@@ -53,8 +53,11 @@ async def loop(leds: Headset, period: float, rand: float) -> None:
             rand -= 0.1
         else:
             rand += 0.1
+
         if rand > leds.OFF_DELAY:
             rand = leds.OFF_DELAY
+        if rand < 0:
+            rand = 0
         logging.info(f'Rand: {rand}')
 
         time.sleep(next(gen))
