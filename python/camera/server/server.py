@@ -67,6 +67,14 @@ def create_app(server_type):
             proc.stop()
         return redirect(url_for("index"))
 
+    @app.route("/calibrate")
+    def calibrate():
+        if proc.use_picamera:
+            pi_opts = proc.picamera
+        else:
+            pi_opts = {}
+        return render_template("calibrate.html", use_picamera=proc.use_picamera, pi_opts=pi_opts)
+
     @app.route("/observe")
     def observe():
         return render_template("observe.html", running_text=is_running())

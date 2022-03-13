@@ -201,10 +201,18 @@ class VideoProcessor():
 
             # initialize the video stream and allow the sensor to warm up
             if self.use_picamera:
-                self.video_stream = VideoStream(usePiCamera = 1,
-                    resolution = (640, 480), framerate = 12).start()
+                self.video_stream_obj = VideoStream(usePiCamera = 1,
+                    resolution = (640, 480), framerate = 12)
+                self.video_stream = self.video_stream_obj.start()
 
-                time.sleep(1)
+                ## set picam defaults
+                self.picamera = self.video_stream_obj.stream.camera
+                self.picamera.iso = 25
+                self.picamera.saturation = 100
+                self.picamera.shutter_speed = 244
+                self.picamera.awb_mode = "sunlight"
+
+                time.sleep(2)
             else:
                 if not os.path.isfile(self.video):
                     raise ValueError(f'No such file: {self.video}')
