@@ -1,9 +1,9 @@
 #!/usr/bin/python3
 
-from ledcontrol import Headset
+from ws2801_headset import WS2801Headset
 
 # initialise logging to file
 import logger
 
-leds = Headset((0,0,0), (0,127,0), 2, 1)
+leds = WS2801Headset((0,0,0), (0,127,0), 2, 1)
 leds.pilot()

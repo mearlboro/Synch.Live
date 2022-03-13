@@ -4,7 +4,7 @@ import logging
 import time
 import typing
 
-from ledcontrol import Headset
+from headset import Headset
 
 # initialise logging to file
 import logger
@@ -43,7 +43,7 @@ def mock_loop(leds: Headset, period: float, rand: float) -> None:
 
 
 if __name__ == "__main__":
-    from ledcontrol import WS2801Headset
+    from ws2801_headset import WS2801Headset
 
     leds = WS2801Headset((127, 63, 0), (0, 255, 0), 0.5, 2.5)
 
