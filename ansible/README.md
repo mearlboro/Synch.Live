@@ -107,9 +107,26 @@ To shutdown all players
         ansible-playbook reboot.yml -f 10 --tags shutdown
 
 
-# Raspbian Buster get update issue (2021/12/20)
+# Troubleshooting
 
-Given some changes in the source repos of Raspberry Pi OS this error may appear when 
+## Ansible uses python2 instead of python3
+
+This is configured in `ansible/hosts` and should be picked up by the playbooks.
+If that doesn't happen, it may be that your local Ansible doesn't use python3.
+To check:
+
+    ansible --version | grep "python version"
+
+You can also force the flag to run python3 when running the playbook e.g.
+
+    ansible-playbook install_software.yml -e 'ansible_python_interpreter=/usr/bin/python3'
+
+See also the Ansible [documentation](https://docs.ansible.com/ansible/latest/reference_appendices/python_3_support.html#using-python-3-on-the-managed-machines-with-commands-and-playbooks)
+
+
+## Raspbian Buster get update issue (2021/12/20)
+
+Given some changes in the source repos of Raspberry Pi OS this error may appear when
 running Ansible to update packages
 
         Get:1 http://archive.raspberrypi.org/debian buster InRelease [32.6 kB]
