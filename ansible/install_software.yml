@@ -90,6 +90,8 @@
   - name: Install pip package for the LED lights
     pip:
       name:
+        - asyncio
+        - aiohttp
         - adafruit-ws2801
       executable: pip3
 
