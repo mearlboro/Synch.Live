@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import importlib
 import logging
 import random
 import time
@@ -13,16 +14,23 @@ import RPi.GPIO as GPIO
 # initialise logging to file
 import logger
 
-"""
-The characteristic values for the first version of the headset are hardcoded
-here. If you're building a new type of headset make sure the below reflect
-your setup.
-"""
-COUNT       = 30
-CROWN_RANGE = range(26)
-PILOT_RANGE = [ 28 ]
+# import abstract headset class
+from headset import Headset
 
-class Headset:
+"""
+Class implementing the behaviour of a LED headset on an actual RaspberryPi
+using the WS2801 LEDs
+"""
+class WS2801Headset(Headset):
+
+    """
+    The characteristic values for the first version of the headset are hardcoded
+    here. If you're building a new type of headset make sure to update.
+    """
+    COUNT       = 30
+    CROWN_RANGE = list(range(26))
+    PILOT_RANGE = [ 28 ]
+
 
     def __init__(self,
             crown_col: Tuple[int, int, int], pilot_col: Tuple[int, int, int],
@@ -51,11 +59,8 @@ class Headset:
             lights (not blinking) respectively
 
         """
-        self.crown_col = crown_col
-        self.pilot_col = pilot_col
 
-        self.ON_DELAY  = on_delay
-        self.OFF_DELAY = off_delay
+        super().__init__(crown_col, pilot_col, on_delay, off_delay, pilot_turnon = False)
 
         self.CROWN_RANGE = crown_range
         self.PILOT_RANGE = pilot_range
@@ -64,7 +69,7 @@ class Headset:
         SPI_DEVICE  = 0
         self.pixels = LED.WS2801Pixels(count, spi=SPI.SpiDev(SPI_PORT, SPI_DEVICE), gpio=GPIO)
 
-        logging.info('Initialisation complete')
+        logging.info('Initialisation of WS2801 LEDs complete')
 
         self.pilot()
 
@@ -75,7 +80,7 @@ class Headset:
         """
         self.pixels.clear()
         self.pixels.show()
-        logging.info('All off')
+        super().all_off()
 
 
     def pilot(self) -> None:
@@ -85,7 +90,7 @@ class Headset:
         for i in self.PILOT_RANGE:
             self.pixels.set_pixel(i, LED.RGB_to_color(*self.pilot_col))
         self.pixels.show()
-        logging.info('Pilot on')
+        super().pilot()
 
 
     def crown_on(self) -> None:
@@ -95,7 +100,7 @@ class Headset:
         for i in self.CROWN_RANGE:
             self.pixels.set_pixel(i, LED.RGB_to_color(*self.crown_col))
         self.pixels.show()
-        logging.info('Crown on')
+        super().crown_on()
 
     def crown_off(self) -> None:
         """
@@ -104,7 +109,7 @@ class Headset:
         for i in self.CROWN_RANGE:
             self.pixels.set_pixel(i, LED.RGB_to_color(0, 0, 0))
         self.pixels.show()
-        logging.info('Crown off')
+        super().crown_off()
 
 
     def crown_blink(self) -> None:
@@ -129,7 +134,7 @@ class Headset:
         The amount of time delay is chosen uniformly at random from a range
         given by the parameter.
         """
-        if rand:
+        if rand > 0:
             r = random.uniform(0, rand)
         else:
             r = 0

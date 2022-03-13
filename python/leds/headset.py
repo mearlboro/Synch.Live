@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+from abc import ABC
+import importlib
 import logging
 import random
 import time
@@ -8,15 +10,27 @@ from typing import List, Tuple
 # initialise logging to file
 import logger
 
-class Headset:
+"""
+The characteristic values for the first version of the headset are hardcoded
+here. If you're building a new type of headset make sure the below reflect
+your setup.
+"""
+COUNT       = 30
+CROWN_RANGE = list(range(26))
+PILOT_RANGE = [ 28 ]
 
+
+"""
+Abstract class implementing the main behaviour of the LED headset
+"""
+class Headset(ABC):
     def __init__(self,
             crown_col: Tuple[int, int, int], pilot_col: Tuple[int, int, int],
-            on_delay: float, off_delay: float,
+            on_delay: float, off_delay: float, pilot_turnon: bool = True
         ) -> None:
         """
-        Initialise WS2801 pixel array. The array is split into two parts, the 'crown'
-        which will blink and the 'pilot' light which must be always on and pure green.
+        Initialise abstract class (also useful for mocking the headset on a dev
+        environment
 
         Params
         ------
@@ -26,13 +40,8 @@ class Headset:
         on_delay, off_delay
             time (in seconds) the crown lights should be on, and off, respectively
 
-        count
-            total number of LEDs on the headset
-
-        crown_range, pilot_range
-            a list of indexes for the LEDS used in the crown (blinking) or as pilot
-            lights (not blinking) respectively
-
+        pilot_turnon
+            if set, turn on the pilot light once initialisation is complete
         """
         self.crown_col = crown_col
         self.pilot_col = pilot_col
@@ -40,9 +49,10 @@ class Headset:
         self.ON_DELAY  = on_delay
         self.OFF_DELAY = off_delay
 
-        logging.info('Initialisation complete')
+        logging.info('Initialisation complete for colour and delay')
 
-        self.pilot()
+        if pilot_turnon:
+            self.pilot()
 
 
     def all_off(self) -> None:
@@ -94,7 +104,7 @@ class Headset:
         The amount of time delay is chosen uniformly at random from a range
         given by the parameter.
         """
-        if rand:
+        if rand > 0:
             r = random.uniform(0, rand)
         else:
             r = 0
