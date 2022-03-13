@@ -2,6 +2,7 @@
 
 import logging
 import time
+import typing
 
 from ledcontrol import Headset
 
@@ -9,7 +10,7 @@ from ledcontrol import Headset
 import logger
 
 
-def loop_blink(period):
+def mock_loop(leds: Headset, period: float, rand: float) -> None:
     """
     This function uses a generator defined below in the tick() function to call
     the Headset function that makes the lights blink with a period given by the
@@ -26,8 +27,6 @@ def loop_blink(period):
 
     gen = tick()
 
-    global rand
-
     while rand > 0:
         time.sleep(next(gen))
         logging.info(f'Tick')
@@ -43,9 +42,12 @@ def loop_blink(period):
         leds.crown_blink_wait(0)
 
 
-leds = Headset((127, 63, 0), (0, 255, 0), 0.5, 2.5)
+if __name__ == "__main__":
+    from ledcontrol import WS2801Headset
 
-rand   = leds.OFF_DELAY
-period = leds.OFF_DELAY + leds.ON_DELAY
+    leds = WS2801Headset((127, 63, 0), (0, 255, 0), 0.5, 2.5)
 
-loop_blink(period)
+    rand   = leds.OFF_DELAY
+    period = leds.OFF_DELAY + leds.ON_DELAY
+
+    mock_loop(leds, period, rand)
