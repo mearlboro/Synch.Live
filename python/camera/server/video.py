@@ -230,7 +230,7 @@ class VideoProcessor():
             logging.info(f"annotate: {self.annotate}")
 
             self.running = True
-            self.tracking_thread.run()
+            self.tracking_thread.start()
             self.lock = threading.Lock()
 
     def stop(self) -> None:

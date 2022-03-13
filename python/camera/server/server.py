@@ -41,10 +41,15 @@ def create_app(server_type):
 
     signal.signal(signal.SIGINT, handler)
 
+    def is_running():
+        if proc.running:
+            return "Tracking is running, view at the live feed."
+        else:
+            return "Tracking is off. Please press Start Tracking to begin the experiment."
 
     @app.route("/")
     def index():
-        return render_template("index.html")
+        return render_template("index.html", running_text=is_running())
 
     @app.route("/psi")
     def return_psi():
@@ -54,7 +59,7 @@ def create_app(server_type):
     def start_tracking():
         if not proc.running:
             proc.start()
-        return redirect(url_for("index"))
+        return redirect(url_for("observe"))
 
     @app.route("/stop_tracking")
     def stop_tracking():
@@ -64,7 +69,7 @@ def create_app(server_type):
 
     @app.route("/observe")
     def observe():
-        return render_template("observe.html")
+        return render_template("observe.html", running_text=is_running())
 
     @app.route("/video_feed")
     def video_feed():

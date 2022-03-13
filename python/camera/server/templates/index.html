@@ -5,13 +5,10 @@
   <body>
     <h1>Synch.Live experiment tracking</h1>
     <ul>
-	    <li><a href="/start_tracking" >Start Tracking (may require refresh after click to see live feed)</a></li>
+	    <li><a href="/start_tracking" >Start Tracking</a></li>
 	    <li><a href="/stop_tracking" >Stop Tracking</a></li>
+      <p> {{ running_text }} </p>
 	    <li><a href="/video_feed" >View Live Feed</a></li>
-      <p>
-        Existing Live Feed:
-        <img src="{{ url_for('video_feed') }}">
-      </p>
 	    <li><a href="/experiment">Track running experiment</a></li>
     </ul>
   </body>
