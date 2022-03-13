@@ -75,9 +75,9 @@ if __name__ == "__main__":
     if server_type == 'player':
         from ws2801_headset import WS2801Headset
 
-        leds = WS2801Headset((127, 63, 0), (0, 255, 0), 0.5, 2.5)
+        leds = WS2801Headset((0, 0, 100), (0, 255, 0), 0.5, 2.5)
     elif server_type == 'local':
-        leds = Headset((127, 63, 0), (0, 255, 0), 0.5, 2.5)
+        leds = Headset((0, 0, 100), (0, 255, 0), 0.5, 2.5)
 
     print(f"Starting {server_type} experiment")
 
