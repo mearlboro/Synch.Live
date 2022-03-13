@@ -134,7 +134,7 @@ class WS2801Headset(Headset):
         The amount of time delay is chosen uniformly at random from a range
         given by the parameter.
         """
-        if rand:
+        if rand > 0:
             r = random.uniform(0, rand)
         else:
             r = 0
