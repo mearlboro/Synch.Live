@@ -1,4 +1,18 @@
 ---
+- name: update hosts files
+  tags: setup
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Copy hosts
+      copy:
+        src: etc/hosts
+        dest: /etc/hosts
+        owner: root
+        group: root
+        mode: 0644
+
 
 - name: copy tracking and streaming code on observer
   tags: setup
@@ -71,12 +85,12 @@
       path: "{{ item }}"
       state: directory
     with_items:
-      - '/home/pi/synch'
+      - '/home/pi/leds'
       - '/home/pi/logs'
   - name: Copy LED light control Python scripts
     copy:
       src: "{{ item }}"
-      dest: /home/pi/synch
+      dest: /home/pi/leds
       owner: pi
       group: pi
       mode: 0644
@@ -87,4 +101,4 @@
       name: 'startup_pilot'
       special_time: reboot
       state: present
-      job: 'python3 /home/pi/synch/startup.py'
+      job: 'python3 /home/pi/leds/startup.py'

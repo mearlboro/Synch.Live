@@ -75,22 +75,6 @@
       when: (RGPIO == True) and (rgpio_status.stdout != '0')
 
 
-
-- name: Config files for all hosts
-  tags: setup
-  hosts: all
-  become: true
-
-  tasks:
-    - name: Copy hosts
-      copy:
-        src: etc/hosts
-        dest: /etc/hosts
-        owner: root
-        group: root
-        mode: 0644
-
-
 - name: Config files for players
   tags: setup
   hosts: players
