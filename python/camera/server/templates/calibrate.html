@@ -3,11 +3,53 @@
     <title>Calibrate Synch.Live</title>
   </head>
   <body>
-    <h1>Synch.Live player tracking</h1>
-    <p> Turn the focus wheel until the green pilot lights are detected by the object tracker.</p>
-    <img src="{{ url_for('video_feed') }}">
-    <p> </p>
-    <p> </p>
-    <a href="observe">DONE</a>
+    <h1>Synch.Live Camera Calibration</h1>
+    <p>Pi Camera is <b>{{ '' if use_picamera else 'not' }} enabled</b></p>
+    <p>Turn the focus wheel until the green pilot lights are detected by the object tracker.</p>
+    <img src="{{ url_for('video_feed') if use_picamera else '' }}">
+    <h2>Camera Settings</h2>
+    <p>ISO: {{ pi_opts.iso }} </p>
+    <p>Shutter Speed: {{ pi_opts.shutter_speed }} </p>
+    <p>Saturation: {{ pi_opts.saturation }} </p>
+    <p>White Balance Mode: {{ pi_opts.awb_mode }} </p>
+
+    <h3>Shutter Speed Equivalence Table</h3>
+
+    The PiCamera uses a value for shutter speed where 1 second == 1,000,000 units
+
+    <style type="text/css">
+    .tg  {border-collapse:collapse;border-spacing:0;}
+    .tg td{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
+      overflow:hidden;padding:10px 5px;word-break:normal;}
+    .tg th{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
+      font-weight:normal;overflow:hidden;padding:10px 5px;word-break:normal;}
+    .tg .tg-0pky{border-color:inherit;text-align:left;vertical-align:top}
+    .tg .tg-0lax{text-align:left;vertical-align:top}
+    </style>
+    <table class="tg">
+    <thead>
+      <tr>
+        <th class="tg-0pky">Shutter Speed<br></th>
+        <th class="tg-0pky">PiCamera Equivalent Unit<br></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td class="tg-0lax">1<br></td><td class="tg-0lax">1,000,000</td></tr>
+      <tr><td class="tg-0lax">1/2</td><td class="tg-0lax">500,000</td></tr>
+      <tr><td class="tg-0lax">1/4</td><td class="tg-0lax">125,000</td></tr>
+      <tr><td class="tg-0lax">1/8</td><td class="tg-0lax">62,500</td></tr>
+      <tr><td class="tg-0lax">1/16</td><td class="tg-0lax">62,500</td></tr>
+      <tr><td class="tg-0lax">1/32</td><td class="tg-0lax">31,250</td></tr>
+      <tr><td class="tg-0lax">1/64</td><td class="tg-0lax"> 15,625</td</tr>
+      <tr><td class="tg-0lax">1/128</td><td class="tg-0lax"> 7,812 </td</tr>
+      <tr><td class="tg-0lax">1/256</td><td class="tg-0lax"> 3,906</td</tr>
+      <tr><td class="tg-0lax">1/512</td><td class="tg-0lax"> 1,953</td</tr>
+      <tr><td class="tg-0lax">1/1024</td><td class="tg-0lax"> 976</td</tr>
+      <tr><td class="tg-0lax">1/2048</td><td class="tg-0lax"> 488</td</tr>
+      <tr><td class="tg-0lax">1/4096</td><td class="tg-0lax"> 244</td</tr>
+    </tbody>
+    </table>
+
+    <a href="index">Back to Home</a>
   </body>
 </html>
