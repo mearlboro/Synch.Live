@@ -11,42 +11,27 @@ from camera.core.motion_model import ConstantMotionModel, KFMotionModel
 
 
 # TODO: set at calibration time
-MIN_DISTANCE = 10
-LOST_FRAMES  = 50
 NUM_PLAYERS  = 10
-
 
 class EuclideanMultiTracker():
     def __init__(self,
-            min_distance: int = MIN_DISTANCE, lost_frames: int = LOST_FRAMES,
             num_players : int = NUM_PLAYERS
         ) -> None:
         """
         Given a number of bounding boxes from object detection, it tracks objects
-        using Euclidean distance between their centres of mass. Objects are tracked
-        with an ID in the `detected` dictionary. If an object is not found, track
-        for how many frames it was lost in the `vanished` dictionary.
+        using Euclidean distance between their centres of mass.
 
         Params
         ------
-        min_distance
-            Two objects cannot come closer together than `min_distance`. This value
-            should be comfortably larger than the distance an object moves between
-            two frames
 
-        lost_frames
-            If the object is not found for more than `lost_frames`, it will no longer
-            be tracked.
         """
         self.next_id = 0
         self.detected  = []
         self.momodels  = []
 
-        self.min_distance = min_distance
-        self.lost_frames  = lost_frames
         self.num_players  = num_players
 
-        self.MoMoClass = ConstantMotionModel
+        self.MoMoClass = KFMotionModel
 
 
     def track(self, box: np.ndarray) -> None:
