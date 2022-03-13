@@ -66,21 +66,21 @@
 
   tasks:
 
-  - name: Create synch folders
+  - name: Create synch folder
     file:
       path: "{{ item }}"
       state: directory
     with_items:
-      - '/home/pi/leds'
+      - '/home/pi/synch'
       - '/home/pi/logs'
   - name: Copy LED light control Python scripts
     copy:
       src: "{{ item }}"
-      dest: /home/pi/leds
+      dest: /home/pi/synch
       owner: pi
       group: pi
       mode: 0644
-    with_fileglob: python/leds/*.py
+    with_fileglob: leds/*.py
 
   - name: Add cron job that starts the pilot at boot
     cron:

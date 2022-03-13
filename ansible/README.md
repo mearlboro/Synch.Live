@@ -27,13 +27,70 @@ Ansible can send commands in parallel for all players, so you should use as argu
 
         ansible-playbook reboot.yml -f 10 --tags reboot
 
+6. To copy off the latest Python files used to control the leds/run the experiment
+
+        ansible-playbook synch_code.yml -f 10
+
 
 To only run ansible for the `observer` (note the comma at the end)
 
         ansible-playbook install_software.yml -i observer,
 
+To only run ansible only for the `players`
+
+        ansible-playbook install_software.yml --limit players
 
 # Commanding the fleet
+
+## Testing / mocking
+
+### Sync test
+#### Start
+
+We begin by synchronising clocks using the `sync_time` playbook
+
+    ansible-playbook sync_time.yml -t experiment -f 10
+
+This test consists of chaotic blinks for 250 seconds which slowly align
+themselves until they sync. Then they keep on blinking periodically for
+another 100 seconds. If the clocks are the same, the test is a success
+when all hats blink in sync at the end.
+
+You should edit the value for variable `MINUTE` below to schedule a time
+to start the test. The script will be run with cron and will always start
+the test at 10 seconds after the specified minute.
+
+    ansible-playbook test_lights.yml -t schedule -f 10 --extra-vars MINUTE=30
+
+#### Stop
+
+To turn off all LEDs blinking and remove cronjob
+
+    ansible-playbook test_lights.yml -t stop -f 10 --extra-vars MINUTE=30
+
+Make sure you update the `MINUTE` variable to match the cronjob created
+in the previous section.
+
+
+### Cluster SSH
+
+The tool `clusterssh` (package name `clusterssh` in Debian and Raspberry Pi OS)
+is particularly useful for testing Synch.Live as it allows synchronous
+simultaneous SSH connections to all players at once.
+
+Install the tool, and preconfigure a cluster with the player's hosts
+
+    apt install clusterssh
+    mkdir ~/.clusterssh
+    echo "players player1 player2 player3 player4 player5 player6 player7 player8 player9 player10" > ~/.clusterssh/clusters
+
+Then simply run
+
+    cssh pi@players
+
+to connect to all players at once, and run commands directly.
+
+## Experiment
 
 To copy off the latest Python files used to control the leds/run the experiment
 

@@ -1,28 +1,30 @@
 ---
 
-- name: shutdown all lights
+- name: shutdown all lights and players
   hosts: players
-  tags: shutdown, reboot
+  tags: stop
+  become: true
 
   tasks:
-    - name: run stop.py
-      shell: "python3 synch/stop.py"
+    - name: turn off leds
+      shell:
+        cmd: python3 stop.py
+        chdir: /home/pi/synch
+    - name: shutdown
+      community.general.shutdown:
+        delay: 0
 
 - name: reboot all players
   hosts: players
-  become: true
   tags: reboot
+  become: true
 
   tasks:
+    - name: turn off leds
+      shell:
+        cmd: python3 stop.py
+        chdir: /home/pi/synch
     - name: reboot (wait 10sec)
       reboot:
         reboot_timeout: 10
 
-- name: shutdown all players
-  hosts: players
-  become: true
-  tags: shutdown
-
-  tasks:
-    - name: shutdown (wait 60sec)
-      shell: "shutdown"
