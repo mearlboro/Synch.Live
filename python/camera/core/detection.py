@@ -57,11 +57,11 @@ def draw_bbox(
 
     (x, y, w, h) = rect
     frame = cv2.rectangle(frame, (int(x), int(y), int(w), int(h)),
-                          (0, 255, 0), 2)
+                          (0, 0, 255), 2)
 
     frame = cv2.putText(frame, f"Player{player}", (int(x), int(y)),
         cv2.FONT_HERSHEY_SIMPLEX,
-        0.5, (0, 255, 0))
+        0.5, (0, 0, 255))
 
     return frame
 

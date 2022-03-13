@@ -10,8 +10,8 @@ from video import VideoProcessor
 def create_app(server_type):
     app = Flask(__name__)
     app.debug = True
-    app.config['RECORD_PATH'] = os.environ.get('RECORD_PATH', default='../media/video')
-    app.config['VIDEO_PATH'] = os.environ.get('VIDEO_PATH', default='../media/video/3.avi')
+    app.config['RECORD_PATH'] = os.environ.get('RECORD_PATH', default='media/video')
+    app.config['VIDEO_PATH'] = os.environ.get('VIDEO_PATH', default='media/video/3.avi')
 
     logging.info(f"Creating {server_type} server")
     if server_type == 'local':

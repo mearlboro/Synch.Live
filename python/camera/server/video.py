@@ -65,6 +65,9 @@ class VideoProcessor():
         # are viewing the stream)
         self.output_frame = None
 
+        self.video_stream = None
+        self.video_writer = None
+
         self.tracking_thread = threading.Thread(target=self.tracking)
         self.lock = threading.Lock()
 
@@ -251,12 +254,14 @@ class VideoProcessor():
         logging.info('Stopping tracking thread...')
         self.running = False
 
-        logging.info('Closing video streamer...')
-        self.video_stream.stop()
+        if self.video_stream:
+            logging.info('Closing video streamer...')
+            self.video_stream.stop()
 
         if self.record:
-            logging.info('Closing video writer...')
-            self.video_writer.release()
+            if self.video_writer:
+                logging.info('Closing video writer...')
+                self.video_writer.release()
 
         if self.task == 'emergence':
             logging.info('Closing JVM...')
