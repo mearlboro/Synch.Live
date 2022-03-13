@@ -4,7 +4,11 @@
   </head>
   <body>
     <h1>Synch.Live Observer</h1>
-    <p> </p>
-    <p> </p>
+    <li><a href="/stop_tracking" >Stop Tracking</a></li>
+    <p> {{ running_text }} </p>
+    <p>
+      Existing Live Feed:
+      <img src="{{ url_for('video_feed') }}">
+    </p>
   </body>
 </html>
