@@ -11,13 +11,13 @@ from typing import Any, List, Tuple, Optional, Union
 import camera.core.logger
 
 # defaults to bright green
-MIN_DETECT_HSV = np.array([ 50, 100, 140], np.uint8)
+MIN_DETECT_HSV = np.array([ 50, 170, 140], np.uint8)
 MAX_DETECT_HSV = np.array([ 85, 255, 255], np.uint8)
 MIN_DETECT_CONTOUR = 100
-MAX_DETECT_CONTOUR = 400
+MAX_DETECT_CONTOUR = 500
 
 
-def log_detected(boxes: List[Tuple[int, int, int, int]]) -> None:
+def log_detected(boxes: List[Tuple[float, float, float, float]]) -> None:
     """
     Write detected boxes to logfile
 
@@ -28,13 +28,14 @@ def log_detected(boxes: List[Tuple[int, int, int, int]]) -> None:
     for i, box in enumerate(boxes):
         logging.info(f'{i+1}, {box}')
 
-    logging.info(f"Found {len(boxes)} blobs in frame.")
+    if len(boxes):
+        logging.info(f"Found {len(boxes)} blobs in frame.")
 
 
 def draw_bbox(
         frame:  np.ndarray,
         player: int,
-        rect:   Tuple[int, int, int, int]
+        rect:   Tuple[float, float, float, float]
     ) -> np.ndarray:
     """
     Draws bounding box of tracked object and object name on the frame
@@ -47,16 +48,18 @@ def draw_bbox(
         the number identifying the current object being tracked
     rect
         a 4-element tuple with the coordinates and size of a rectangle
-        ( x, y, width, height )
+        ( x, y, width, height ), normalised to the size of the image
 
     Returns
     ------
         updated frame
     """
-    (x, y, w, h) = rect
-    frame = cv2.rectangle(frame, (x, y, w, h), (0, 255, 0), 2)
 
-    frame = cv2.putText(frame, f"Player{player}", (x, y),
+    (x, y, w, h) = rect
+    frame = cv2.rectangle(frame, (int(x), int(y), int(w), int(h)),
+                          (0, 255, 0), 2)
+
+    frame = cv2.putText(frame, f"Player{player}", (int(x), int(y)),
         cv2.FONT_HERSHEY_SIMPLEX,
         0.5, (0, 255, 0))
 
@@ -64,7 +67,8 @@ def draw_bbox(
 
 
 def draw_annotations(
-        frame: np.ndarray, boxes: List[Tuple[int, int, int, int]]
+        frame: np.ndarray, boxes: List[Tuple[float, float, float, float]],
+        normalised: bool = True
     ) -> np.ndarray:
     """
     Draws all necessary annotations (timestamp, tracked objects)
@@ -75,8 +79,11 @@ def draw_annotations(
     frame
         a single frame of a cv2.VideoCapture() or picamera stream
     boxes
-        a list of 4-element tuples with the coordinates and size
-        of rectangles ( x, y, width, height )
+        a list of 4-element tuples with the coordinates and size of rectangles
+        ( x, y, width, height ), that may be normalised to the size of the image
+    normalsied
+        if set, then the boxes are normalised with image size, so they need to
+        be multiplied with the image size
 
     Returns
     -----
@@ -87,9 +94,17 @@ def draw_annotations(
                 (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX,
                 0.5, (255, 255, 255), 1)
 
+    # Obtain frame width and height
+    fw = frame.shape[1]
+    fh = frame.shape[0]
+
     for i, box in enumerate(boxes):
         # draw rectangle and label over the objects position in the video
-        frame = draw_bbox(frame, i + 1, tuple([int(x) for x in box]))
+        if normalised:
+            (x, y, w, h) = box
+            box = (x * fw, y * fh, w * fw, h * fh)
+
+        frame = draw_bbox(frame, i + 1, box)
 
     return frame
 
@@ -149,7 +164,7 @@ def detect_colour(
         min_contour: int    = MIN_DETECT_CONTOUR,
         max_contour: int    = MAX_DETECT_CONTOUR,
         dump: bool          = False
-    ) -> List[Tuple[int, int, int, int]]:
+    ) -> List[Tuple[float, float, float, float]]:
     """
     Gets the initial regions of interest (ROIs) to be tracked, which are green
     LEDs in a dark image. Uses a conversion to hue-saturation-luminosity to pick
@@ -202,6 +217,10 @@ def detect_colour(
         cv2.RETR_TREE,
         cv2.CHAIN_APPROX_SIMPLE)
 
+    # Obtain frame width and height
+    fw = frame.shape[1]
+    fh = frame.shape[0]
+
     bboxes = []
     # go through detected contours and reject if not the wrong size or shape
     for i, contour in enumerate(contours):
@@ -210,7 +229,7 @@ def detect_colour(
             x, y, w, h = cv2.boundingRect(contour)
 
             if (w / h >= 0.8 or w / h <= 1.2):
-                bboxes.append((x, y, w, h))
+                bboxes.append((x/fw, y/fh, w/fw, h/fh))
 
     log_detected(bboxes)
 

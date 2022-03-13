@@ -64,7 +64,7 @@ class VideoProcessor():
         # exchanges of the output frames (useful when multiple browsers/tabs
         # are viewing the stream)
         self.output_frame = None
-        
+
         self.tracking_thread = threading.Thread(target=self.tracking)
         self.lock = threading.Lock()
 
@@ -84,6 +84,7 @@ class VideoProcessor():
             to their centre of mass
         """
         return self.psi
+
 
     def tracking(self) -> None:
         """
@@ -122,7 +123,7 @@ class VideoProcessor():
         self.positions = tracker.update(bboxes)
 
         if self.annotate:
-            frame = draw_annotations(frame, self.positions.values())
+            frame = draw_annotations(frame, self.positions)
 
         # acquire the lock, set the output frame, and release the lock
         with self.lock:
@@ -133,22 +134,22 @@ class VideoProcessor():
             with self.lock:
                 frame = self.video_stream.read()
 
-            if self.record:
-                self.video_writer.write(frame)
+                if frame is not None and self.record:
+                    self.video_writer.write(frame)
 
             if frame is not None:
                 bboxes = detect_colour(frame)
                 self.positions = tracker.update(bboxes)
 
                 if self.task == 'emergence':
-                    if len(self.positions.keys()) > 1:
+                    if len(self.positions) > 1:
                         # compute emergence of positions and update psi
                         X = [ [ x + w/2, y + h/2 ]
-                                for (x, y, w, h) in self.positions.values() ]
+                                for (x, y, w, h) in self.positions ]
                         self.psi = self.calc.update_and_compute(np.array(X))
 
                 if self.annotate:
-                    frame = draw_annotations(frame, self.positions.values())
+                    frame = draw_annotations(frame, self.positions)
 
                 # acquire the lock, set the output frame, and release the lock
                 with self.lock:
@@ -184,6 +185,7 @@ class VideoProcessor():
             yield(b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' +
                 bytearray(encoded_frame) + b'\r\n')
 
+
     def start(self) -> None:
         """
         Initialises camera stream, tasks and runs tracking process in a thread.
@@ -210,10 +212,10 @@ class VideoProcessor():
             if self.record:
                 codec = cv2.VideoWriter_fourcc(*'MJPG')
                 date  = datetime.datetime.now().strftime('%y-%m-%d_%H%M')
-                self.video_writer = cv2.VideoWriter(f'{record_path}/output_{date}.avi', codec, 12.0, (640, 480))
+                self.video_writer = cv2.VideoWriter(f'{self.record_path}/output_{date}.avi', codec, 12.0, (640, 480))
 
             # positions of tracked objects
-            self.positions = OrderedDict()
+            self.positions = []
 
             # initialise emergence calculator
             self.psi  = 0
@@ -232,6 +234,7 @@ class VideoProcessor():
             self.running = True
             self.tracking_thread.start()
             self.lock = threading.Lock()
+
 
     def stop(self) -> None:
         """
@@ -255,6 +258,6 @@ class VideoProcessor():
             logging.info('Closing video writer...')
             self.video_writer.release()
 
-        if self.task == 'emergence': 
+        if self.task == 'emergence':
             logging.info('Closing JVM...')
             self.calc.exit()

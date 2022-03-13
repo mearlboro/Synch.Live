@@ -62,7 +62,7 @@
       mode: 0644
     with_items:
       - camera/server/__init__.py
-      - camera/server/observer.py
+      - camera/server/server.py
       - camera/server/video.py
   - name: Copy Flask templates
     copy:

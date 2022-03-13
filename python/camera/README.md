@@ -147,7 +147,7 @@ or
 > **Note**: this can only be run on a RaspberryPi with a PiCamera attached.
 
     $ cd python
-    $ python camera/server/server.py observer
+    $ python3 camera/server/server.py observer
 
 
 
