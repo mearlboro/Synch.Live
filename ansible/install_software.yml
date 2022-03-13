@@ -31,7 +31,6 @@
     pip:
       name:
         - logging==0.4.9.6
-        - asyncio
       executable: pip3
 
 
@@ -87,11 +86,11 @@
     apt:
       state: latest
 
-  - name: Install pip package for the LED lights
+  - name: Install pip packages
     pip:
       name:
-        - asyncio
-        - aiohttp
         - adafruit-ws2801
+        - aiohttp
+        - asyncio
       executable: pip3
 
