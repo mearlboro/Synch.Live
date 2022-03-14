@@ -14,14 +14,13 @@
     <p>White Balance Mode: {{ pi_opts.awb_mode }} </p>
 
     <form action="{{ url_for('calibrate')}}" method="post">
-      <label for="iso">ISO:</label>
+      <label for="iso">ISO (Min: 25, Max: 800):</label>
       <input type="number" id="iso" name="iso" value="{{ pi_opts.iso }}" min="25" max="800">
-      <label for="shutter_speed">Shutter Speed:</label>
+      <label for="shutter_speed">Shutter Speed (Min: 244, Max: 1000000):</label>
       <input type="number" id="shutter_speed" name="shutter_speed" value="{{ pi_opts.shutter_speed }}" min="244" max="1000000">
-      <label for="saturation">Saturation:</label>
-      <input type="number" id="saturation" name="saturation" value="{{ pi_opts.saturation }}" min="0" max="255">
+      <label for="saturation">Saturation (Min: -100, Max: 100):</label>
+      <input type="number" id="saturation" name="saturation" value="{{ pi_opts.saturation }}" min="-100" max="100">
       <label for="awb_mode">Auto White Balance Mode:</label>
-      <input type="select" id="saturation" name="saturation" value="{{ pi_opts.saturation }}">
       <select type="text" id="awb_mode" name="awb_mode" selected="{{ pi_opts.awb_mode }}">
         {% for opt in awb_modes %}
           <option value="{{ opt }}" {{ 'selected' if pi_opts.awb_mode == opt else '' }}>{{ opt }}</option>
