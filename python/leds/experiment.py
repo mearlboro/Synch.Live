@@ -13,9 +13,9 @@ from mockloop import mock_loop
 # initialise logging to file
 import logger
 
-PSI_URL = 'http://observer:8888/psi'
+PSI_URL = 'http://localhost:8888/sync'
 
-async def fetch_psi() -> Optional[float]:
+async def fetch_sync() -> Optional[float]:
     try:
         async with aiohttp.ClientSession() as sess:
             async with sess.get(PSI_URL) as resp:
@@ -43,16 +43,15 @@ async def loop(leds: Headset, period: float, rand: float) -> None:
     gen = tick()
 
     while rand > 0:
-        psi = await fetch_psi()
-        logging.info(f"Psi {psi}")
+        sync = await fetch_sync()
+        logging.info(f"Sync: {sync}")
 
-        if psi is None:
-            logging.info("Psi was not fetched: entering mock synchronous loop")
+        if sync is None:
+            logging.info("Sync param was not fetched: entering mock synchronous loop")
             return
-        if psi > 0:
-            rand -= 0.1
-        else:
-            rand += 0.1
+
+
+        rand = (1 - sync) * leds.OFF_DELAY
 
         if rand > leds.OFF_DELAY:
             rand = leds.OFF_DELAY

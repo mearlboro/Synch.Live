@@ -51,9 +51,9 @@ def create_app(server_type):
     def index():
         return render_template("index.html", running_text=is_running())
 
-    @app.route("/psi")
-    def return_psi():
-        return jsonify(proc.Psi)
+    @app.route("/sync")
+    def return_sync():
+        return jsonify(proc.Sync)
 
     @app.route("/start_tracking")
     def start_tracking():

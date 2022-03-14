@@ -71,11 +71,13 @@ class VideoProcessor():
         self.tracking_thread = threading.Thread(target=self.tracking)
         self.lock = threading.Lock()
 
+        self.psi = 0
+
 
     @property
-    def Psi(self) -> float:
+    def Sync(self) -> float:
         """
-        Compute causal emergence for the current state
+        Compute synchronisation param for given task
 
         Params
         ------
@@ -83,10 +85,16 @@ class VideoProcessor():
 
         Returns
         ------
-            Psi computation for the positions of all detected points with respect
-            to their centre of mass
+            synch param between 0 (unsync) and 1 (full sync)
         """
-        return self.psi
+        if self.task == 'manual':
+            return self.psi / 10.0
+        elif self.task == 'emergence':
+            a = 0
+            b = 3
+            return 1.0 / (1 + np.exp((self.psi - a) / b))
+        else:
+            return self.psi
 
 
     def set_manual_psi(self, psi: float) -> None:
@@ -95,7 +103,6 @@ class VideoProcessor():
 
         self.psi = psi
 
-        print(f"Manually setting psi to {psi}")
         logging.info(f"Manually setting psi to {psi}")
 
 
