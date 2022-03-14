@@ -99,7 +99,7 @@ class VideoProcessor():
 
     def set_manual_psi(self, psi: float) -> None:
         if self.task != 'manual':
-            self.task == 'manual'
+            self.task = 'manual'
 
         self.psi = psi
 
@@ -226,7 +226,7 @@ class VideoProcessor():
                 self.picamera = self.video_stream_obj.stream.camera
                 self.picamera.iso = 25
                 self.picamera.saturation = 100
-                self.picamera.shutter_speed = 244
+                self.picamera.shutter_speed = 31250
                 self.picamera.awb_mode = "sunlight"
 
                 time.sleep(2)
