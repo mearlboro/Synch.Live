@@ -1,5 +1,5 @@
 import sys, os
-from flask import Flask, jsonify, render_template, redirect, url_for
+from flask import Flask, jsonify, render_template, redirect, request, url_for
 from flask.wrappers import Response
 import signal
 import logging
@@ -75,9 +75,14 @@ def create_app(server_type):
             pi_opts = {}
         return render_template("calibrate.html", use_picamera=proc.use_picamera, pi_opts=pi_opts)
 
-    @app.route("/observe")
+    @app.route("/observe", methods = ['GET', 'POST'])
     def observe():
-        return render_template("observe.html", running_text=is_running())
+        if request.method == "POST":
+            psi = int(request.form.get("manPsi"))
+            proc.set_manual_psi(psi)
+            return render_template("observe.html", running_text=is_running(), psi=proc.psi)
+            #return redirect(url_for('observe'))
+        return render_template("observe.html", running_text=is_running(), psi=proc.psi)
 
     @app.route("/video_feed")
     def video_feed():

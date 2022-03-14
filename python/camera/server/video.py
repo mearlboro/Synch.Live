@@ -89,6 +89,16 @@ class VideoProcessor():
         return self.psi
 
 
+    def set_manual_psi(self, psi: float) -> None:
+        if self.task != 'manual':
+            self.task == 'manual'
+
+        self.psi = psi
+
+        print(f"Manually setting psi to {psi}")
+        logging.info(f"Manually setting psi to {psi}")
+
+
     def tracking(self) -> None:
         """
         Tracking process, starting with initial object detection, then fetch a
