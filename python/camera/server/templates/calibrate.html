@@ -13,6 +13,23 @@
     <p>Saturation: {{ pi_opts.saturation }} </p>
     <p>White Balance Mode: {{ pi_opts.awb_mode }} </p>
 
+    <form action="{{ url_for('calibrate')}}" method="post">
+      <label for="iso">ISO:</label>
+      <input type="number" id="iso" name="iso" value="{{ pi_opts.iso }}" min="25" max="800">
+      <label for="shutter_speed">Shutter Speed:</label>
+      <input type="number" id="shutter_speed" name="shutter_speed" value="{{ pi_opts.shutter_speed }}" min="244" max="1000000">
+      <label for="saturation">Saturation:</label>
+      <input type="number" id="saturation" name="saturation" value="{{ pi_opts.saturation }}" min="0" max="255">
+      <label for="awb_mode">Auto White Balance Mode:</label>
+      <input type="select" id="saturation" name="saturation" value="{{ pi_opts.saturation }}">
+      <select type="text" id="awb_mode" name="awb_mode" selected="{{ pi_opts.awb_mode }}">
+        {% for opt in awb_modes %}
+          <option value="{{ opt }}" {{ 'selected' if pi_opts.awb_mode == opt else '' }}>{{ opt }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit">Update Options</button>
+    </form>
+
     <h3>Shutter Speed Equivalence Table</h3>
 
     The PiCamera uses a value for shutter speed where 1 second == 1,000,000 units

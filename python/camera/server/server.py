@@ -7,6 +7,20 @@ import logging
 # import files performing calibration and tracking
 from video import VideoProcessor
 
+awb_modes = [
+    "off",
+    "auto",
+    "sunlight",
+    "cloudy",
+    "shade",
+    "tungsten",
+    "fluorescent",
+    "incandescent",
+    "flash",
+    "horizon",
+    "greyworld"
+]
+
 def create_app(server_type):
     app = Flask(__name__)
     app.debug = True
@@ -67,13 +81,22 @@ def create_app(server_type):
             proc.stop()
         return redirect(url_for("index"))
 
-    @app.route("/calibrate")
+    @app.route("/calibrate", methods=['GET', 'POST'])
     def calibrate():
+        if request.method == 'POST':
+            iso = request.form['iso']
+            saturation = request.form['saturation']
+            awb_mode = request.form['awb_mode']
+            shutter_speed = request.form['shutter_speed']
+            proc.picamera.iso = int(iso)
+            proc.picamera.shutter_speed = int(shutter_speed)
+            proc.picamera.saturation = int(saturation)
+            proc.picamera.awb_mode = awb_mode
         if proc.use_picamera:
             pi_opts = proc.picamera
         else:
             pi_opts = {}
-        return render_template("calibrate.html", use_picamera=proc.use_picamera, pi_opts=pi_opts)
+        return render_template("calibrate.html", use_picamera=proc.use_picamera, pi_opts=pi_opts, awb_modes=awb_modes)
 
     @app.route("/observe", methods = ['GET', 'POST'])
     def observe():
