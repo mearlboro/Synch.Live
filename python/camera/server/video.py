@@ -34,7 +34,8 @@ class VideoProcessor():
     """
     def __init__(self, use_picamera: bool, task: str = '',
             record: bool = True, annotate: bool = True,
-            video: str = '', record_path = 'media/video'):
+            video: str = '', record_path = 'media/video',
+            camera_stream = None):
         """
 		Params
 		------
@@ -57,6 +58,7 @@ class VideoProcessor():
         self.record         = record
         self.annotate       = annotate
         self.use_picamera   = use_picamera
+        self.camera_stream  = camera_stream
         self.record_path    = record_path
         self.video          = video
 
@@ -235,6 +237,9 @@ class VideoProcessor():
                 self.picamera.awb_mode = "sunlight"
 
                 time.sleep(2)
+            elif self.camera_stream:
+                self.video_stream = self.camera_stream
+                self.video_stream.start()
             else:
                 if not os.path.isfile(self.video):
                     raise ValueError(f'No such file: {self.video}')

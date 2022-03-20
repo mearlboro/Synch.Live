@@ -1,6 +1,7 @@
 import sys, os
 from flask import Flask, jsonify, render_template, redirect, request, url_for
 from flask.wrappers import Response
+from imutils.video import VideoStream
 import signal
 import logging
 
@@ -21,7 +22,7 @@ awb_modes = [
     "greyworld"
 ]
 
-def create_app(server_type):
+def create_app(server_type, camera_stream=None):
     app = Flask(__name__)
     app.debug = True
     app.config['RECORD_PATH'] = os.environ.get('RECORD_PATH', default='media/video')
@@ -39,12 +40,21 @@ def create_app(server_type):
             record_path = app.config['RECORD_PATH']
         )
     elif server_type == 'observer':
-        proc = VideoProcessor(
-            use_picamera = True,
-            record = True,
-            annotate = True,
-            record_path=app.config['RECORD_PATH']
-        )
+        if camera_stream == None:
+            proc = VideoProcessor(
+                use_picamera = True,
+                record = True,
+                annotate = True,
+                record_path=app.config['RECORD_PATH']
+            )
+        else:
+            proc = VideoProcessor(
+                use_picamera = False,
+                camera_stream = camera_stream,
+                record = True,
+                annotate = True,
+                record_path=app.config['RECORD_PATH']
+            )
     else:
         raise ValueError(f"Unsupported Server Type: {server_type}")
 
@@ -137,5 +147,13 @@ if __name__ == '__main__':
     host = os.environ.get('HOST', default='0.0.0.0')
     port = int(os.environ.get('PORT', default='8888'))
     logging.info(f"Starting server, listening on {host} at port {port}")
-    create_app(server_type).run(host=host, port=port, debug=True,
-            threaded=True, use_reloader=False)
+
+    # NOTE: to use /dev/video* devices, you must launch in the main process
+    #       so we create the camera stream here
+    camera_number = os.environ.get('CAMERA_NUMBER', default=None)
+    camera_stream = None
+    if camera_number != None:
+        camera_stream = VideoStream(int(camera_number))
+
+    create_app(server_type, camera_stream=camera_stream).run(host=host,
+            port=port, debug=True, threaded=True, use_reloader=False)
