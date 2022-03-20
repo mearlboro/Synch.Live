@@ -1,6 +1,7 @@
 import sys, os
 from flask import Flask, jsonify, render_template, redirect, request, url_for
 from flask.wrappers import Response
+from imutils.video import VideoStream
 import signal
 import logging
 import yaml
@@ -25,14 +26,13 @@ awb_modes = [
     "greyworld"
 ]
 
-def create_app(server_type, conf, conf_path):
+def create_app(server_type, conf, conf_path, camera_stream=None):
     app = Flask(__name__)
     app.debug = True
     conf.conf_path = conf_path
 
-    logging.info(f"Creating {server_type} server")
-    proc = VideoProcessor(conf)
-    print(conf)
+    logging.info(f"Creating {server_type} server with config:\n{conf}")
+    proc = VideoProcessor(conf, camera_stream)
 
     def handler(signum, frame):
         res = input("Do you want to exit? Press y.")
@@ -145,6 +145,14 @@ if __name__ == '__main__':
         yaml_dict = yaml.safe_load(fh)
         config = parse(yaml_dict)
 
-        create_app(server_type, config, conf_path).run(
+        # NOTE: to use /dev/video* devices, you must launch in the main process
+        #       so we create the camera stream here
+        camera_number = config.server.CAMERA
+        camera_stream = None
+        if camera_number != None:
+            logging.info(f"Opening Camera {camera_number}")
+            camera_stream = VideoStream(int(camera_number))
+
+        create_app(server_type, config, conf_path, camera_stream=camera_stream).run(
                 host = host, port = port, debug = True,
                 threaded = True, use_reloader = False)
