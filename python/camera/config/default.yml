@@ -1,0 +1,26 @@
+server:
+    RECORD_PATH: media/video
+    VIDEO_PATH: ''
+    CAMERA_NUMBER: 0
+    HOST: 0.0.0.0
+    PORT: 888
+game:
+    task: "emergence"
+tracking:
+    max_players: 10
+detection:
+    min_contour: 100
+    max_contour: 500
+    min_colour:
+      H: 50
+      S: 170
+      V: 100
+    max_colour:
+      H: 85
+      S: 255
+      V: 255
+camera:
+    iso: 100
+    saturation: 100
+    shutter_speed: 31250
+    awb_mode: "sunlight"
