@@ -30,7 +30,9 @@
   - name: Install pip packages
     pip:
       name:
-        - logging==0.4.9.6
+        - logging
+        - asyncio
+        - typing
       executable: pip3
 
 
@@ -64,7 +66,7 @@
         - JPype1
         - opencv-contrib-python~=4.4.0.46
         - picamera
-        - typing
+        - pykalman
       executable: pip3
       state: latest
 
@@ -82,15 +84,11 @@
         - python3-spidev
         - python3-rpi.gpio
       state: latest
-  - name: Install I2C interface tools
-    apt:
-      state: latest
 
   - name: Install pip packages
     pip:
       name:
         - adafruit-ws2801
         - aiohttp
-        - asyncio
       executable: pip3
 
