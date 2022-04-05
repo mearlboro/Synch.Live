@@ -11,7 +11,6 @@ from typing import Any, List, Tuple, Optional, Union
 import camera.core.logger
 
 # defaults to bright green
-#MIN_DETECT_HSV = np.array([ 50, 170, 140], np.uint8)
 MIN_DETECT_HSV = np.array([ 50, 170, 100], np.uint8)
 MAX_DETECT_HSV = np.array([ 85, 255, 255], np.uint8)
 MIN_DETECT_CONTOUR = 100
@@ -55,14 +54,18 @@ def draw_bbox(
     ------
         updated frame
     """
+    fw = frame.shape[1]
+    fh = frame.shape[0]
 
     (x, y, w, h) = rect
-    frame = cv2.rectangle(frame, (int(x), int(y), int(w), int(h)),
-                          (0, 0, 255), 2)
 
-    frame = cv2.putText(frame, f"Player{player}", (int(x), int(y)),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        0.5, (0, 0, 255))
+    if 0 <= x <= fw and 0 <= y <= fh:
+        frame = cv2.rectangle(frame, (int(x), int(y), int(w), int(h)),
+                            (0, 0, 255), 2)
+
+        frame = cv2.putText(frame, f"Player{player}", (int(x), int(y)),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.5, (0, 0, 255))
 
     return frame
 
