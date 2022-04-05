@@ -1,0 +1,57 @@
+---
+
+- name: Turn on pilot
+  tags: experiment, pilot
+  hosts: players
+
+  tasks:
+  - name: Turn on pilot
+    shell: "python3 /home/pi/leds/startup.py"
+
+
+- name: Run experiment
+  tags: experiment, start
+  hosts: players
+
+  tasks:
+  - name: Add cron job
+    cron:
+      name: "synch-loop-{{ MINUTE }}"
+      minute: "{{ MINUTE }}"
+      job: 'while [ "10" -gt "$(date +\%S)" ]; do /bin/sleep 0.1; done; python3 /home/pi/leds/experiment.py'
+
+
+- name: Status experiment
+  tags: experiment, status
+  hosts: players
+
+  tasks:
+  - name: List cron jobs
+    shell: "crontab -l"
+    register: cron_list
+  - name: Print cron jobs
+    debug:
+      msg: "Cron job list is: {{ cron_list.stdout }}"
+
+- name: Stop experiment
+  tags: experiment, stop
+  hosts: players
+
+  tasks:
+  - name: Delete cron job
+    cron:
+      name: "synch-loop-{{ MINUTE }}"
+      minute: "{{ MINUTE }}"
+      state: absent
+
+  - name: Stop process
+    become: true
+    shell: "pkill -f experiment"
+    ignore_errors: yes
+
+  - name: Turn off leds
+    shell: "python3 /home/pi/leds/stop.py"
+
+  - name: start pilot
+    shell: "python3 /home/pi/leds/startup.py"
+

@@ -94,12 +94,22 @@ to connect to all players at once, and run commands directly.
 
 To copy off the latest Python files used to control the leds/run the experiment
 
-        ansible-playbook synch_code.yml -f 10
+        ansible-playbook sync_code.yml -f 10
 
 
 To synchronise the clocks for an experiment
 
         ansible-playbook sync_time.yml -f 10 --tags experiment
+
+
+To start an experiment at a specific time, e.g. 30 minutes past the hour
+
+        ansible-playbook experiment.yml --limit players -f 10 --tags start --extra-vars MINUTE=30
+
+
+To stop an experiment running at a specific time, e.g. 30 minutes past the hour
+
+        ansible-playbook experiment.yml --limit players -f 10 --tags stop --extra-vars MINUTE=30
 
 
 To shutdown all players
@@ -142,4 +152,4 @@ To fix, SSH into the Pi and run
 
         sudo apt update --allow-releaseinfo-change
 
-A way to include this in the config is currently not exposed in the API for the Ansible `apt` module. 
+A way to include this in the config is currently not exposed in the API for the Ansible `apt` module.
