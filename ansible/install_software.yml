@@ -30,7 +30,7 @@
   - name: Install pip packages
     pip:
       name:
-        - logging==0.4.9.6
+        - logging
         - asyncio
         - typing
       executable: pip3
@@ -84,15 +84,11 @@
         - python3-spidev
         - python3-rpi.gpio
       state: latest
-  - name: Install I2C interface tools
-    apt:
-      state: latest
 
-  - name: Install pip package for the LED lights
+  - name: Install pip packages
     pip:
       name:
         - adafruit-ws2801
         - aiohttp
-        - asyncio
       executable: pip3
 

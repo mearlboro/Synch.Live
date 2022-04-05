@@ -8,7 +8,7 @@
   - name: Turn on pilot
     shell:
       cmd: python3 startup.py
-      chdir: /home/pi/synch
+      chdir: /home/pi/leds
 
 - name: Run WS2801 example
   tags: test, now
@@ -30,7 +30,7 @@
     cron:
       name: "synch-loop-test-{{ MINUTE }}"
       minute: "{{ MINUTE }}"
-      job: 'while [ "10" -gt "$(date +\%S)" ]; do /bin/sleep 0.1; done; python3 /home/pi/synch/mockloop.py'
+      job: 'while [ "10" -gt "$(date +\%S)" ]; do /bin/sleep 0.1; done; python3 /home/pi/leds/mockloop.py'
 
 - name: Stop mock loop example
   tags: test, stop
@@ -49,5 +49,9 @@
     ignore_errors: yes
 
   - name: Turn off leds
-    shell: "python3 /home/pi/synch/stop.py"
+    shell: "python3 /home/pi/leds/stop.py"
+
+  - name: Turn on pilot
+    shell: "python3 /home/pi/leds/startup.py"
+
 

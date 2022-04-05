@@ -45,7 +45,7 @@ def mock_loop(leds: Headset, period: float, rand: float) -> None:
 if __name__ == "__main__":
     from ws2801_headset import WS2801Headset
 
-    leds = WS2801Headset((0, 0, 255), (0, 255, 0), 0.5, 1.5)
+    leds = WS2801Headset((0, 0, 100), (0, 255, 0), 0.5, 1.5)
 
     rand   = leds.OFF_DELAY
     period = leds.OFF_DELAY + leds.ON_DELAY
