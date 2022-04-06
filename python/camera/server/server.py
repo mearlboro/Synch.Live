@@ -1,37 +1,44 @@
 import sys, os
+from types import SimpleNamespace
 from flask import Flask, jsonify, render_template, redirect, url_for
 from flask.wrappers import Response
 import signal
 import logging
+import yaml
+
+def parse(d):
+  x = SimpleNamespace()
+  _ = [setattr(x, k, parse(v)) if isinstance(v, dict) else setattr(x, k, v) for k, v in d.items() ]    
+  return x
 
 # import files performing calibration and tracking
 from video import VideoProcessor
 
-def create_app(server_type):
+def create_app(server_type, profile):
     app = Flask(__name__)
     app.debug = True
-    app.config['RECORD_PATH'] = os.environ.get('RECORD_PATH', default='media/video')
-    app.config['VIDEO_PATH'] = os.environ.get('VIDEO_PATH', default='media/video/3.avi')
+    #app.config['RECORD_PATH'] = os.environ.get('RECORD_PATH', default='media/video')
 
     logging.info(f"Creating {server_type} server")
-    if server_type == 'local':
-        logging.info(f"Using preloaded video stream at {app.config['VIDEO_PATH']}")
-        proc = VideoProcessor(
-            use_picamera = False,
-            record = False,
-            annotate = True,
-            video = app.config['VIDEO_PATH'],
-            record_path = app.config['RECORD_PATH']
-        )
-    elif server_type == 'observer':
-        proc = VideoProcessor(
-            use_picamera = True,
-            record = True,
-            annotate = True,
-            record_path=app.config['RECORD_PATH']
-        )
-    else:
-        raise ValueError(f"Unsupported Server Type: {server_type}")
+    proc = VideoProcessor(profile)
+    #if server_type == 'local':
+    #    logging.info(f"Using preloaded video stream at {app.config['VIDEO_PATH']}")
+    #    proc = VideoProcessor(profile)
+    #        use_picamera = False,
+    #        record = False,
+    #        annotate = True,
+    #        video = app.config['VIDEO_PATH'],
+    #        record_path = app.config['RECORD_PATH']
+    #    )
+    #elif server_type == 'observer':
+    #    proc = VideoProcessor(
+    #        use_picamera = True,
+    #        record = True,
+    #        annotate = True,
+    #        record_path=app.config['RECORD_PATH']
+    #    )
+    #else:
+    #    raise ValueError(f"Unsupported Server Type: {server_type}")
 
     def handler(signum, frame):
         res = input("Do you want to exit? Press y.")
@@ -69,11 +76,12 @@ def create_app(server_type):
 
     @app.route("/calibrate")
     def calibrate():
-        if proc.use_picamera:
-            pi_opts = proc.picamera
+        use_picamera = proc.config.CAMERA == 'pi'
+        if use_picamera:
+            pi_opts = vars(proc.config.camera)
         else:
             pi_opts = {}
-        return render_template("calibrate.html", use_picamera=proc.use_picamera, pi_opts=pi_opts)
+        return render_template("calibrate.html", use_picamera=use_picamera, pi_opts=pi_opts)
 
     @app.route("/observe")
     def observe():
@@ -101,6 +109,12 @@ if __name__ == '__main__':
     # start the flask app
     host = os.environ.get('HOST', default='0.0.0.0')
     port = int(os.environ.get('PORT', default='8888'))
-    logging.info(f"Starting server, listening on {host} at port {port}")
-    create_app(server_type).run(host=host, port=port, debug=True,
-            threaded=True, use_reloader=False)
+    configPath = os.environ.get('CONFIG_PATH', default='./camera/config/default.yml')
+    print(os.path.abspath("."))
+    logging.info(f"Starting server, listening on {host} at port {port}, using config at {configPath}")
+    with open(configPath, 'r') as fh:
+        yamlDict = yaml.safe_load(fh)
+        print(yamlDict)
+        profile = parse(yamlDict)
+        create_app(server_type, profile).run(host=host, port=port, debug=True,
+                threaded=True, use_reloader=False)

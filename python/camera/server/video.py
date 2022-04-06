@@ -1,3 +1,4 @@
+from types import SimpleNamespace
 import cv2
 from collections import OrderedDict
 import datetime
@@ -8,14 +9,14 @@ import os
 import threading
 import time
 
-from typing import Any, List, Tuple, Generator
+from typing import Any, Dict, List, Tuple, Generator
 
 # initialise logging to file
 import camera.core.logger
 
 # import tracking code
 from camera.core.emergence import EmergenceCalculator, compute_macro
-from camera.core.detection import detect_colour, draw_annotations
+from camera.core.detection import Detector
 from camera.core.tracking  import EuclideanMultiTracker
 
 def compute_macro(X: np.ndarray) -> np.ndarray:
@@ -25,6 +26,42 @@ def compute_macro(X: np.ndarray) -> np.ndarray:
     V = V[np.newaxis, :]
     return V
 
+def unwrap_resolution(resolution: SimpleNamespace):
+    return (resolution.width, resolution.height)
+
+class Camera():
+    def __init__(self, cam_type, config = SimpleNamespace):
+        """
+        define config
+        """
+        self.config = config
+        self.cam_type = cam_type
+
+        
+    def start(self):
+        if self.cam_type == 'pi':
+            resolution = unwrap_resolution(self.config.resolution)
+            self.video_stream_obj = VideoStream(usePiCamera = 1,
+                resolution = resolution, framerate = self.config.resolution)
+            self.video_stream = self.video_stream_obj.start()
+
+            ## set picam defaults
+            self.picamera = self.video_stream_obj.stream.camera
+            self.picamera.iso = self.config.iso
+            self.picamera.saturation = self.config.saturation
+            self.picamera.shutter_speed = self.config.shutter_speed
+            self.picamera.awb_mode = self.config.awb_mode
+
+            time.sleep(2)
+        elif type(self.cam_type) is int:
+            # handle generic camera stream
+            pass
+        else:
+            if not os.path.isfile(self.cam_type):
+                raise ValueError(f'No such file: {self.cam_type}')
+
+            self.video_stream = FileVideoStream(self.cam_type).start()
+        return self.video_stream
 
 class VideoProcessor():
     """
@@ -32,10 +69,13 @@ class VideoProcessor():
 	and tracking, and computes emergence values based on the object positions &
 	a macroscopic feature of the system.
     """
-    def __init__(self, use_picamera: bool, task: str = '',
-            record: bool = True, annotate: bool = True,
-            video: str = '', record_path = 'media/video'):
+    #def __init__(self, use_picamera: bool, task: str = '',
+    #        record: bool = True, annotate: bool = True,
+    #        video: str = '', record_path = 'media/video'):
+    def __init__(self, config: SimpleNamespace,):
         """
+        config:
+            config.server changes only changed on server restart
 		Params
 		------
 			use_picamera
@@ -52,13 +92,15 @@ class VideoProcessor():
 			video
 				location of video stream if use_picamera is not enabled
         """
-        self.running        = False
-        self.task           = task
-        self.record         = record
-        self.annotate       = annotate
-        self.use_picamera   = use_picamera
-        self.record_path    = record_path
-        self.video          = video
+        self.config = config
+        self.running = False
+        
+        record = self.config.server.RECORD
+        record_path = self.config.server.RECORD_PATH
+        if record and os.path.exists(record_path):
+            logging.info(f"Recording Enabled, recording to path {record_path}")
+            self.record         = record
+            self.record_path    = record_path
 
         # initialize the output frame and a lock used to ensure thread-safe
         # exchanges of the output frames (useful when multiple browsers/tabs
@@ -121,12 +163,12 @@ class VideoProcessor():
             logging.info('Error reading first frame. Exiting.')
             exit(0)
 
-        bboxes  = detect_colour(frame)
-        tracker = EuclideanMultiTracker()
+        bboxes  = self.detector.detect_colour(frame)
+        tracker = EuclideanMultiTracker(self.config.tracking)
         self.positions = tracker.update(bboxes)
 
-        if self.annotate:
-            frame = draw_annotations(frame, self.positions)
+        if self.config.tracking.annotate:
+            frame = self.detector.draw_annotations(frame, self.positions)
 
         # acquire the lock, set the output frame, and release the lock
         with self.lock:
@@ -141,18 +183,18 @@ class VideoProcessor():
                     self.video_writer.write(frame)
 
             if frame is not None:
-                bboxes = detect_colour(frame)
+                bboxes = self.detector.detect_colour(frame)
                 self.positions = tracker.update(bboxes)
 
-                if self.task == 'emergence':
+                if self.config.game.task == 'emergence':
                     if len(self.positions) > 1:
                         # compute emergence of positions and update psi
                         X = [ [ x + w/2, y + h/2 ]
                                 for (x, y, w, h) in self.positions ]
                         self.psi = self.calc.update_and_compute(np.array(X))
 
-                if self.annotate:
-                    frame = draw_annotations(frame, self.positions)
+                if self.config.tracking.annotate:
+                    frame = self.detector.draw_annotations(frame, self.positions)
 
                 # acquire the lock, set the output frame, and release the lock
                 with self.lock:
@@ -198,49 +240,35 @@ class VideoProcessor():
         if not self.tracking_thread.is_alive():
             # reinitialise tracking_thread in case previous run crashed
             self.tracking_thread = threading.Thread(target=self.tracking)
-
-            # initialize the video stream and allow the sensor to warm up
-            if self.use_picamera:
-                self.video_stream_obj = VideoStream(usePiCamera = 1,
-                    resolution = (640, 480), framerate = 12)
-                self.video_stream = self.video_stream_obj.start()
-
-                ## set picam defaults
-                self.picamera = self.video_stream_obj.stream.camera
-                self.picamera.iso = 25
-                self.picamera.saturation = 100
-                self.picamera.shutter_speed = 244
-                self.picamera.awb_mode = "sunlight"
-
-                time.sleep(2)
-            else:
-                if not os.path.isfile(self.video):
-                    raise ValueError(f'No such file: {self.video}')
-
-                self.video_stream = FileVideoStream(self.video).start()
+            
+            self.camera = Camera(self.config.server.CAMERA, self.config.camera)
+            self.video_stream = self.camera.start()
+            self.detector = Detector(self.config.detection)
 
             # define video writer to save the stream
             if self.record:
                 codec = cv2.VideoWriter_fourcc(*'MJPG')
                 date  = datetime.datetime.now().strftime('%y-%m-%d_%H%M')
-                self.video_writer = cv2.VideoWriter(f'{self.record_path}/output_{date}.avi', codec, 12.0, (640, 480))
+                resolution = unwrap_resolution(self.config.camera.resolution)
+                self.video_writer = cv2.VideoWriter(f'{self.record_path}/output_{date}.avi', codec,
+                    self.config.camera.framerate, resolution)
 
             # positions of tracked objects
             self.positions = []
 
             # initialise emergence calculator
             self.psi  = 0
-            if self.task == 'emergence':
+            if self.config.game.task == 'emergence':
                 logging.info("Initilised EmergenceCalculator")
                 self.calc = EmergenceCalculator(compute_macro)
-            elif self.task == '':
+            elif self.config.game.task == '':
                 logging.info("No task specified, continuing")
 
             logging.info("Initialised VideoProcessor with params:")
-            logging.info(f"use_picamera: {self.use_picamera}")
-            logging.info(f"task: {self.task}")
+            logging.info(f"camera type: {self.config.server.CAMERA}")
+            logging.info(f"task: {self.config.game.task}")
             logging.info(f"record: {self.record}")
-            logging.info(f"annotate: {self.annotate}")
+            logging.info(f"annotate: {self.config.tracking.annotate}")
 
             self.running = True
             self.tracking_thread.start()

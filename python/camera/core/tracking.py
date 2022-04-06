@@ -1,4 +1,5 @@
 import logging
+from types import SimpleNamespace
 import numpy as np
 from scipy.spatial import distance as dist
 from scipy.optimize import linear_sum_assignment
@@ -9,13 +10,9 @@ import camera.core.logger
 
 from camera.core.motion_model import ConstantMotionModel, KFMotionModel
 
-
-# TODO: set at calibration time
-NUM_PLAYERS  = 10
-
 class EuclideanMultiTracker():
     def __init__(self,
-            num_players : int = NUM_PLAYERS
+            config: SimpleNamespace
         ) -> None:
         """
         Given a number of bounding boxes from object detection, it tracks objects
@@ -29,7 +26,7 @@ class EuclideanMultiTracker():
         self.detected  = []
         self.momodels  = []
 
-        self.num_players  = num_players
+        self.num_players  = config.max_players
 
         self.MoMoClass = KFMotionModel
 
