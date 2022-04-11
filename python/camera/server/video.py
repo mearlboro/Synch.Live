@@ -224,7 +224,7 @@ class VideoProcessor():
 
                 ## set picam defaults
                 self.picamera = self.video_stream_obj.stream.camera
-                self.picamera.iso = 25
+                self.picamera.iso = 100
                 self.picamera.saturation = 100
                 self.picamera.shutter_speed = 31250
                 self.picamera.awb_mode = "sunlight"

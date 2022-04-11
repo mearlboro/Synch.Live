@@ -34,6 +34,7 @@ def create_app(server_type):
             use_picamera = False,
             record = False,
             annotate = True,
+            task = 'emergence',
             video = app.config['VIDEO_PATH'],
             record_path = app.config['RECORD_PATH']
         )
@@ -102,10 +103,15 @@ def create_app(server_type):
     def observe():
         if request.method == "POST":
             psi = int(request.form.get("manPsi"))
-            proc.set_manual_psi(psi)
-            return render_template("observe.html", running_text=is_running(), psi=proc.psi)
+            use_psi = request.form.get("psi")
+
+            if use_psi:
+                proc.task = 'emergence'
+            else:
+                proc.set_manual_psi(psi)
+            return render_template("observe.html", running_text=is_running(), psi=proc.psi, task=proc.task)
             #return redirect(url_for('observe'))
-        return render_template("observe.html", running_text=is_running(), psi=proc.psi)
+        return render_template("observe.html", running_text=is_running(), psi=proc.psi, task=proc.task)
 
     @app.route("/video_feed")
     def video_feed():
