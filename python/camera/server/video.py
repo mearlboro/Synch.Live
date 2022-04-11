@@ -19,30 +19,52 @@ from camera.core.emergence import EmergenceCalculator, compute_macro
 from camera.core.detection import Detector
 from camera.core.tracking  import EuclideanMultiTracker
 
-def compute_macro(X: np.ndarray) -> np.ndarray:
-    """
-    """
-    V = np.mean(X, axis = 0)
-    V = V[np.newaxis, :]
-    return V
-
 def unwrap_resolution(resolution: SimpleNamespace):
     return (resolution.width, resolution.height)
 
 class Camera():
-    def __init__(self, cam_type, config = SimpleNamespace):
+    def __init__(self, cam_type: Any, config: SimpleNamespace) -> None:
         """
-        define config
+        Wrapper around a video stream either fetching frames from a real camera,
+        or mocking it using a local video file.
+
+        Params
+        ------
+        cam_type
+            if 'pi', uses a PiCamera on a RaspberryPi
+            if a number, fetch the corresponding video stream (e.g. for webcam)
+            if a path, simulate a camera using the video at the path
+        config
+            namespace (dot-addressible dict) including configuration for the
+            camera, such as:
+
+            resolution.width, resolution.height : int
+            framerate  : int
+            iso, shutter_speed, saturation: int
+            awb_mode: string
         """
         self.config = config
         self.cam_type = cam_type
 
-        
-    def start(self):
+
+    def start(self) -> VideoStream:
+        """
+        Initialise the video stream according to prameters, set image resolution
+        and framerate, as well as camera parameters if PiCamera is used, then
+        start the stream
+
+        Side-effects
+        ------
+        create and start a video stream
+
+        Returns
+        ------
+        video stream containing the frames fetched from the camera or video
+        """
         if self.cam_type == 'pi':
             resolution = unwrap_resolution(self.config.resolution)
             self.video_stream_obj = VideoStream(usePiCamera = 1,
-                resolution = resolution, framerate = self.config.resolution)
+                resolution = resolution, framerate = self.config.framerate)
             self.video_stream = self.video_stream_obj.start()
 
             ## set picam defaults
@@ -63,44 +85,58 @@ class Camera():
             self.video_stream = FileVideoStream(self.cam_type).start()
         return self.video_stream
 
+
 class VideoProcessor():
     """
 	Helper class which fetches frames from a vidstream, applies object detection
 	and tracking, and computes emergence values based on the object positions &
 	a macroscopic feature of the system.
     """
-    #def __init__(self, use_picamera: bool, task: str = '',
-    #        record: bool = True, annotate: bool = True,
-    #        video: str = '', record_path = 'media/video'):
-    def __init__(self, config: SimpleNamespace,):
+
+    def __init__(self, config: SimpleNamespace):
         """
+        Initialise system behaviour and paths using the server configuration in
+        config, and videostream, tracker and detector objects
+
         config:
             config.server changes only changed on server restart
+
 		Params
 		------
-			use_picamera
-				enable if it's run on a RaspberryPi system with a PiCamera
-            task: { 'emergence', '' }
-                if set, after tracking, run a task on the trajectories, specified
-                by this param
-                # TODO: add new tasks
-			record
-				enable to dump the video stream to a file to disk, location is
-				media/video
-			annotate
-				enable to show tracking bounding boxes on the stream
-			video
-				location of video stream if use_picamera is not enabled
+        config
+            namespace (dot-addressible dict) including config as specified in
+            ./camera/config/default.yml
+
+            config.server
+                used in the initialisation of the Flask app and the VideoProcessor,
+                includes application parameters such as host, port, type of camera,
+                whether and where to record
+            config.game.task
+                used in the VideoProcessor to set up game tasks
+
+                if ''          no task, used for calibration phase
+                if 'emergence' use the EmergenceCalculator to compute sync
+                if 'manual'    use a slider in the Web UI to set sync
+            config.camera
+                used in the initialisation of the Camera object, includes camera
+                parameters (iso, shutter speed etc), and video parameters
+                (resolution and framerate)
+            config.tracking
+                used in the intialisation of the EuclideanMultiTracker object
+            config.detection
+                used in the initialisation of the Detector object
         """
         self.config = config
         self.running = False
-        
+
         record = self.config.server.RECORD
         record_path = self.config.server.RECORD_PATH
         if record and os.path.exists(record_path):
             logging.info(f"Recording Enabled, recording to path {record_path}")
-            self.record         = record
-            self.record_path    = record_path
+            self.record      = record
+            self.record_path = record_path
+
+        self.task = self.config.game.task
 
         # initialize the output frame and a lock used to ensure thread-safe
         # exchanges of the output frames (useful when multiple browsers/tabs
@@ -110,7 +146,7 @@ class VideoProcessor():
         self.video_stream = None
         self.video_writer = None
 
-        self.tracking_thread = threading.Thread(target=self.tracking)
+        self.tracking_thread = threading.Thread(target = self.tracking)
         self.lock = threading.Lock()
 
 
@@ -129,6 +165,83 @@ class VideoProcessor():
             to their centre of mass
         """
         return self.psi
+
+
+    def start(self) -> None:
+        """
+        Initialises camera stream, tasks and runs tracking process in a thread.
+        Ensures only one tracking thread is running at a time.
+        """
+        # prevent starting tracking thread if one is already running
+        if not self.tracking_thread.is_alive():
+
+            # reinitialise tracking_thread in case previous run crashed
+            self.tracking_thread = threading.Thread(target = self.tracking)
+
+            self.camera = Camera(self.config.server.CAMERA, self.config.camera)
+            self.video_stream = self.camera.start()
+
+            self.detector = Detector(self.config.detection)
+
+            self.tracker = EuclideanMultiTracker(self.config.tracking)
+
+            # define video writer to save the stream
+            if self.record:
+                codec = cv2.VideoWriter_fourcc(*'MJPG')
+                date  = datetime.datetime.now().strftime('%y-%m-%d_%H%M')
+                resolution = unwrap_resolution(self.config.camera.resolution)
+                self.video_writer = cv2.VideoWriter(f'{self.record_path}/output_{date}.avi', codec,
+                    self.config.camera.framerate, resolution)
+
+            # positions of tracked objects
+            self.positions = []
+
+            # initialise emergence calculator
+            self.psi  = 0
+            if self.task == 'emergence':
+                logging.info("Initilised EmergenceCalculator")
+                self.calc = EmergenceCalculator(compute_macro)
+            elif self.task == '':
+                logging.info("No task specified, continuing")
+
+            logging.info("Initialised VideoProcessor with params:")
+            logging.info(f"camera type: {self.config.server.CAMERA}")
+            logging.info(f"task: {self.task}")
+            logging.info(f"record: {self.record}")
+            logging.info(f"annotate: {self.config.tracking.annotate}")
+
+            self.running = True
+            self.tracking_thread.start()
+            self.lock = threading.Lock()
+
+
+    def stop(self) -> None:
+        """
+        Release the video stream and writer pointers and gracefully exit the JVM
+
+        Params
+        ------
+            None
+
+        Returns
+        ------
+            None
+        """
+        logging.info('Stopping tracking thread...')
+        self.running = False
+
+        if self.video_stream:
+            logging.info('Closing video streamer...')
+            self.video_stream.stop()
+
+        if self.record:
+            if self.video_writer:
+                logging.info('Closing video writer...')
+                self.video_writer.release()
+
+        if self.task == 'emergence':
+            logging.info('Closing JVM...')
+            self.calc.exit()
 
 
     def tracking(self) -> None:
@@ -164,8 +277,7 @@ class VideoProcessor():
             exit(0)
 
         bboxes  = self.detector.detect_colour(frame)
-        tracker = EuclideanMultiTracker(self.config.tracking)
-        self.positions = tracker.update(bboxes)
+        self.positions = self.tracker.update(bboxes)
 
         if self.config.tracking.annotate:
             frame = self.detector.draw_annotations(frame, self.positions)
@@ -184,9 +296,9 @@ class VideoProcessor():
 
             if frame is not None:
                 bboxes = self.detector.detect_colour(frame)
-                self.positions = tracker.update(bboxes)
+                self.positions = self.tracker.update(bboxes)
 
-                if self.config.game.task == 'emergence':
+                if self.task == 'emergence':
                     if len(self.positions) > 1:
                         # compute emergence of positions and update psi
                         X = [ [ x + w/2, y + h/2 ]
@@ -231,74 +343,3 @@ class VideoProcessor():
                 bytearray(encoded_frame) + b'\r\n')
 
 
-    def start(self) -> None:
-        """
-        Initialises camera stream, tasks and runs tracking process in a thread.
-        Ensures only one tracking thread is running at a time.
-        """
-        # prevent starting tracking thread if one is already running
-        if not self.tracking_thread.is_alive():
-            # reinitialise tracking_thread in case previous run crashed
-            self.tracking_thread = threading.Thread(target=self.tracking)
-            
-            self.camera = Camera(self.config.server.CAMERA, self.config.camera)
-            self.video_stream = self.camera.start()
-            self.detector = Detector(self.config.detection)
-
-            # define video writer to save the stream
-            if self.record:
-                codec = cv2.VideoWriter_fourcc(*'MJPG')
-                date  = datetime.datetime.now().strftime('%y-%m-%d_%H%M')
-                resolution = unwrap_resolution(self.config.camera.resolution)
-                self.video_writer = cv2.VideoWriter(f'{self.record_path}/output_{date}.avi', codec,
-                    self.config.camera.framerate, resolution)
-
-            # positions of tracked objects
-            self.positions = []
-
-            # initialise emergence calculator
-            self.psi  = 0
-            if self.config.game.task == 'emergence':
-                logging.info("Initilised EmergenceCalculator")
-                self.calc = EmergenceCalculator(compute_macro)
-            elif self.config.game.task == '':
-                logging.info("No task specified, continuing")
-
-            logging.info("Initialised VideoProcessor with params:")
-            logging.info(f"camera type: {self.config.server.CAMERA}")
-            logging.info(f"task: {self.config.game.task}")
-            logging.info(f"record: {self.record}")
-            logging.info(f"annotate: {self.config.tracking.annotate}")
-
-            self.running = True
-            self.tracking_thread.start()
-            self.lock = threading.Lock()
-
-
-    def stop(self) -> None:
-        """
-        Release the video stream and writer pointers and gracefully exit the JVM
-
-        Params
-        ------
-            None
-
-        Returns
-        ------
-            None
-        """
-        logging.info('Stopping tracking thread...')
-        self.running = False
-
-        if self.video_stream:
-            logging.info('Closing video streamer...')
-            self.video_stream.stop()
-
-        if self.record:
-            if self.video_writer:
-                logging.info('Closing video writer...')
-                self.video_writer.release()
-
-        if self.task == 'emergence':
-            logging.info('Closing JVM...')
-            self.calc.exit()

@@ -11,18 +11,27 @@ from typing import Any, List, Tuple, Optional, Union
 # initialise logging to file
 import camera.core.logger
 
-def to_hsv(hsv):
-    return np.array([ hsv.hue, hsv.saturation, hsv.value], np.uint8)
-
 class Detector():
-    def __init__(self, config: SimpleNamespace):
+    def __init__(self, config: SimpleNamespace) -> None:
         """
-        define config
-            min_hsv: np.ndarray,
-            max_hsv: np.ndarray,
-            min_contour: int,
-            max_contour: int,
+        Initialise a simple, colour-based object detector with the minimum and
+        maximum perimeters and the lower and upper colour bounds in `config`.
+
+        Params
+        ------
+        config
+            namespace (dot-addressible dict) including configuration for the
+            detector, such as the following parameters:
+
+            min_contour, max_contour : int
+                minimum and maximum perimeter a rectangle requires to be detected
+            min_hsv, max_hsv         : np.ndarray
+                numpy arrays of shape (3,) where the elements represent HSV values to
+                be used as colour range for the objects to be detected
         """
+        def to_hsv(hsv):
+            return np.array([ hsv.hue, hsv.saturation, hsv.value], np.uint8)
+
         self.config = config
         self.min_hsv = to_hsv(config.min_colour)
         self.max_hsv = to_hsv(config.max_colour)
@@ -43,7 +52,7 @@ class Detector():
             logging.info(f"Found {len(boxes)} blobs in frame.")
 
 
-    def draw_bbox(self, 
+    def draw_bbox(self,
             frame:  np.ndarray,
             player: int,
             rect:   Tuple[float, float, float, float]
@@ -77,7 +86,7 @@ class Detector():
         return frame
 
 
-    def draw_annotations(self, 
+    def draw_annotations(self,
             frame: np.ndarray, boxes: List[Tuple[float, float, float, float]],
             normalised: bool = True
         ) -> np.ndarray:
@@ -120,57 +129,9 @@ class Detector():
         return frame
 
 
-    def detect_blobs(self, 
+    def detect_colour(self,
             frame: np.ndarray,
-            min_area: int,
-            max_area: int
-        ) -> List[cv2.KeyPoint]:
-        """
-        Gets the initial regions of interest (ROIs) to be tracked, which are green
-        LEDs in a dark image. Use blob detection to extract circular convex regions
-        of a certain area and bright colour
-
-        TODO: bug in OpenCV2 does not allow me to change blob colour
-
-        Params
-        ------
-        frame
-            a single frame of a cv2.VideoCapture() or picamera stream
-        min_area, max_area
-            minimum and maximum area a blob requires to be detected
-
-        Returns
-        ------
-            keypoints for each blob, consisting of centre of mass and radius of
-            detected blobs
-        """
-        # invert frame as the detector is preset on dark colours
-        inv_frame = cv2.bitwise_not(frame)
-
-        # initialise detector params so only circular dark objects get selected
-        # with an area within our bounds
-        params = cv2.SimpleBlobDetector_Params()
-        params.filterByCircularity = 1
-        params.minCircularity = 0.9
-        params.filterByArea = 1
-        params.minArea = min_area
-        params.maxArea = max_area
-        params.filterByColor = 1
-        params.blobColor = 0
-        detector = cv2.SimpleBlobDetector_create(params)
-
-        blobs = detector.detect(inv_frame)
-
-        #frame_annot = cv2.drawKeypoints(frame, blobs, np.array([]), (0,255,0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-
-        bboxes = [ cv2.boundingRect(blob) for blob in blobs ]
-
-        return bboxes
-
-
-    def detect_colour(self, 
-            frame: np.ndarray,
-            dump: bool          = False
+            dump: bool = False
         ) -> List[Tuple[float, float, float, float]]:
         """
         Gets the initial regions of interest (ROIs) to be tracked, which are green
@@ -182,11 +143,8 @@ class Detector():
         ------
         frame
             a single frame of a cv2.VideoCapture() or picamera stream
-        min_contour, max_contour
-            minimum and maximum perimeter a rectangle requires to be detected
-        min_hsv, max_hsv
-            numpy arrays of shape (3,) where the elements represent HSV values to
-            be used as colour range for the objects to be detected
+        dump
+            if set, save processing steps as images for debugging
 
         Returns
         ------
@@ -204,19 +162,19 @@ class Detector():
         green_mask = cv2.inRange(hsv_frame, self.min_hsv, self.max_hsv)
 
         if dump:
-            cv2.imwrite('hsv_frame.jpg', hsv_frame)
-            cv2.imwrite('green_mask.jpg', green_mask)
+            cv2.imwrite('../media/img/hsv_frame.jpg', hsv_frame)
+            cv2.imwrite('../media/img/green_mask.jpg', green_mask)
 
         # we look for punctiform green objects, so perform image dilation on mask
         # to emphasise these points
         kernel = np.ones((5, 5), "uint8")
         green_mask = cv2.dilate(green_mask, kernel)
         if dump:
-            cv2.imwrite('green_mask_dilated.jpg', green_mask)
+            cv2.imwrite('../media/img/green_mask_dilated.jpg', green_mask)
 
         res = cv2.bitwise_and(frame, frame, mask = green_mask)
         if dump:
-            cv2.imwrite('img_masked.jpg', res)
+            cv2.imwrite('../media/img/img_masked.jpg', res)
         res = cv2.cvtColor(res, cv2.COLOR_BGR2GRAY)
 
         # Find the contours of all green objects
