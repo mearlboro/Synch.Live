@@ -7,66 +7,70 @@
     <p>Pi Camera is <b>{{ '' if use_picamera else 'not' }} enabled</b></p>
     <p>Turn the focus wheel until the green pilot lights are detected by the object tracker.</p>
     <img src="{{ url_for('video_feed') if use_picamera else '' }}">
-    <h2>Camera Settings</h2>
-    <p>ISO: {{ pi_opts.iso }} </p>
-    <p>Shutter Speed: {{ pi_opts.shutter_speed }} </p>
-    <p>Saturation: {{ pi_opts.saturation }} </p>
-    <p>White Balance Mode: {{ pi_opts.awb_mode }} </p>
 
-    <form action="{{ url_for('calibrate')}}" method="post">
-      <label for="iso">ISO (Min: 25, Max: 800):</label>
-      <input type="number" id="iso" name="iso" value="{{ pi_opts.iso }}" min="25" max="800">
-      <label for="shutter_speed">Shutter Speed (Min: 244, Max: 1000000):</label>
-      <input type="number" id="shutter_speed" name="shutter_speed" value="{{ pi_opts.shutter_speed }}" min="244" max="1000000">
-      <label for="saturation">Saturation (Min: -100, Max: 100):</label>
-      <input type="number" id="saturation" name="saturation" value="{{ pi_opts.saturation }}" min="-100" max="100">
-      <label for="awb_mode">Auto White Balance Mode:</label>
-      <input type="select" id="saturation" name="saturation" value="{{ pi_opts.saturation }}">
-      <select type="text" id="awb_mode" name="awb_mode" selected="{{ pi_opts.awb_mode }}">
-        {% for opt in awb_modes %}
-          <option value="{{ opt }}" {{ 'selected' if pi_opts.awb_mode == opt else '' }}>{{ opt }}</option>
-        {% endfor %}
-      </select>
-      <button type="submit">Update Options</button>
-    </form>
+    <h2>Camera Calibration</h2>
+    <p>Pi Camera is <b>{{ '' if use_picamera else 'not' }} enabled</b></p>
 
-    <h3>Shutter Speed Equivalence Table</h3>
+    {% if use_picamera %}
+      <h3>Camera Settings</h3>
 
-    The PiCamera uses a value for shutter speed where 1 second == 1,000,000 units
+      <p>ISO: {{ pi_opts.iso }} </p>
+      <p>Shutter Speed: {{ pi_opts.shutter_speed }} </p>
+      <p>Saturation: {{ pi_opts.saturation }} </p>
+      <p>White Balance Mode: {{ pi_opts.awb_mode }} </p>
 
-    <style type="text/css">
-    .tg  {border-collapse:collapse;border-spacing:0;}
-    .tg td{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
-      overflow:hidden;padding:10px 5px;word-break:normal;}
-    .tg th{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
-      font-weight:normal;overflow:hidden;padding:10px 5px;word-break:normal;}
-    .tg .tg-0pky{border-color:inherit;text-align:left;vertical-align:top}
-    .tg .tg-0lax{text-align:left;vertical-align:top}
-    </style>
-    <table class="tg">
-    <thead>
-      <tr>
-        <th class="tg-0pky">Shutter Speed<br></th>
-        <th class="tg-0pky">PiCamera Equivalent Unit<br></th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr><td class="tg-0lax">1<br></td><td class="tg-0lax">1,000,000</td></tr>
-      <tr><td class="tg-0lax">1/2</td><td class="tg-0lax">500,000</td></tr>
-      <tr><td class="tg-0lax">1/4</td><td class="tg-0lax">125,000</td></tr>
-      <tr><td class="tg-0lax">1/8</td><td class="tg-0lax">62,500</td></tr>
-      <tr><td class="tg-0lax">1/16</td><td class="tg-0lax">62,500</td></tr>
-      <tr><td class="tg-0lax">1/32</td><td class="tg-0lax">31,250</td></tr>
-      <tr><td class="tg-0lax">1/64</td><td class="tg-0lax"> 15,625</td</tr>
-      <tr><td class="tg-0lax">1/128</td><td class="tg-0lax"> 7,812 </td</tr>
-      <tr><td class="tg-0lax">1/256</td><td class="tg-0lax"> 3,906</td</tr>
-      <tr><td class="tg-0lax">1/512</td><td class="tg-0lax"> 1,953</td</tr>
-      <tr><td class="tg-0lax">1/1024</td><td class="tg-0lax"> 976</td</tr>
-      <tr><td class="tg-0lax">1/2048</td><td class="tg-0lax"> 488</td</tr>
-      <tr><td class="tg-0lax">1/4096</td><td class="tg-0lax"> 244</td</tr>
-    </tbody>
-    </table>
+      <form action="{{ url_for('calibrate')}}" method="post">
+        <label for="iso">ISO (Min: 25, Max: 800):</label>
+        <input type="number" id="iso" name="iso" value="{{ pi_opts.iso }}" min="25" max="800">
 
-    <a href="index">Back to Home</a>
+        <label for="shutter_speed">Shutter Speed (Min: 244, Max: 1000000):</label>
+        <input type="number" id="shutter_speed" name="shutter_speed" value="{{ pi_opts.shutter_speed }}" min="244" max="1000000">
+
+        <label for="saturation">Saturation (Min: -100, Max: 100):</label>
+        <input type="number" id="saturation" name="saturation" value="{{ pi_opts.saturation }}" min="-100" max="100">
+
+        <label for="awb_mode">Auto White Balance Mode:</label>
+        <input type="select" id="saturation" name="saturation" value="{{ pi_opts.saturation }}">
+
+        <select type="text" id="awb_mode" name="awb_mode" selected="{{ pi_opts.awb_mode }}">
+            {% for opt in awb_modes %}
+            <option value="{{ opt }}" {{ 'selected' if pi_opts.awb_mode == opt else '' }}>{{ opt }}</option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">Update Options</button>
+      </form>
+
+      <h3>Shutter Speed Equivalence Table</h3>
+
+      The PiCamera uses a value for shutter speed where 1 second == 1,000,000 units
+
+      <table>
+        <thead>
+          <tr>
+              <th>Shutter Speed (s)<br></th>
+              <th>PiCamera Equivalent Unit<br></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1     </td><td> 1,000,000</td></tr>
+          <tr><td>1/2   </td><td> 500,000  </td></tr>
+          <tr><td>1/4   </td><td> 125,000  </td></tr>
+          <tr><td>1/8   </td><td> 62,500   </td></tr>
+          <tr><td>1/16  </td><td> 62,500   </td></tr>
+          <tr><td>1/32  </td><td> 31,250   </td></tr>
+          <tr><td>1/64  </td><td> 15,625   </td</tr>
+          <tr><td>1/128 </td><td> 7,812    </td</tr>
+          <tr><td>1/256 </td><td> 3,906    </td</tr>
+          <tr><td>1/512 </td><td> 1,953    </td</tr>
+          <tr><td>1/1024</td><td> 976      </td</tr>
+          <tr><td>1/2048</td><td> 488      </td</tr>
+          <tr><td>1/4096</td><td> 244      </td</tr>
+        </tbody>
+      </table>
+
+    {% endif %}
+
+    <a href="/">Back to Home</a>
   </body>
 </html>

@@ -70,11 +70,12 @@ def create_app(server_type):
     def return_sync():
         return jsonify(proc.Sync)
 
+
     @app.route("/start_tracking")
     def start_tracking():
         if not proc.running:
             proc.start()
-        return redirect(url_for("observe"))
+        return redirect(url_for("index"))
 
     @app.route("/stop_tracking")
     def stop_tracking():
@@ -89,6 +90,7 @@ def create_app(server_type):
             saturation = request.form['saturation']
             awb_mode = request.form['awb_mode']
             shutter_speed = request.form['shutter_speed']
+
             proc.picamera.iso = int(iso)
             proc.picamera.shutter_speed = int(shutter_speed)
             proc.picamera.saturation = int(saturation)
@@ -110,7 +112,6 @@ def create_app(server_type):
             else:
                 proc.set_manual_psi(psi)
             return render_template("observe.html", running_text=is_running(), psi=proc.psi, task=proc.task)
-            #return redirect(url_for('observe'))
         return render_template("observe.html", running_text=is_running(), psi=proc.psi, task=proc.task)
 
     @app.route("/video_feed")
