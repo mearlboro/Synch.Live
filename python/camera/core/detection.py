@@ -72,7 +72,7 @@ def draw_bbox(
 
 def draw_annotations(
         frame: np.ndarray, boxes: List[Tuple[float, float, float, float]],
-        normalised: bool = True
+        normalised: bool = True, extra_text: str = ''
     ) -> np.ndarray:
     """
     Draws all necessary annotations (timestamp, tracked objects)
@@ -93,14 +93,18 @@ def draw_annotations(
     -----
         updated frame
     """
-    timestamp = datetime.datetime.now()
-    frame = cv2.putText(frame, timestamp.strftime("%y-%m-%d %H:%M:%S"),
-                (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX,
-                0.5, (255, 255, 255), 1)
-
     # Obtain frame width and height
     fw = frame.shape[1]
     fh = frame.shape[0]
+
+    timestamp = datetime.datetime.now()
+    frame = cv2.putText(frame, timestamp.strftime("%y-%m-%d %H:%M:%S"),
+                (10, fh - 10), cv2.FONT_HERSHEY_SIMPLEX,
+                0.5, (255, 255, 255), 1)
+
+    frame = cv2.putText(frame, extra_text,
+                (fw - 120, fh - 10), cv2.FONT_HERSHEY_SIMPLEX,
+                0.5, (255, 255, 255), 1)
 
     for i, box in enumerate(boxes):
         # draw rectangle and label over the objects position in the video

@@ -169,7 +169,12 @@ class VideoProcessor():
                         self.psi = self.calc.update_and_compute(np.array(X))
 
                 if self.annotate:
-                    frame = draw_annotations(frame, self.positions)
+                    if self.task == 'emergence':
+                        psi_status = f"Psi: {round(self.psi, 3)}"
+                    else:
+                        psi_status = ''
+                    frame = draw_annotations(frame, self.positions,
+                                            extra_text = psi_status)
 
                 # acquire the lock, set the output frame, and release the lock
                 with self.lock:
