@@ -153,7 +153,7 @@ if __name__ == '__main__':
     camera_number = os.environ.get('CAMERA_NUMBER', default=None)
     camera_stream = None
     if camera_number != None:
-        camera_stream = VideoStream(int(camera_number))
+        camera_stream = VideoStream(int(camera_number), framerate = 12.0)
 
     create_app(server_type, camera_stream=camera_stream).run(host=host,
             port=port, debug=True, threaded=True, use_reloader=False)
