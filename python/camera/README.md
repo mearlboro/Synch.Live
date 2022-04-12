@@ -161,10 +161,37 @@ or
 To run the server on the Observer of the Synch.Live system, the config file can
 be set in the same way using the env varibale `CONFIG_PATH`
 
+#### Raspberry Pi
+
 > **Note**: this can only be run on a RaspberryPi with a PiCamera attached.
 
     $ cd python
     $ python3 camera/server/server.py observer
 
+#### Generic Camera
 
+> **Note**: this has only been tested on Linux
 
+You can run the observer if you have a camera connected to your computer, this can be:
++ integrated laptop camera
++ external USB webcam
++ camera/stream connected via a Capture Card
+
+> Generic Camera's cannot be calibrated from the internal webpage, unlike the RaspberryPi Camera.
+
+##### Linux
+
+Your user must be a part of the `video` group, or you must have permission to access the video device in `/dev/videoN`
+
+check which camera device you may want to use `mpv`
+
+    $ mpv /dev/video0
+
+in this case my webcam is at index 0.
+
+If you do not see your video stream, then check the available video devices with `ls /dev | grep video` and try other indices.
+
+Using the index of your camera that you found earlir, run
+
+    $ cd python
+    $ CAMERA_NUMBER=0 python3 camera/server/server.py observer
