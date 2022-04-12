@@ -375,8 +375,11 @@ class VideoProcessor():
             a generator that produces a stream of bytes with the frame wrapped
             in a HTML response
         """
+        framerate = 12.0
+        frametime = 1.0/framerate
         while self.running:
             # wait until the lock is acquired
+            begin = time.time()
             with self.lock:
                 # check if the output frame is available, otherwise skip
                 # the iteration of the loop
@@ -390,6 +393,12 @@ class VideoProcessor():
             # yield the output frame in the byte format
             yield(b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' +
                 bytearray(encoded_frame) + b'\r\n')
+            end = time.time()
+            diff = end - begin
+            if diff > frametime:
+                continue
+            else:
+                time.sleep(frametime - diff) 
 
 
     def start(self) -> None:

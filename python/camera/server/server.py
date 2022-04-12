@@ -151,7 +151,7 @@ if __name__ == '__main__':
         camera_stream = None
         if camera_number != None:
             logging.info(f"Opening Camera {camera_number}")
-            camera_stream = VideoStream(int(camera_number))
+            camera_stream = VideoStream(int(camera_number), framerate = config.camera.framerate)
 
         create_app(server_type, config, conf_path, camera_stream=camera_stream).run(
                 host = host, port = port, debug = True,
