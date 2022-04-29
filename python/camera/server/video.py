@@ -14,13 +14,13 @@ from typing import Any, Dict, List, Tuple, Generator
 # initialise logging to file
 import camera.core.logger
 
-# import tracking code
+# import relevant project libs
+from camera.tools.colour   import hex_to_hsv
+from camera.tools.config   import parse, unwrap_resolution
 from camera.core.emergence import EmergenceCalculator, compute_macro
 from camera.core.detection import Detector
 from camera.core.tracking  import EuclideanMultiTracker
 
-def unwrap_resolution(resolution: SimpleNamespace):
-    return (resolution.width, resolution.height)
 
 class Camera():
     def __init__(self, cam_type: Any, config: SimpleNamespace) -> None:
@@ -135,6 +135,8 @@ class VideoProcessor():
             logging.info(f"Recording Enabled, recording to path {record_path}")
             self.record      = record
             self.record_path = record_path
+        else:
+            self.record = False
 
         self.task = self.config.game.task
 
@@ -165,6 +167,59 @@ class VideoProcessor():
             to their centre of mass
         """
         return self.psi
+
+
+    def update_tracking_conf(self, max_players: int) -> None:
+        """
+        Following a form submission in the front-end, reinitialise tracker with
+        new parameters, as well as update config
+
+        Params
+        ------
+            max_players
+                maximum number of objects to be tracked
+
+        Side-effects
+        ------
+            - reinitialise tracker
+        """
+        self.config.tracking.max_players = max_players
+
+        self.tracker = EuclideanMultiTracker(self.config.tracking)
+
+        logging.info(f"Updated max_players from Web UI to {max_players} and reinitialised tracker")
+
+
+    def update_detection_conf(self,
+            min_contour: int, max_contour: int, min_colour, max_colour
+        ) -> None:
+        """
+        Following a form submission in the front-end, reinitialise detector with
+        new parameters, as well as update config
+
+        Params
+        ------
+            min_contour, max_contour: int
+               min and max perimeter of detected blob
+            min_colour, max_colour: str
+                min and max colours of detected blob in hex, e.g. '#06ff62'
+
+        Side-effects
+        ------
+            - reinitialise detector
+        """
+        self.config.detection.min_contour = min_contour
+        self.config.detection.max_contour = max_contour
+        self.config.detection.min_colour  = parse(hex_to_hsv(min_colour))
+        self.config.detection.max_colour  = parse(hex_to_hsv(max_colour))
+
+        self.tracker = Detector(self.config.detection)
+
+        logging.info(f"Updated detector from Web UI and reinitialised:")
+        logging.info(f"  min_contour : {min_contour} ")
+        logging.info(f"  max_contour : {max_contour} ")
+        logging.info(f"  min_colour  : {hex_to_hsv(min_colour)} ")
+        logging.info(f"  max_colour  : {hex_to_hsv(max_colour)} ")
 
 
     def start(self) -> None:
@@ -242,6 +297,7 @@ class VideoProcessor():
         if self.task == 'emergence':
             logging.info('Closing JVM...')
             self.calc.exit()
+
 
 
     def tracking(self) -> None:

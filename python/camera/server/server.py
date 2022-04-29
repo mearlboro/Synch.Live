@@ -1,21 +1,17 @@
 import sys, os
 from types import SimpleNamespace
-from flask import Flask, jsonify, render_template, redirect, url_for
+from flask import Flask, jsonify, render_template, redirect, url_for, request
 from flask.wrappers import Response
 import signal
 import logging
 import yaml
 
-def parse(d):
-  x = SimpleNamespace()
-  _ = [setattr(x, k, parse(v)) if isinstance(v, dict) else setattr(x, k, v)
-        for k, v in d.items() ]
-  return x
-
-# import files performing calibration and tracking
+from camera.tools.config import parse, unparse
+from camera.tools.colour import hsv_to_hex
 from video import VideoProcessor
 
-def create_app(server_type, conf):
+
+def create_app(server_type, conf, conf_path):
     app = Flask(__name__)
     app.debug = True
 
@@ -56,15 +52,31 @@ def create_app(server_type, conf):
             proc.stop()
         return redirect(url_for("index"))
 
-    @app.route("/calibrate")
+    @app.route("/calibrate", methods = [ 'GET', 'POST' ])
     def calibrate():
         use_picamera = proc.config.server.CAMERA == 'pi'
 
-        if use_picamera:
-            pi_opts = vars(proc.config.camera)
+        if request.method == 'GET':
+            opts = unparse(proc.config)
+            # for calibration no task should be run
+            opts['game']['task'] = ''
+            # color picker expects hex colours
+            opts['detection']['min_colour'] = hsv_to_hex(vars(proc.config.detection.min_colour))
+            opts['detection']['max_colour'] = hsv_to_hex(vars(proc.config.detection.max_colour))
+
+            return render_template("calibrate.html", use_picamera = use_picamera,
+                conf_path = conf_path, save_file = False, opts = opts)
         else:
-            pi_opts = {}
-        return render_template("calibrate.html", use_picamera=use_picamera, pi_opts=pi_opts)
+            proc.update_tracking_conf(request.form['max_players'])
+            proc.update_detection_conf(
+                request.form['min_contour'], request.form['max_contour'],
+                request.form['min_colour'], request.form['max_colour'])
+
+            if use_picamera:
+                proc.update_picamera(request.form['iso'], request.form['shutter_speed'],
+                    request_form['saturation'], request.form['awb_mode'])
+
+            return redirect(url_for("calibrate"))
 
     @app.route("/observe")
     def observe():
@@ -90,16 +102,17 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         server_type = sys.argv[1]
 
-    host = os.environ.get('HOST', default='0.0.0.0')
-    port = int(os.environ.get('PORT', default='8888'))
-    configPath = os.environ.get('CONFIG_PATH', default='./camera/config/default.yml')
+    host = os.environ.get('HOST', default = '0.0.0.0')
+    port = int(os.environ.get('PORT', default = '8888'))
+    conf_path = os.environ.get('CONFIG_PATH', default = './camera/config/default.yml')
     print(os.path.abspath("."))
 
-    logging.info(f"Starting server, listening on {host} at port {port}, using config at {configPath}")
+    logging.info(f"Starting server, listening on {host} at port {port}, using config at {conf_path}")
 
-    with open(configPath, 'r') as fh:
-        yamlDict = yaml.safe_load(fh)
-        config = parse(yamlDict)
+    with open(conf_path, 'r') as fh:
+        yaml_dict = yaml.safe_load(fh)
+        config = parse(yaml_dict)
 
-        create_app(server_type, config).run(host=host, port=port, debug=True,
-                threaded=True, use_reloader=False)
+        create_app(server_type, config, conf_path).run(
+                host = host, port = port, debug = True,
+                threaded = True, use_reloader = False)
