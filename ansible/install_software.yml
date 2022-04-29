@@ -67,6 +67,7 @@
         - opencv-contrib-python~=4.4.0.46
         - picamera
         - pykalman
+        - pyyaml
       executable: pip3
       state: latest
 
