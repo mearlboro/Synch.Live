@@ -65,13 +65,10 @@ class Camera():
             self.video_stream_obj = VideoStream(usePiCamera = 1,
                 resolution = resolution, framerate = self.config.framerate)
             self.video_stream = self.video_stream_obj.start()
+            self.picamera = self.video_stream_obj.stream.camera
 
             ## set picam defaults
-            self.picamera = self.video_stream_obj.stream.camera
-            self.picamera.iso = self.config.iso
-            self.picamera.saturation = self.config.saturation
-            self.picamera.shutter_speed = self.config.shutter_speed
-            self.picamera.awb_mode = self.config.awb_mode
+            self.update_settings(self.config)
 
             time.sleep(2)
         elif type(self.cam_type) is int:
@@ -82,14 +79,23 @@ class Camera():
                 raise ValueError(f'No such file: {self.cam_type}')
 
             self.video_stream = FileVideoStream(self.cam_type).start()
+
         return self.video_stream
+
+
+    def update_settings(self, config: SimpleNamespace):
+        if self.cam_type == 'pi':
+            self.picamera.iso = self.config.iso
+            self.picamera.saturation = self.config.saturation
+            self.picamera.shutter_speed = self.config.shutter_speed
+            self.picamera.awb_mode = self.config.awb_mode
 
 
 class VideoProcessor():
     """
-	Helper class which fetches frames from a vidstream, applies object detection
-	and tracking, and computes emergence values based on the object positions &
-	a macroscopic feature of the system.
+    Helper class which fetches frames from a vidstream, applies object detection
+    and tracking, and computes emergence values based on the object positions &
+    a macroscopic feature of the system.
     """
 
     def __init__(self, config: SimpleNamespace):
@@ -100,8 +106,8 @@ class VideoProcessor():
         config:
             config.server changes only changed on server restart
 
-		Params
-		------
+        Params
+        ------
         config
             namespace (dot-addressible dict) including config as specified in
             ./camera/config/default.yml
@@ -178,6 +184,9 @@ class VideoProcessor():
 
     def set_manual_psi(self, psi: float) -> None:
         if self.task != 'manual':
+            if self.task == 'psi':
+                self.calc.exit()
+
             self.task = 'manual'
             self.config.game.task = 'manual'
 
@@ -200,7 +209,7 @@ class VideoProcessor():
         ------
             - reinitialise tracker
         """
-        self.config.tracking.max_players = max_players
+        self.config.tracking.max_players = int(max_players)
 
         self.tracker = EuclideanMultiTracker(self.config.tracking)
 
@@ -225,18 +234,54 @@ class VideoProcessor():
         ------
             - reinitialise detector
         """
-        self.config.detection.min_contour = min_contour
-        self.config.detection.max_contour = max_contour
+        self.config.detection.min_contour = int(min_contour)
+        self.config.detection.max_contour = int(max_contour)
         self.config.detection.min_colour  = parse(hex_to_hsv(min_colour))
         self.config.detection.max_colour  = parse(hex_to_hsv(max_colour))
 
-        self.tracker = Detector(self.config.detection)
+        self.detector = Detector(self.config.detection)
 
         logging.info(f"Updated detector from Web UI and reinitialised:")
         logging.info(f"  min_contour : {min_contour} ")
         logging.info(f"  max_contour : {max_contour} ")
         logging.info(f"  min_colour  : {hex_to_hsv(min_colour)} ")
         logging.info(f"  max_colour  : {hex_to_hsv(max_colour)} ")
+
+
+    def update_picamera(self,
+            iso: int, shutter_speed: int, saturation: int, awb_mode: str
+        ) -> None:
+        """
+        Following a form submission in the front-end, update picamera settings
+        with new parameters, as well as update config
+
+        Params
+        ------
+            iso
+                sensitivity, min 25, max 800
+            shutter_speed
+                in milionths of a second
+            saturation
+                from 1 to 100
+            awb_mode
+                white balance
+
+        Side-effects
+        ------
+            - reinitialise tracker
+        """
+        self.config.camera.iso = int(iso)
+        self.config.camera.shutter_speed = int(shutter_speed)
+        self.config.camera.saturation = int(saturation)
+        self.config.camera.awb_mode = awb_mode
+
+        self.camera.update_settings(self.config)
+
+        logging.info(f"Updated PiCamera settings from Web UI:")
+        logging.info(f"  iso           : {iso          } ")
+        logging.info(f"  shutter_speed : {shutter_speed} ")
+        logging.info(f"  saturation    : {saturation   } ")
+        logging.info(f"  awb_mode      : {awb_mode     } ")
 
 
     def tracking(self) -> None:
@@ -416,5 +461,6 @@ class VideoProcessor():
                 self.video_writer.release()
 
         if self.task == 'emergence':
-            logging.info('Closing JVM...')
             self.calc.exit()
+
+

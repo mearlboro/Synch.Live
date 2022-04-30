@@ -1,12 +1,12 @@
 server:
-  RECORD: true
+  RECORD: false
   RECORD_PATH: ../media/video
   IMG_PATH: ../media/img
   HOST: 0.0.0.0
   PORT: 888
   #CAMERA: 'pi'
   #CAMERA: 0
-  CAMERA: ../media/video/3.avi
+  CAMERA: ../media/video/6.avi
 game:
   task: "emergence"
 tracking:

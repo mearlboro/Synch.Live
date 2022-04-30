@@ -71,8 +71,6 @@ def create_app(server_type, conf, conf_path):
 
         if request.method == 'GET':
             opts = unparse(proc.config)
-            # for calibration no task should be run
-            opts['game']['task'] = ''
             # color picker expects hex colours
             opts['detection']['min_colour'] = hsv_to_hex(vars(proc.config.detection.min_colour))
             opts['detection']['max_colour'] = hsv_to_hex(vars(proc.config.detection.max_colour))
@@ -86,17 +84,8 @@ def create_app(server_type, conf, conf_path):
                 request.form['min_colour'], request.form['max_colour'])
 
             if use_picamera:
-                #proc.update_picamera(request.form['iso'], request.form['shutter_speed'],
-                #    request_form['saturation'], request_form['awb_mode'])
-                iso = request.form['iso']
-                saturation = request.form['saturation']
-                awb_mode = request.form['awb_mode']
-                shutter_speed = request.form['shutter_speed']
-
-                proc.picamera.iso = int(iso)
-                proc.picamera.shutter_speed = int(shutter_speed)
-                proc.picamera.saturation = int(saturation)
-                proc.picamera.awb_mode = awb_mode
+                proc.update_picamera(request.form['iso'], request.form['shutter_speed'],
+                    request.form['saturation'], request.form['awb_mode'])
 
             return redirect(url_for("calibrate"))
 
