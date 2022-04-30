@@ -1,4 +1,3 @@
-from types import SimpleNamespace
 import cv2
 from collections import OrderedDict
 import datetime
@@ -8,7 +7,7 @@ import numpy as np
 import os
 import threading
 import time
-
+from types import SimpleNamespace
 from typing import Any, Dict, List, Tuple, Generator
 
 # initialise logging to file
@@ -151,11 +150,13 @@ class VideoProcessor():
         self.tracking_thread = threading.Thread(target = self.tracking)
         self.lock = threading.Lock()
 
+        self.psi = 0
+
 
     @property
-    def Psi(self) -> float:
+    def Sync(self) -> float:
         """
-        Compute causal emergence for the current state
+        Compute synchronisation param for given task
 
         Params
         ------
@@ -163,10 +164,26 @@ class VideoProcessor():
 
         Returns
         ------
-            Psi computation for the positions of all detected points with respect
-            to their centre of mass
+            synch param between 0 (unsync) and 1 (full sync)
         """
-        return self.psi
+        if self.task == 'manual':
+            return self.psi / 10.0
+        elif self.task == 'emergence':
+            a = 0
+            b = 3
+            return 1.0 / (1 + np.exp((self.psi - a) / b))
+        else:
+            return self.psi
+
+
+    def set_manual_psi(self, psi: float) -> None:
+        if self.task != 'manual':
+            self.task = 'manual'
+            self.config.game.task = 'manual'
+
+        self.psi = psi
+
+        logging.info(f"Manually setting psi to {psi}")
 
 
     def update_tracking_conf(self, max_players: int) -> None:
@@ -220,6 +237,110 @@ class VideoProcessor():
         logging.info(f"  max_contour : {max_contour} ")
         logging.info(f"  min_colour  : {hex_to_hsv(min_colour)} ")
         logging.info(f"  max_colour  : {hex_to_hsv(max_colour)} ")
+
+
+    def tracking(self) -> None:
+        """
+        Tracking process, starting with initial object detection, then fetch a
+        new frame and track. Annotate image and produce a streamable output
+        via the global `output_frame` variable.
+
+        Params
+        ------
+            None
+
+        Returns
+        ------
+            None
+
+        Side-effects
+        ------
+            - produce a stream in output_frame
+            - may acquire or release lock
+            - consumes the video stream
+            - updates the positions dict every frame
+            - logs tracked positions to log file
+        """
+        # read the first frame and detect objects
+        with self.lock:
+            frame = self.video_stream.read()
+            if self.record:
+                self.video_writer.write(frame)
+
+        if frame is None:
+            logging.info('Error reading first frame. Exiting.')
+            exit(0)
+
+        bboxes  = self.detector.detect_colour(frame)
+        self.positions = self.tracker.update(bboxes)
+
+        if self.config.tracking.annotate:
+            frame = self.detector.draw_annotations(frame, self.positions)
+
+        # acquire the lock, set the output frame, and release the lock
+        with self.lock:
+            self.output_frame = frame.copy()
+
+        # loop over frames from the video stream and track
+        while self.running:
+            with self.lock:
+                frame = self.video_stream.read()
+
+                if frame is not None and self.record:
+                    self.video_writer.write(frame)
+
+            if frame is not None:
+                bboxes = self.detector.detect_colour(frame)
+                self.positions = self.tracker.update(bboxes)
+
+                if self.task == 'emergence':
+                    if len(self.positions) > 1:
+                        # compute emergence of positions and update psi
+                        X = [ [ x + w/2, y + h/2 ]
+                                for (x, y, w, h) in self.positions ]
+                        self.psi = self.calc.update_and_compute(np.array(X))
+
+                if self.config.tracking.annotate:
+                    if self.task == 'emergence':
+                        psi_status = f"Psi: {round(self.psi, 3)}"
+                    else:
+                        psi_status = ''
+                    frame = self.detector.draw_annotations(frame, self.positions,
+                                            extra_text = psi_status)
+
+                # acquire the lock, set the output frame, and release the lock
+                with self.lock:
+                    self.output_frame = frame.copy()
+
+
+    def generate_frame(self) -> Generator[bytes, None, None]:
+        """
+        Encode the current output frame as a bytearray of a JPEG image
+
+        Params
+        ------
+            None
+
+        Returns
+        ------
+            a generator that produces a stream of bytes with the frame wrapped
+            in a HTML response
+        """
+        while self.running:
+            # wait until the lock is acquired
+            with self.lock:
+                # check if the output frame is available, otherwise skip
+                # the iteration of the loop
+                if self.output_frame is None:
+                    continue
+                # encode the frame in JPEG format
+                (flag, encoded_frame) = cv2.imencode(".jpg", self.output_frame)
+                # ensure the frame was successfully encoded
+                if not flag:
+                    continue
+            # yield the output frame in the byte format
+            yield(b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' +
+                bytearray(encoded_frame) + b'\r\n')
 
 
     def start(self) -> None:
@@ -297,105 +418,3 @@ class VideoProcessor():
         if self.task == 'emergence':
             logging.info('Closing JVM...')
             self.calc.exit()
-
-
-
-    def tracking(self) -> None:
-        """
-        Tracking process, starting with initial object detection, then fetch a
-        new frame and track. Annotate image and produce a streamable output
-        via the global `output_frame` variable.
-
-        Params
-        ------
-            None
-
-        Returns
-        ------
-            None
-
-        Side-effects
-        ------
-            - produce a stream in output_frame
-            - may acquire or release lock
-            - consumes the video stream
-            - updates the positions dict every frame
-            - logs tracked positions to log file
-        """
-        # read the first frame and detect objects
-        with self.lock:
-            frame = self.video_stream.read()
-            if self.record:
-                self.video_writer.write(frame)
-
-        if frame is None:
-            logging.info('Error reading first frame. Exiting.')
-            exit(0)
-
-        bboxes  = self.detector.detect_colour(frame)
-        self.positions = self.tracker.update(bboxes)
-
-        if self.config.tracking.annotate:
-            frame = self.detector.draw_annotations(frame, self.positions)
-
-        # acquire the lock, set the output frame, and release the lock
-        with self.lock:
-            self.output_frame = frame.copy()
-
-        # loop over frames from the video stream and track
-        while self.running:
-            with self.lock:
-                frame = self.video_stream.read()
-
-                if frame is not None and self.record:
-                    self.video_writer.write(frame)
-
-            if frame is not None:
-                bboxes = self.detector.detect_colour(frame)
-                self.positions = self.tracker.update(bboxes)
-
-                if self.task == 'emergence':
-                    if len(self.positions) > 1:
-                        # compute emergence of positions and update psi
-                        X = [ [ x + w/2, y + h/2 ]
-                                for (x, y, w, h) in self.positions ]
-                        self.psi = self.calc.update_and_compute(np.array(X))
-
-                if self.config.tracking.annotate:
-                    frame = self.detector.draw_annotations(frame, self.positions)
-
-                # acquire the lock, set the output frame, and release the lock
-                with self.lock:
-                    self.output_frame = frame.copy()
-
-
-    def generate_frame(self) -> Generator[bytes, None, None]:
-        """
-        Encode the current output frame as a bytearray of a JPEG image
-
-        Params
-        ------
-            None
-
-        Returns
-        ------
-            a generator that produces a stream of bytes with the frame wrapped
-            in a HTML response
-        """
-        while self.running:
-            # wait until the lock is acquired
-            with self.lock:
-                # check if the output frame is available, otherwise skip
-                # the iteration of the loop
-                if self.output_frame is None:
-                    continue
-                # encode the frame in JPEG format
-                (flag, encoded_frame) = cv2.imencode(".jpg", self.output_frame)
-                # ensure the frame was successfully encoded
-                if not flag:
-                    continue
-            # yield the output frame in the byte format
-            yield(b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' +
-                bytearray(encoded_frame) + b'\r\n')
-
-

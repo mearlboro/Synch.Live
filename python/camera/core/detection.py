@@ -1,4 +1,3 @@
-from types import SimpleNamespace
 import cv2
 import datetime
 import imutils
@@ -6,6 +5,7 @@ import logging
 import numpy as np
 import sys
 
+from types import SimpleNamespace
 from typing import Any, List, Tuple, Optional, Union
 
 # initialise logging to file
@@ -37,7 +37,9 @@ class Detector():
         self.max_hsv = to_hsv(config.max_colour)
 
 
-    def log_detected(self, boxes: List[Tuple[float, float, float, float]]) -> None:
+    def log_detected(self,
+            boxes: List[Tuple[float, float, float, float]]
+        ) -> None:
         """
         Write detected boxes to logfile
 
@@ -77,7 +79,7 @@ class Detector():
 
         (x, y, w, h) = rect
         frame = cv2.rectangle(frame, (int(x), int(y), int(w), int(h)),
-                              (0, 0, 255), 2)
+                            (0, 0, 255), 2)
 
         frame = cv2.putText(frame, f"Player{player}", (int(x), int(y)),
             cv2.FONT_HERSHEY_SIMPLEX,
@@ -88,7 +90,7 @@ class Detector():
 
     def draw_annotations(self,
             frame: np.ndarray, boxes: List[Tuple[float, float, float, float]],
-            normalised: bool = True
+            normalised: bool = True, extra_text: str = ''
         ) -> np.ndarray:
         """
         Draws all necessary annotations (timestamp, tracked objects)
@@ -109,14 +111,18 @@ class Detector():
         -----
             updated frame
         """
-        timestamp = datetime.datetime.now()
-        frame = cv2.putText(frame, timestamp.strftime("%y-%m-%d %H:%M:%S"),
-                    (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX,
-                    0.5, (255, 255, 255), 1)
-
         # Obtain frame width and height
         fw = frame.shape[1]
         fh = frame.shape[0]
+
+        timestamp = datetime.datetime.now()
+        frame = cv2.putText(frame, timestamp.strftime("%y-%m-%d %H:%M:%S"),
+                    (10, fh - 10), cv2.FONT_HERSHEY_SIMPLEX,
+                    0.5, (255, 255, 255), 1)
+
+        frame = cv2.putText(frame, extra_text,
+                    (fw - 120, fh - 10), cv2.FONT_HERSHEY_SIMPLEX,
+                    0.5, (255, 255, 255), 1)
 
         for i, box in enumerate(boxes):
             # draw rectangle and label over the objects position in the video
@@ -124,7 +130,7 @@ class Detector():
                 (x, y, w, h) = box
                 box = (x * fw, y * fh, w * fw, h * fh)
 
-            frame = self.draw_bbox(frame, i + 1, box)
+            frame = draw_bbox(frame, i + 1, box)
 
         return frame
 
@@ -162,19 +168,19 @@ class Detector():
         green_mask = cv2.inRange(hsv_frame, self.min_hsv, self.max_hsv)
 
         if dump:
-            cv2.imwrite('../media/img/hsv_frame.jpg', hsv_frame)
-            cv2.imwrite('../media/img/green_mask.jpg', green_mask)
+            cv2.imwrite(f"{self.config.server.IMG_PATH}/hsv_frame.jpg" , hsv_frame)
+            cv2.imwrite(f"{self.config.server.IMG_PATH}/green_mask.jpg", green_mask)
 
         # we look for punctiform green objects, so perform image dilation on mask
         # to emphasise these points
         kernel = np.ones((5, 5), "uint8")
         green_mask = cv2.dilate(green_mask, kernel)
         if dump:
-            cv2.imwrite('../media/img/green_mask_dilated.jpg', green_mask)
+            cv2.imwrite(f"{self.config.server.IMG_PATH}/green_mask_dilated.jpg", green_mask)
 
         res = cv2.bitwise_and(frame, frame, mask = green_mask)
         if dump:
-            cv2.imwrite('../media/img/img_masked.jpg', res)
+            cv2.imwrite(f"{self.config.server.IMG_PATH}/img_masked.jpg", res)
         res = cv2.cvtColor(res, cv2.COLOR_BGR2GRAY)
 
         # Find the contours of all green objects

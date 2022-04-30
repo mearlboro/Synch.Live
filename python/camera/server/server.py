@@ -1,15 +1,28 @@
 import sys, os
-from types import SimpleNamespace
-from flask import Flask, jsonify, render_template, redirect, url_for, request
+from flask import Flask, jsonify, render_template, redirect, request, url_for
 from flask.wrappers import Response
 import signal
 import logging
 import yaml
+from types import SimpleNamespace
 
 from camera.tools.config import parse, unparse
 from camera.tools.colour import hsv_to_hex
 from video import VideoProcessor
 
+awb_modes = [
+    "off",
+    "auto",
+    "sunlight",
+    "cloudy",
+    "shade",
+    "tungsten",
+    "fluorescent",
+    "incandescent",
+    "flash",
+    "horizon",
+    "greyworld"
+]
 
 def create_app(server_type, conf, conf_path):
     app = Flask(__name__)
@@ -36,9 +49,9 @@ def create_app(server_type, conf, conf_path):
     def index():
         return render_template("index.html", running_text=is_running())
 
-    @app.route("/psi")
-    def return_psi():
-        return jsonify(proc.Psi)
+    @app.route("/sync")
+    def return_sync():
+        return jsonify(proc.Sync)
 
     @app.route("/start_tracking")
     def start_tracking():
@@ -73,14 +86,32 @@ def create_app(server_type, conf, conf_path):
                 request.form['min_colour'], request.form['max_colour'])
 
             if use_picamera:
-                proc.update_picamera(request.form['iso'], request.form['shutter_speed'],
-                    request_form['saturation'], request.form['awb_mode'])
+                #proc.update_picamera(request.form['iso'], request.form['shutter_speed'],
+                #    request_form['saturation'], request_form['awb_mode'])
+                iso = request.form['iso']
+                saturation = request.form['saturation']
+                awb_mode = request.form['awb_mode']
+                shutter_speed = request.form['shutter_speed']
+
+                proc.picamera.iso = int(iso)
+                proc.picamera.shutter_speed = int(shutter_speed)
+                proc.picamera.saturation = int(saturation)
+                proc.picamera.awb_mode = awb_mode
 
             return redirect(url_for("calibrate"))
 
-    @app.route("/observe")
+    @app.route("/observe", methods = ['GET', 'POST'])
     def observe():
-        return render_template("observe.html", running_text=is_running())
+        if request.method == "POST":
+            psi = int(request.form.get("manPsi"))
+            use_psi = request.form.get("psi")
+
+            if use_psi:
+                proc.task = 'emergence'
+            else:
+                proc.set_manual_psi(psi)
+            return render_template("observe.html", running_text=is_running(), psi=proc.psi, task=proc.task)
+        return render_template("observe.html", running_text=is_running(), psi=proc.psi, task=proc.task)
 
     @app.route("/video_feed")
     def video_feed():
