@@ -150,7 +150,7 @@ class VideoProcessor():
         self.tracking_thread = threading.Thread(target = self.tracking)
         self.lock = threading.Lock()
 
-        self.psi = 0
+        self.psi = 0.0
 
 
     @property

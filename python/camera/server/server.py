@@ -78,7 +78,7 @@ def create_app(server_type, conf, conf_path):
             opts['detection']['max_colour'] = hsv_to_hex(vars(proc.config.detection.max_colour))
 
             return render_template("calibrate.html", use_picamera = use_picamera,
-                conf_path = conf_path, save_file = False, opts = opts)
+                conf_path = conf_path, save_file = False, opts = opts, awb_modes = awb_modes)
         else:
             proc.update_tracking_conf(request.form['max_players'])
             proc.update_detection_conf(

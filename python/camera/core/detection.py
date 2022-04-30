@@ -130,7 +130,7 @@ class Detector():
                 (x, y, w, h) = box
                 box = (x * fw, y * fh, w * fw, h * fh)
 
-            frame = draw_bbox(frame, i + 1, box)
+            frame = self.draw_bbox(frame, i + 1, box)
 
         return frame
 
