@@ -156,6 +156,7 @@ class VideoProcessor():
         self.tracking_thread = threading.Thread(target = self.tracking)
         self.lock = threading.Lock()
 
+        self.calc = None
         self.psi = 0.0
 
 
@@ -185,7 +186,8 @@ class VideoProcessor():
     def set_manual_psi(self, psi: float) -> None:
         if self.task != 'manual':
             if self.task == 'psi':
-                self.calc.exit()
+                if self.calc:
+                    self.calc.exit()
 
             self.task = 'manual'
             self.config.game.task = 'manual'
