@@ -21,3 +21,9 @@ def unwrap_resolution(resolution: SimpleNamespace):
     Convert resolution namespace to tuple of height and width
     """
     return (resolution.width, resolution.height)
+
+def unwrap_hsv(hsv: SimpleNamespace):
+    """
+    Convert HSV namespace to numpy array for OpenCV
+    """
+    return { 'hue': hsv.hue, 'saturation': hsv.saturation, 'value': hsv.value }
