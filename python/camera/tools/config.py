@@ -26,4 +26,4 @@ def unwrap_hsv(hsv: SimpleNamespace):
     """
     Convert HSV namespace to numpy array for OpenCV
     """
-    return { 'hue': hsv.hue, 'saturation': hsv.saturation, 'value': hsv.value }
+    return { 'hue': int(hsv.hue), 'saturation': int(hsv.saturation), 'value': int(hsv.value) }

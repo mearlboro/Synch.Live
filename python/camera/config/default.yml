@@ -3,7 +3,7 @@ server:
   RECORD_PATH: ../media/video
   IMG_PATH: ../media/img
   HOST: 0.0.0.0
-  PORT: 888
+  PORT: 8888
   #CAMERA: 'pi'
   #CAMERA: 0
   CAMERA: ../media/video/6.avi

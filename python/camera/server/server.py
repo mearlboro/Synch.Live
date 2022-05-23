@@ -5,8 +5,9 @@ import signal
 import logging
 import yaml
 from types import SimpleNamespace
+from copy import deepcopy
 
-from camera.tools.config import parse, unparse
+from camera.tools.config import parse, unparse, unwrap_hsv
 from camera.tools.colour import hsv_to_hex
 from video import VideoProcessor
 
@@ -27,9 +28,11 @@ awb_modes = [
 def create_app(server_type, conf, conf_path):
     app = Flask(__name__)
     app.debug = True
+    conf.conf_path = conf_path
 
     logging.info(f"Creating {server_type} server")
     proc = VideoProcessor(conf)
+    print(conf)
 
     def handler(signum, frame):
         res = input("Do you want to exit? Press y.")
@@ -76,7 +79,7 @@ def create_app(server_type, conf, conf_path):
             opts['detection']['max_colour'] = hsv_to_hex(vars(proc.config.detection.max_colour))
 
             return render_template("calibrate.html", use_picamera = use_picamera,
-                conf_path = conf_path, save_file = False, opts = opts, awb_modes = awb_modes)
+                conf_path = proc.config.conf_path, save_file = False, opts = opts, awb_modes = awb_modes)
         else:
             proc.update_tracking_conf(request.form['max_players'])
             proc.update_detection_conf(
@@ -86,6 +89,15 @@ def create_app(server_type, conf, conf_path):
             if use_picamera:
                 proc.update_picamera(request.form['iso'], request.form['shutter_speed'],
                     request.form['saturation'], request.form['awb_mode'])
+
+            if 'save_file' in request.form:
+                conf_path = request.form['conf_path']
+                file = open(conf_path, 'w')
+                conf_to_save = deepcopy(proc.config)
+                conf_to_save.detection.min_colour = parse(unwrap_hsv(conf_to_save.detection.min_colour))
+                conf_to_save.detection.max_colour = parse(unwrap_hsv(conf_to_save.detection.max_colour))
+                delattr(conf_to_save, 'conf_path')
+                yaml.dump(unparse(conf_to_save), file)
 
             return redirect(url_for("calibrate"))
 
