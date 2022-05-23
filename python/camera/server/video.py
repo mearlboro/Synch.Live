@@ -22,7 +22,7 @@ from camera.core.tracking  import EuclideanMultiTracker
 
 
 class Camera():
-    def __init__(self, cam_type: Any, config: SimpleNamespace) -> None:
+    def __init__(self, cam_type: Any, config: SimpleNamespace, camera_stream = None) -> None:
         """
         Wrapper around a video stream either fetching frames from a real camera,
         or mocking it using a local video file.
@@ -44,6 +44,7 @@ class Camera():
         """
         self.config = config
         self.cam_type = cam_type
+        self.camera_stream = camera_stream
 
 
     def start(self) -> VideoStream:
@@ -72,8 +73,8 @@ class Camera():
 
             time.sleep(2)
         elif type(self.cam_type) is int:
-            # handle generic camera stream
-            pass
+            self.video_stream = self.camera_stream
+            self.video_stream.start()
         else:
             if not os.path.isfile(self.cam_type):
                 raise ValueError(f'No such file: {self.cam_type}')
@@ -98,7 +99,7 @@ class VideoProcessor():
     a macroscopic feature of the system.
     """
 
-    def __init__(self, config: SimpleNamespace):
+    def __init__(self, config: SimpleNamespace, camera_stream = None):
         """
         Initialise system behaviour and paths using the server configuration in
         config, and videostream, tracker and detector objects
@@ -144,6 +145,7 @@ class VideoProcessor():
             self.record = False
 
         self.task = self.config.game.task
+        self.camera_stream  = camera_stream
 
         # initialize the output frame and a lock used to ensure thread-safe
         # exchanges of the output frames (useful when multiple browsers/tabs
@@ -373,8 +375,11 @@ class VideoProcessor():
             a generator that produces a stream of bytes with the frame wrapped
             in a HTML response
         """
+        framerate = 12.0
+        frametime = 1.0/framerate
         while self.running:
             # wait until the lock is acquired
+            begin = time.time()
             with self.lock:
                 # check if the output frame is available, otherwise skip
                 # the iteration of the loop
@@ -388,6 +393,12 @@ class VideoProcessor():
             # yield the output frame in the byte format
             yield(b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' +
                 bytearray(encoded_frame) + b'\r\n')
+            end = time.time()
+            diff = end - begin
+            if diff > frametime:
+                continue
+            else:
+                time.sleep(frametime - diff) 
 
 
     def start(self) -> None:
@@ -401,7 +412,7 @@ class VideoProcessor():
             # reinitialise tracking_thread in case previous run crashed
             self.tracking_thread = threading.Thread(target = self.tracking)
 
-            self.camera = Camera(self.config.server.CAMERA, self.config.camera)
+            self.camera = Camera(self.config.server.CAMERA, self.config.camera, self.camera_stream)
             self.video_stream = self.camera.start()
 
             self.detector = Detector(self.config.detection)
