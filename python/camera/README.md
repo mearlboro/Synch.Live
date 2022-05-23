@@ -194,4 +194,4 @@ If you do not see your video stream, then check the available video devices with
 Using the index of your camera that you found earlir, run
 
     $ cd python
-    $ CAMERA_NUMBER=0 python3 camera/server/server.py observer
+    $ CONFIG_PATH=./camera/config/generic-camera.yml python3 camera/server/server.py observer
