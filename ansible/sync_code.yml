@@ -25,9 +25,11 @@
       path: "{{ item }}"
       state: directory
     with_items:
+      - '/home/pi/camera/config'
       - '/home/pi/camera/core'
       - '/home/pi/camera/server'
       - '/home/pi/camera/server/templates'
+      - '/home/pi/camera/tools'
       - '/home/pi/logs'
       - '/home/pi/media/video'
       - '/home/pi/media/trajectories'
@@ -38,6 +40,15 @@
       owner: pi
       group: pi
       mode: 0644
+  - name: Copy config
+    copy:
+      src: "{{ item }}"
+      dest: /home/pi/camera/config
+      owner: pi
+      group: pi
+      mode: 0644
+    with_items:
+      - camera/config/default.yml
   - name: Copy core Python scripts
     copy:
       src: "{{ item }}"
@@ -72,6 +83,17 @@
       group: pi
       mode: 0644
     with_fileglob: camera/server/templates/*.html
+  - name: Copy utils
+    copy:
+      src: "{{ item }}"
+      dest: /home/pi/camera/tools
+      owner: pi
+      group: pi
+      mode: 0644
+    with_items:
+      - camera/tools/__init__.py
+      - camera/tools/colour.py
+      - camera/tools/config.py
 
 
 - name: copy LED control code on all players

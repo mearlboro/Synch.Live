@@ -1,4 +1,5 @@
 import logging
+from types import SimpleNamespace
 import numpy as np
 from scipy.spatial import distance as dist
 from scipy.optimize import linear_sum_assignment
@@ -9,13 +10,9 @@ import camera.core.logger
 
 from camera.core.motion_model import ConstantMotionModel, KFMotionModel
 
-
-# TODO: set at calibration time
-NUM_PLAYERS  = 10
-
 class EuclideanMultiTracker():
     def __init__(self,
-            num_players : int = NUM_PLAYERS
+            config: SimpleNamespace
         ) -> None:
         """
         Given a number of bounding boxes from object detection, it tracks objects
@@ -29,7 +26,7 @@ class EuclideanMultiTracker():
         self.detected  = []
         self.momodels  = []
 
-        self.num_players  = num_players
+        self.num_players  = config.max_players
 
         self.MoMoClass = KFMotionModel
 
@@ -108,16 +105,23 @@ class EuclideanMultiTracker():
             A = np.zeros([num_momodels, num_detections])
             A[rows, cols] = 1
 
+
             # match detected bboxes against known motion models. If a motion
             # model has no matching detection, update with its mean prediction
             for i in range(num_momodels):
                 if A[i,:].sum() > 0.5:
                     idx = np.where(A[i,:] > 0.5)[0][0]
-                    self.detected[i] = bboxes[idx]
+                    if i >= len(self.detected):
+                        self.track(bboxes[idx])
+                    else:
+                        self.detected[i] = bboxes[idx]
                     ## TODO: Run full update detected momodels here, and partial
                     ## (masked?) update of un-detected momodels
                 else:
-                    self.detected[i] = self.momodels[i].predict_bbox()
+                    if i >= len(self.detected):
+                        self.track(bboxes[idx])
+                    else:
+                        self.detected[i] = self.momodels[i].predict_bbox()
 
             for mm, bbox in zip(self.momodels, self.detected):
                 mm.update(bbox)

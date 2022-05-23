@@ -13,7 +13,8 @@ PLoS Comput Biol 16(12):e1008289.
 
 ## Contents
 
-The `camera` package contains three sub packages, `core`, `server` and `tools`.
+The `camera` package contains three sub packages, `core`, `server` and `tools`
+and a folder `config` to store YAML config files.
 
 ### `core`
 A package including all the core tools for performing image detection, tracking,
@@ -25,17 +26,23 @@ the players on each frame
 - `logger.py` - logging setup to be used when the system runs live
 - `tracking.py` - impplements a real-time tracker to be used when the system
 runs live
+- `motion_models.py` - implements Kalman filter motion models for predicting
+the next position of each tracked object
 
 The code in `emergence.py` is contributed by [Dr. Pedro Mediano](https://github.com/pmediano).
 
 ### `server`
 
-- `server.py` - runs a Flask app to stream the camera footage and a web control
-panel for running experiments
-- `local.py` - runs a Flask app to stream some video footage and a web control
-panel for running experiments
+- `server.py` - runs a Flask app to stream footage and a web control panel for
+calibration and running experiments
 * `video.py` - helper code used for fetching frames from the sensor or from a video
 file and streaming
+* `templates/` - contains HTML templates used by the Flask server to render the web UI
+    * `index.html` - start and stop tracking, links to all pages
+    * `calibrate.html` - front-end to calibrate detector, tracking, camera
+    * `observer.html` - front-end to watch real-time experiment, and update the
+experimental behaviour (e.g. the task to be solved by players)
+
 
 ### `tools`
 A package that can be used to run the tools in `core` for development and testing
@@ -44,6 +51,17 @@ on an environment that is not the Observer.
 - `hsv_range.py` - tools for extracting colour ranges from an image
 - `trajectories.py` - extracts and plots trajectories from a video recorded in
 the experiment, but using non-real time OpenCV trackers
+- `colour.py` - tools to convert from OpenCV HSV to HTML hex and back
+- `config.py` - tools used to manipulate config files
+
+### Config
+The config folder contains YAML files with detection, tracking, camera and
+experimental settings. A default config is in `camera/config/default.yml` which
+is loaded by the server unless the `CONFIG_PATH` environmental variable is set.
+
+A new config should be added for each new experimental configuration: for example
+if a new space is being used, it is likely that settings need to change according
+to the dimensions and illumination of the space.
 
 
 ## Setup Notes
@@ -126,23 +144,22 @@ To test the emergence calculator on the trajectories, run
 
 ### Mocking the streaming server
 
-Then to run a local server mocking the PiCamera by feeding in video footage from `media`
+Then to run a local server mocking the PiCamera by feeding in video footage from
+`media`, use a testing config set through an environmental variable, for example
 
     $ cd python
+    $ CONFIG_PATH='./camera/config/default.yml' python camera/server/server.py local
+
+or
+
+    $ cd python
+    $ export CONFIG_PATH='./camera/config/default.yml'
     $ python camera/server/server.py local
 
-To use different video streams you can use an environmental variable
+## Running the Observer
 
-    $ cd python
-    $ VIDEO_PATH='../media/video/2.avi' python camera/server/server.py local
-
-or 
-
-    $ cd python
-    $ export VIDEO_PATH='../media/video/1.avi'
-    $ python camera/server/server.py local
-
-### Running the Observer
+To run the server on the Observer of the Synch.Live system, the config file can
+be set in the same way using the env varibale `CONFIG_PATH`
 
 > **Note**: this can only be run on a RaspberryPi with a PiCamera attached.
 

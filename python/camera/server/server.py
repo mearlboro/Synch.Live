@@ -1,37 +1,38 @@
 import sys, os
-from flask import Flask, jsonify, render_template, redirect, url_for
+from flask import Flask, jsonify, render_template, redirect, request, url_for
 from flask.wrappers import Response
 import signal
 import logging
+import yaml
+from types import SimpleNamespace
+from copy import deepcopy
 
-# import files performing calibration and tracking
+from camera.tools.config import parse, unparse, unwrap_hsv
+from camera.tools.colour import hsv_to_hex
 from video import VideoProcessor
 
-def create_app(server_type):
+awb_modes = [
+    "off",
+    "auto",
+    "sunlight",
+    "cloudy",
+    "shade",
+    "tungsten",
+    "fluorescent",
+    "incandescent",
+    "flash",
+    "horizon",
+    "greyworld"
+]
+
+def create_app(server_type, conf, conf_path):
     app = Flask(__name__)
     app.debug = True
-    app.config['RECORD_PATH'] = os.environ.get('RECORD_PATH', default='media/video')
-    app.config['VIDEO_PATH'] = os.environ.get('VIDEO_PATH', default='media/video/3.avi')
+    conf.conf_path = conf_path
 
     logging.info(f"Creating {server_type} server")
-    if server_type == 'local':
-        logging.info(f"Using preloaded video stream at {app.config['VIDEO_PATH']}")
-        proc = VideoProcessor(
-            use_picamera = False,
-            record = False,
-            annotate = True,
-            video = app.config['VIDEO_PATH'],
-            record_path = app.config['RECORD_PATH']
-        )
-    elif server_type == 'observer':
-        proc = VideoProcessor(
-            use_picamera = True,
-            record = True,
-            annotate = True,
-            record_path=app.config['RECORD_PATH']
-        )
-    else:
-        raise ValueError(f"Unsupported Server Type: {server_type}")
+    proc = VideoProcessor(conf)
+    print(conf)
 
     def handler(signum, frame):
         res = input("Do you want to exit? Press y.")
@@ -51,9 +52,9 @@ def create_app(server_type):
     def index():
         return render_template("index.html", running_text=is_running())
 
-    @app.route("/psi")
-    def return_psi():
-        return jsonify(proc.Psi)
+    @app.route("/sync")
+    def return_sync():
+        return jsonify(proc.Sync)
 
     @app.route("/start_tracking")
     def start_tracking():
@@ -67,17 +68,51 @@ def create_app(server_type):
             proc.stop()
         return redirect(url_for("index"))
 
-    @app.route("/calibrate")
+    @app.route("/calibrate", methods = [ 'GET', 'POST' ])
     def calibrate():
-        if proc.use_picamera:
-            pi_opts = proc.picamera
-        else:
-            pi_opts = {}
-        return render_template("calibrate.html", use_picamera=proc.use_picamera, pi_opts=pi_opts)
+        use_picamera = proc.config.server.CAMERA == 'pi'
 
-    @app.route("/observe")
+        if request.method == 'GET':
+            opts = unparse(proc.config)
+            # color picker expects hex colours
+            opts['detection']['min_colour'] = hsv_to_hex(vars(proc.config.detection.min_colour))
+            opts['detection']['max_colour'] = hsv_to_hex(vars(proc.config.detection.max_colour))
+
+            return render_template("calibrate.html", use_picamera = use_picamera,
+                conf_path = proc.config.conf_path, save_file = False, opts = opts, awb_modes = awb_modes)
+        else:
+            proc.update_tracking_conf(request.form['max_players'])
+            proc.update_detection_conf(
+                request.form['min_contour'], request.form['max_contour'],
+                request.form['min_colour'], request.form['max_colour'])
+
+            if use_picamera:
+                proc.update_picamera(request.form['iso'], request.form['shutter_speed'],
+                    request.form['saturation'], request.form['awb_mode'])
+
+            if 'save_file' in request.form:
+                conf_path = request.form['conf_path']
+                file = open(conf_path, 'w')
+                conf_to_save = deepcopy(proc.config)
+                conf_to_save.detection.min_colour = parse(unwrap_hsv(conf_to_save.detection.min_colour))
+                conf_to_save.detection.max_colour = parse(unwrap_hsv(conf_to_save.detection.max_colour))
+                delattr(conf_to_save, 'conf_path')
+                yaml.dump(unparse(conf_to_save), file)
+
+            return redirect(url_for("calibrate"))
+
+    @app.route("/observe", methods = ['GET', 'POST'])
     def observe():
-        return render_template("observe.html", running_text=is_running())
+        if request.method == "POST":
+            psi = int(request.form.get("manPsi"))
+            use_psi = request.form.get("psi")
+
+            if use_psi:
+                proc.task = 'emergence'
+            else:
+                proc.set_manual_psi(psi)
+            return render_template("observe.html", running_text=is_running(), psi=proc.psi, task=proc.task)
+        return render_template("observe.html", running_text=is_running(), psi=proc.psi, task=proc.task)
 
     @app.route("/video_feed")
     def video_feed():
@@ -98,9 +133,18 @@ if __name__ == '__main__':
     server_type='observer'
     if len(sys.argv) > 1:
         server_type = sys.argv[1]
-    # start the flask app
-    host = os.environ.get('HOST', default='0.0.0.0')
-    port = int(os.environ.get('PORT', default='8888'))
-    logging.info(f"Starting server, listening on {host} at port {port}")
-    create_app(server_type).run(host=host, port=port, debug=True,
-            threaded=True, use_reloader=False)
+
+    host = os.environ.get('HOST', default = '0.0.0.0')
+    port = int(os.environ.get('PORT', default = '8888'))
+    conf_path = os.environ.get('CONFIG_PATH', default = './camera/config/default.yml')
+    print(os.path.abspath("."))
+
+    logging.info(f"Starting server, listening on {host} at port {port}, using config at {conf_path}")
+
+    with open(conf_path, 'r') as fh:
+        yaml_dict = yaml.safe_load(fh)
+        config = parse(yaml_dict)
+
+        create_app(server_type, config, conf_path).run(
+                host = host, port = port, debug = True,
+                threaded = True, use_reloader = False)

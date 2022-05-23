@@ -1,0 +1,34 @@
+server:
+  RECORD: false
+  RECORD_PATH: ../media/video
+  IMG_PATH: ../media/img
+  HOST: 0.0.0.0
+  PORT: 8888
+  #CAMERA: 'pi'
+  #CAMERA: 0
+  CAMERA: ../media/video/6.avi
+game:
+  task: "emergence"
+tracking:
+  max_players: 10
+  annotate: true
+detection:
+  min_contour: 100
+  max_contour: 500
+  min_colour:
+    hue: 50
+    saturation: 170
+    value: 100
+  max_colour:
+    hue: 85
+    saturation: 255
+    value: 255
+camera:
+  framerate: 12
+  resolution:
+    width: 640
+    height: 480
+  iso: 100
+  saturation: 100
+  shutter_speed: 31250
+  awb_mode: "sunlight"
