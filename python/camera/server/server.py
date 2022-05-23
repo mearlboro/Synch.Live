@@ -149,7 +149,7 @@ if __name__ == '__main__':
         #       so we create the camera stream here
         camera_number = config.server.CAMERA
         camera_stream = None
-        if camera_number != None:
+        if camera_number != None and type(camera_number) == int:
             logging.info(f"Opening Camera {camera_number}")
             camera_stream = VideoStream(int(camera_number), framerate = config.camera.framerate)
 
