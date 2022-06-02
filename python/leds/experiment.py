@@ -13,7 +13,7 @@ from mockloop import mock_loop
 # initialise logging to file
 import logger
 
-PSI_URL = 'http://localhost:8888/sync'
+PSI_URL = 'http://observer:8888/sync'
 
 async def fetch_sync() -> Optional[float]:
     try:
