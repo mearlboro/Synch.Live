@@ -78,12 +78,15 @@ class Detector():
         """
 
         (x, y, w, h) = rect
-        frame = cv2.rectangle(frame, (int(x), int(y), int(w), int(h)),
-                            (0, 0, 255), 2)
 
-        frame = cv2.putText(frame, f"Player{player}", (int(x), int(y)),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.5, (0, 0, 255))
+        try:
+            frame = cv2.rectangle(frame, (int(x), int(y), int(w), int(h)),
+                (0, 0, 255), 2)
+            frame = cv2.putText(frame, f"Player{player}", (int(x), int(y)),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.5, (0, 0, 255))
+        except OverflowError:
+            logging.info(f"Cannot draw bbox with coordinates {x}, {y}, {w}, {h}")
 
         return frame
 
