@@ -15,11 +15,12 @@
       name: chrony
       state: latest
 
-  - name: Install Python3 and pip
+  - name: Install Python3, pip, vim
     apt:
       name:
         - python3
         - python3-pip
+        - vim
   - name: Upgrade pip & setuptools
     pip:
       name:
@@ -30,7 +31,6 @@
   - name: Install pip packages
     pip:
       name:
-        - logging
         - asyncio
         - typing
       executable: pip3
@@ -52,7 +52,11 @@
         - gfortran
         - libavcodec-dev
         - libavformat-dev
+        - libgtk-3.0
         - libswscale-dev
+        - libopenexr-dev
+        - libgstreamer1.0-dev
+        - libilmbase-dev
         - libv4l-dev
       state: latest
 
@@ -60,10 +64,12 @@
     pip:
       name:
         - click
-        - Flask
-        - Flask-socketio
+        - flask
+        - flask-socketio
         - imutils
         - JPype1
+        - numpy~=1.20.3
+        - scipy~=1.7.3
         - opencv-contrib-python~=4.4.0.46
         - picamera
         - pykalman
