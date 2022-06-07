@@ -20,6 +20,7 @@
       name:
         - python3
         - python3-pip
+        - python3-numpy
   - name: Upgrade pip & setuptools
     pip:
       name:
@@ -30,7 +31,6 @@
   - name: Install pip packages
     pip:
       name:
-        - logging
         - asyncio
         - typing
       executable: pip3
@@ -60,8 +60,8 @@
     pip:
       name:
         - click
-        - Flask
-        - Flask-socketio
+        - flask
+        - flask-socketio
         - imutils
         - JPype1
         - opencv-contrib-python~=4.4.0.46
