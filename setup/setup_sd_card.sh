@@ -7,9 +7,9 @@ case $1 in
     '' | *[!0-9]*) echo "setup_sd_card.sh: arg not a number" & exit
 esac
 
-#if [ ! -d /media/$(whoami)/boot ] || [ ! -d /media/$(whoami)/rootfs ]; then
-#	echo "setup_sd_card.sh: make sure the Raspberry Pi drives are mounted" & exit
-#fi
+if [ ! -d /media/$(whoami)/boot ] || [ ! -d /media/$(whoami)/rootfs ]; then
+	echo "setup_sd_card.sh: make sure the Raspberry Pi drives are mounted" & exit
+fi
 
 
 number=$1
@@ -22,7 +22,6 @@ fi
 
 echo "setup_sd_card.sh: setting up $hostname with IP address $ipaddr"
 
-exit
 echo "$hostname" > etc/hostname
 sed -i "/static ip_address/s/192.168.100.[0-9][0-9][0-9]/$ipaddr/" etc/dhcpcd.conf
 
