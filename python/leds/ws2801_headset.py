@@ -64,6 +64,7 @@ class WS2801Headset(Headset):
 
         self.CROWN_RANGE = crown_range
         self.PILOT_RANGE = pilot_range
+        self.CROWN_COUNT = len(crown_range)
 
         SPI_PORT    = 0
         SPI_DEVICE  = 0
@@ -206,6 +207,21 @@ class WS2801Headset(Headset):
         colours, starting from consecutive colours
         """
         super().crown_rainbow(dt)
+        for j in range(256):
+            for i in self.CROWN_RANGE:
+                col = (0, 0, 0)
+                pos = ((i * 256 // self.CROWN_COUNT) + j) % 256
+                if pos < 85:
+                    col = (pos * 3, 255 - pos * 3, 0)
+                elif pos < 170:
+                    pos -= 85
+                    col = (255 - pos * 3, 0, pos * 3)
+                else:
+                    pos -= 170
+                    col = (0, pos * 3, 255 - pos * 3)
+                self.pixels.set_pixel(i, LED.RGB_to_color(*col))
+            self.pixels.show()
+            time.sleep(dt)
 
 
     def crown_rainbow_repeat(self,
