@@ -137,12 +137,13 @@ class Headset(ABC):
         """
         if not delay:
             delay = self.ON_DELAY
-        logging.info("Begin breathing effect with {delay} delay")
+        logging.info(f"Begin breathing effect with {delay} delay")
 
         self.all_off()
         self.crown_fadein_colour(dt, col)
         time.sleep(delay)
         self.crown_fadeout(dt)
+        time.sleep(delay)
 
 
     def crown_rainbow(self, dt: float = 0.01) -> None:
