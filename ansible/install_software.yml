@@ -42,21 +42,22 @@
   become: true
 
   tasks:
-  - name: Install packages used by OpenCV
+  - name: Install packages used by OpenCV & Infodynamics
     apt:
       name:
         - build-essential
         - cmake
-        - libhdf5-dev
-        - libatlas-base-dev
+        - default-jdk
         - gfortran
+        - libatlas-base-dev
         - libavcodec-dev
         - libavformat-dev
         - libgtk-3.0
-        - libswscale-dev
+        - libhdf5-dev
+        - libilmbase-dev
         - libopenexr-dev
         - libgstreamer1.0-dev
-        - libilmbase-dev
+        - libswscale-dev
         - libv4l-dev
       state: latest
 
