@@ -64,6 +64,7 @@ class WS2801Headset(Headset):
 
         self.CROWN_RANGE = crown_range
         self.PILOT_RANGE = pilot_range
+        self.CROWN_COUNT = len(crown_range)
 
         SPI_PORT    = 0
         SPI_DEVICE  = 0
@@ -144,3 +145,91 @@ class WS2801Headset(Headset):
         self.crown_on()
         time.sleep(self.ON_DELAY)
         self.crown_off()
+
+
+    def crown_fadein_colour(self,
+            dt: float = 0.01, col: Tuple[int, int, int] = (0, 0, 0)
+        ) -> None:
+        """
+        All leds in the crown should fade in to the `col` param or, if that is
+        not specified, to the `crown_col` set in the constructor in `dt` second
+        increments
+        """
+        super().crown_fadein_colour(dt, col)
+
+        self.all_off()
+        if not (col[0] and col[1] and col[2]):
+            col = self.crown_col
+        r, g, b = col
+        for j in range(100):
+            for i in self.CROWN_RANGE:
+                self.pixels.set_pixel(i, LED.RGB_to_color(
+                        int(r * j/100), int(g * j/100), int(b * j/100)))
+            self.pixels.show()
+            if dt:
+                time.sleep(dt)
+
+
+    def crown_fadeout(self, dt: float = 0.01) -> None:
+        """
+        All leds in the crown should fade out from the current colour to black,
+        going from full brightness to none in `dt` second increments
+        """
+        super().crown_fadeout(dt)
+
+        for j in range(100):
+            for i in self.CROWN_RANGE:
+                r, g, b = self.pixels.get_pixel_rgb(i)
+                r = int(r * (100 - j) / 100)
+                g = int(g * (100 - j) / 100)
+                b = int(b * (100 - j) / 100)
+                self.pixels.set_pixel(i, LED.RGB_to_color(r, g, b))
+            self.pixels.show()
+            if dt:
+                time.sleep(dt)
+
+
+    def crown_breathe(self,
+            dt: float = 0.01, delay: float = 0, col: Tuple[int, int, int] = (0, 0, 0)
+        ) -> None:
+        """
+        All leds in the crown should fade in to colour specified in `col` param,
+        or the `crown_col` set in the constructor if that is not set, in `dt`
+        second increents. Then, after `delay` seconds, fade out in `dt` second
+        increments
+        """
+        super().crown_breathe(dt, delay, col)
+
+
+    def crown_rainbow(self, dt: float = 0.01) -> None:
+        """
+        All leds in the crown cycle for `dt` seconds through the 256 possible
+        colours, starting from consecutive colours
+        """
+        super().crown_rainbow(dt)
+        for j in range(256):
+            for i in self.CROWN_RANGE:
+                col = (0, 0, 0)
+                pos = ((i * 256 // self.CROWN_COUNT) + j) % 256
+                if pos < 85:
+                    col = (pos * 3, 255 - pos * 3, 0)
+                elif pos < 170:
+                    pos -= 85
+                    col = (255 - pos * 3, 0, pos * 3)
+                else:
+                    pos -= 170
+                    col = (0, pos * 3, 255 - pos * 3)
+                self.pixels.set_pixel(i, LED.RGB_to_color(*col))
+            self.pixels.show()
+            time.sleep(dt)
+
+
+    def crown_rainbow_repeat(self,
+            dt: float = 0.01, duration: float = 2
+        ) -> None:
+        """
+        All leds in the crown cycle for `dt` seconds through the 256 possible
+        colours for a total time of `duration` seconds
+        """
+        super().crown_rainbow_repeat(dt, duration)
+

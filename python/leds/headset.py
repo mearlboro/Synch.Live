@@ -11,16 +11,6 @@ from typing import List, Tuple
 import logger
 
 """
-The characteristic values for the first version of the headset are hardcoded
-here. If you're building a new type of headset make sure the below reflect
-your setup.
-"""
-COUNT       = 30
-CROWN_RANGE = list(range(26))
-PILOT_RANGE = [ 28 ]
-
-
-"""
 Abstract class implementing the main behaviour of the LED headset
 """
 class Headset(ABC):
@@ -114,3 +104,65 @@ class Headset(ABC):
         self.crown_on()
         time.sleep(self.ON_DELAY)
         self.crown_off()
+
+
+    def crown_fadein_colour(self,
+            dt: float = 0.01, col: Tuple[int, int, int] = (0, 0, 0)
+        ) -> None:
+        """
+        All leds in the crown should fade in to the `col` param or, if that is
+        not specified, to the `crown_col` set in the constructor in `dt` second
+        increments
+        """
+        if not col:
+            col = self.crown_col
+        logging.info(f"Fade into colour {col} for duration {dt * 256}")
+
+    def crown_fadeout(self, dt: float = 0.01) -> None:
+        """
+        All leds in the crown should fade out from the current colour to black,
+        going from full brightness to none in `dt` second increments
+        """
+        logging.info(f"Fade to black for duration {dt * 256}")
+
+
+    def crown_breathe(self,
+            dt: float = 0.01, delay: float = 0, col: Tuple[int, int, int] = (0, 0, 0)
+        ) -> None:
+        """
+        All leds in the crown should fade in to colour specified in `col` param,
+        or the `crown_col` set in the constructor if that is not set, in `dt`
+        second increents. Then, after `delay` seconds, fade out in `dt` second
+        increments
+        """
+        if not delay:
+            delay = self.ON_DELAY
+        logging.info(f"Begin breathing effect with {delay} delay")
+
+        self.all_off()
+        self.crown_fadein_colour(dt, col)
+        time.sleep(delay)
+        self.crown_fadeout(dt)
+        time.sleep(delay)
+
+
+    def crown_rainbow(self, dt: float = 0.01) -> None:
+        """
+        All leds in the crown cycle for `dt` seconds through the 256 possible
+        colours, starting from consecutive colours
+        """
+        logging.info("Cycling through rainbow colours")
+
+
+    def crown_rainbow_repeat(self,
+            dt: float = 0.01, duration: float = 2
+        ) -> None:
+        """
+        All leds in the crown cycle for `dt` seconds through the 256 possible
+        colours for a total time of `duration` seconds
+        """
+        logging.info("Begin rainbow cycle effect")
+        n = int(duration / dt)
+
+        for _ in range(n):
+            self.crown_rainbow()

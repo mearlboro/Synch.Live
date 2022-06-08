@@ -1,30 +1,37 @@
 ---
-
 - name: Turn on pilot
   tags: test, pilot
   hosts: players
-
   tasks:
   - name: Turn on pilot
     shell:
       cmd: python3 startup.py
       chdir: /home/pi/leds
 
-- name: Run WS2801 example
-  tags: test, now
-  hosts: players
 
+- name: Run breathing
+  tags: test, breathe
+  hosts: players
   tasks:
-  - name: Run WS2801 example
+  - name: Run breathing
     shell:
-      cmd: python3 ws2801_example.py
-      chdir: /home/pi/synch
+      cmd: python3 wait.py breathe
+      chdir: /home/pi/leds
+
+
+- name: Run rainbow
+  tags: test, rainbow
+  hosts: players
+  tasks:
+  - name: Run rainbow
+    shell:
+      cmd: python3 wait.py rainbow
+      chdir: /home/pi/leds
 
 
 - name: Run mock loop example
   tags: test, schedule
   hosts: players
-
   tasks:
   - name: Add cron job
     cron:
@@ -32,10 +39,10 @@
       minute: "{{ MINUTE }}"
       job: 'while [ "10" -gt "$(date +\%S)" ]; do /bin/sleep 0.1; done; python3 /home/pi/leds/mockloop.py'
 
-- name: Stop mock loop example
+
+- name: Stop lights
   tags: test, stop
   hosts: players
-
   tasks:
   - name: Delete cron job
     cron:
@@ -43,9 +50,9 @@
       minute: "{{ MINUTE }}"
       state: absent
 
-  - name: Stop process
+  - name: Stop processes
     become: true
-    shell: "pkill -f mockloop"
+    shell: "pkill -f mockloop.py; pkill -f wait.py"
     ignore_errors: yes
 
   - name: Turn off leds
