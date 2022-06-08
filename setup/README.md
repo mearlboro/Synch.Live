@@ -22,9 +22,11 @@ The public key will be included into the file `.ssh/authorised_keys` by the setu
 
 Then, for each Raspberry Pi in the system (headset or observer) that needs to be deployed:
 
-1. Install Raspberry Pi OS Lite onto the SD card. On Linux, plug the SD card in and find the device name by running `sudo fdisk -l`. Downloading the [iso](https://www.raspberrypi.com/software/operating-systems/) and use `dd` to write the OS to disk, e.g.
+1. Install Raspberry Pi OS onto the SD card. On Linux, plug the SD card in and find the device name by running `sudo fdisk -l`. Downloading the [iso](https://www.raspberrypi.com/software/operating-systems/) and use `dd` to write the OS to disk, e.g.
 
         pv 2021-01-11-raspios-buster-armhf-lite.img | sudo dd of=/dev/sdb
+
+On both observer and hats we prefer Raspberry Pi OS Lite, but you may want to install the full graphical version of the OS on the observer if you're just getting started.
 
 2. After the imaging is complete, make sure SD card is mounted. Two partitions are expected: `boot` and `rootfs`. You can check this by running `lsblk`, and you should see something like this:
 
@@ -41,8 +43,17 @@ Then, for each Raspberry Pi in the system (headset or observer) that needs to be
 
         ./setup_sd_card.sh 0
 
-### A note for Observer OS (06/2022)
+4. After this setup is completed, plug the SD card into the device (player or observer) and turn it on. Make sure your dev laptop is connected to the same router with the gateway `192.168.100.0/24`. You should be able to SSH from your laptop into the new device. The default password is usually `raspberry`.
 
-We use a version of Rasbperry Pi OS Lite based on Debian Buster. Since April 2022, Raspberry Pi has released a new version based on Debian Bullseye. While the changs are irrelevant to the players, considerable changes have been made to [the camera API](https://www.raspberrypi.com/news/bullseye-camera-system/) which no longer supports the PiCamera library currently used by this project.
+        ssh pi@192.168.100.100
 
-Until our codebase is updated to a more generic PiCamera approach, the sstem muste be deployed with  [a Buster-based version of RPi OS Lite](https://downloads.raspberrypi.org/raspios_oldstable_lite_armhf/images/raspios_oldstable_lite_armhf-2022-04-07/2022-04-04-raspios-buster-armhf-lite.img.xz), which is now referred to as Raspberry Pi OS (Legacy) on the RPi website.
+5. To install software packages and the Synch.Live software, make sure the router is connected to the internet, and proceed to use the Ansible setup scripts (see `ansible` directory in the root of this repository).
+
+
+### A note for Observer OS (2022/04/04)
+
+We use a version of Rasbperry Pi OS based on Debian Buster. Since April 2022, Raspberry Pi has released a new version based on Debian Bullseye. While the changes are irrelevant to the players, considerable changes have been made to [the camera API](https://www.raspberrypi.com/news/bullseye-camera-system/) which no longer supports the PiCamera library currently used by this project.
+
+Until our codebase is updated to a more generic PiCamera approach, the system must be deployed with  [a Buster-based version of RPi OS Lite](https://downloads.raspberrypi.org/raspios_oldstable_lite_armhf/images/raspios_oldstable_lite_armhf-2022-04-07/2022-04-04-raspios-buster-armhf-lite.img.xz), which is now referred to as Raspberry Pi OS (Legacy) on the RPi website.
+
+If you're a beginner with Rasbperry Pi, Linux and Python you may want to install the full, not the Lite version.

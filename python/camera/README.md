@@ -195,3 +195,28 @@ Using the index of your camera that you found earlir, run
 
     $ cd python
     $ CONFIG_PATH=./camera/config/generic-camera.yml python3 camera/server/server.py observer
+
+
+# Troubleshooting
+
+RaspberryPi OS Lite does not include Java, GTK, or other libraries that are used by the system. A few errors may occur:
+
+    ImportError: libgtk-3.so.0: cannot open shared object file: No such file or directory
+
+Fix by installing `libgtk-3.0` (see also [[1]](https://stackoverflow.com/questions/71512811/error-when-loading-imutils-libgtk-3-so-0-cannot-open-shared-object-file-no-su))
+
+    ImportError: libImath-2_2.so.12: cannot open shared object file: No such file or directory
+
+Fix by installing `libilmbase-dev`, `libopenexr-dev`, `libgstreamer1.0-dev` (see also [[2]](https://github.com/EdjeElectronics/TensorFlow-Object-Detection-on-the-Raspberry-Pi/issues/18))
+
+    RuntimeError: module compiled against API version 0xe but this version of numpy is 0xd
+
+Make sure you install a version of `numpy` (>1.20) compatible with the one of OpenCV. `apt` often normally installs an older version. Best to use a Python environment due to possible issues with `pip` See also [[3]](https://github.com/pypa/pip/issues/9542).
+
+    jpype._jvmfinder.JVMNotFoundException: No JVM shared library file (libjvm.so) found. Try setting up       the JAVA_HOME environment variable properly.
+
+Make sure you install Java, i.e. `defaul-jdk`. Java 11 is best.
+
+All these packages have now been included in the Ansible setup script `install_software.yml`, so if the setup was done correctly, these packages are installed, and still any of the above errors show up when running observer code, please submit an issue.
+
+
