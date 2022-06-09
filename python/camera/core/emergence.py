@@ -190,7 +190,7 @@ class EmergenceCalculator():
         psi_filt = np.median(self.past_psi_vals)
 
         logging.info(f'Unfiltered Psi {self.sample_counter}: {psi}')
-        logging.info(f'filtered Psi {self.sample_counter}: {psi}')
+        logging.info(f'Filtered Psi {self.sample_counter}: {psi_filt}')
 
         return psi_filt
 
