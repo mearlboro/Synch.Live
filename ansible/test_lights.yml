@@ -44,12 +44,6 @@
   tags: test, stop
   hosts: players
   tasks:
-  - name: Delete cron job
-    cron:
-      name: "synch-loop-test-{{ MINUTE }}"
-      minute: "{{ MINUTE }}"
-      state: absent
-
   - name: Stop processes
     become: true
     shell: "pkill -f mockloop.py; pkill -f wait.py"
@@ -61,4 +55,10 @@
   - name: Turn on pilot
     shell: "python3 /home/pi/leds/startup.py"
 
+  - name: Delete cron job
+    cron:
+      name: "synch-loop-test-{{ MINUTE }}"
+      minute: "{{ MINUTE }}"
+      state: absent
+      ignore_errors: yes
 
