@@ -77,7 +77,8 @@ class EmergenceCalculator():
     def __init__(self,
             macro_fun: Callable[[np.ndarray], np.ndarray],
             use_correction: bool = True,
-            psi_buffer_size : int = 12
+            psi_buffer_size : int = 12,
+            observation_window_size : int = -1
         ) -> None:
         """
         Construct the emergence calculator by setting member variables and
@@ -98,6 +99,9 @@ class EmergenceCalculator():
         psi_buffer_size : int
             Number of past emergence values used for the median filter
             (default: 12).
+        observation_window_size : int
+            Number of past observations to take into account for the calculation
+            of psi. If negative or zero, use all past data (default: -1).
         """
 
         self.is_initialised = False
@@ -106,6 +110,10 @@ class EmergenceCalculator():
         self.use_correction = use_correction
         self.psi_buffer_size = psi_buffer_size
         self.past_psi_vals = []
+
+        self.observation_window_size = observation_window_size
+        self.observations_V = []
+        self.observations_X = []
 
         self.compute_macro = macro_fun
 
@@ -140,10 +148,27 @@ class EmergenceCalculator():
         """
         """
         jV = javify(V)
-        self.vmiCalc.addObservations(javify(self.past_V), jV)
+        jVp = javify(self.past_V)
+        jXp = [javify(Xip) for Xip in self.past_X]
 
-        for Xip,calc in zip(self.past_X, self.xmiCalcs):
-            calc.addObservations(javify(Xip), jV)
+        if self.observation_window_size <= 0:
+            self.vmiCalc.addObservations(jVp, jV)
+            for jXip,calc in zip(jXp, self.xmiCalcs):
+                calc.addObservations(jXip, jV)
+
+        else:
+            self.observations_V.append((jVp, jV))
+            self.observations_X.append((jXp, jV))
+            if len(self.observations_V) > self.observation_window_size:
+                self.observations_V.pop(0)
+                self.observations_X.pop(0)
+
+            self.initialise_calculators(self.past_X, V)
+            for jVp, jV in self.observations_V:
+                self.vmiCalc.addObservations(jVp, jV)
+            for jXp, jV in self.observations_X:
+                for jXip,calc in zip(jXp, self.xmiCalcs):
+                    calc.addObservations(jXip, jV)
 
 
     def compute_psi(self, V: np.ndarray) -> float:
