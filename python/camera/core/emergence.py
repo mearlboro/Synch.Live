@@ -76,12 +76,16 @@ def compute_macro(X: Iterable[np.ndarray]) -> np.ndarray:
 class EmergenceCalculator():
     def __init__(self,
             macro_fun: Callable[[np.ndarray], np.ndarray],
-            use_correction: bool = True
+            use_correction: bool = True,
+            psi_buffer_size : int = 12
         ) -> None:
         """
         Construct the emergence calculator by setting member variables and
         checking the JVM is started. The JIDT calculators will be initialised
         later, when the first batch of data is provided.
+
+        After calculating the value of emergence for a given frame, it is
+        median-filtered with recent past values to reduce volatility.
 
         Parameters
         ----------
@@ -91,12 +95,17 @@ class EmergenceCalculator():
         use_correction : bool
             Whether to use the 1st-order lattice correction for emergence
             calculation.
+        psi_buffer_size : int
+            Number of past emergence values used for the median filter
+            (default: 12).
         """
 
         self.is_initialised = False
         self.sample_counter = 0
 
         self.use_correction = use_correction
+        self.psi_buffer_size = psi_buffer_size
+        self.past_psi_vals = []
 
         self.compute_macro = macro_fun
 
@@ -175,9 +184,15 @@ class EmergenceCalculator():
         self.past_V = V
         self.sample_counter += 1
 
-        logging.info(f'Psi {self.sample_counter}: {psi}')
+        self.past_psi_vals.append(psi)
+        if len(self.past_psi_vals) > self.psi_buffer_size:
+            self.past_psi_vals.remove(0)
+        psi_filt = np.median(self.past_psi_vals)
 
-        return psi
+        logging.info(f'Unfiltered Psi {self.sample_counter}: {psi}')
+        logging.info(f'filtered Psi {self.sample_counter}: {psi}')
+
+        return psi_filt
 
 
     def exit(self) -> None:
