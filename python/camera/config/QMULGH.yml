@@ -1,0 +1,32 @@
+camera:
+  awb_mode: sunlight
+  framerate: 12
+  iso: 600
+  resolution:
+    height: 480
+    width: 640
+  saturation: 100
+  shutter_speed: 31250
+detection:
+  max_colour:
+    hue: 60
+    saturation: 255
+    value: 245
+  max_contour: 200
+  min_colour:
+    hue: 60
+    saturation: 255
+    value: 152
+  min_contour: 80
+game:
+  task: emergence
+server:
+  CAMERA: pi
+  HOST: 0.0.0.0
+  IMG_PATH: media/img
+  PORT: 8888
+  RECORD: true
+  RECORD_PATH: media/video
+tracking:
+  annotate: true
+  max_players: 10
