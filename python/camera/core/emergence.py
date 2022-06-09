@@ -186,7 +186,7 @@ class EmergenceCalculator():
 
         self.past_psi_vals.append(psi)
         if len(self.past_psi_vals) > self.psi_buffer_size:
-            self.past_psi_vals.remove(0)
+            self.past_psi_vals.pop(0)
         psi_filt = np.median(self.past_psi_vals)
 
         logging.info(f'Unfiltered Psi {self.sample_counter}: {psi}')
