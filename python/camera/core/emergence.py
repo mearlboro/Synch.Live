@@ -78,7 +78,8 @@ class EmergenceCalculator():
             macro_fun: Callable[[np.ndarray], np.ndarray],
             use_correction: bool = True,
             psi_buffer_size : int = 12,
-            observation_window_size : int = -1
+            observation_window_size : int = -1,
+            use_local : bool = True
         ) -> None:
         """
         Construct the emergence calculator by setting member variables and
@@ -102,6 +103,10 @@ class EmergenceCalculator():
         observation_window_size : int
             Number of past observations to take into account for the calculation
             of psi. If negative or zero, use all past data (default: -1).
+        use_local : bool
+            If true, computes psi the local (i.e. pointwise) mutual info of
+            the latest sample. If false, uses the standard (i.e. average) mutual
+            info of the observation window (Default: true).
         """
 
         self.is_initialised = False
@@ -114,6 +119,8 @@ class EmergenceCalculator():
         self.observation_window_size = observation_window_size
         self.observations_V = []
         self.observations_X = []
+
+        self.use_local = use_local
 
         self.compute_macro = macro_fun
 
@@ -177,16 +184,28 @@ class EmergenceCalculator():
         self.vmiCalc.finaliseAddObservations()
         jV = javify(V)
 
-        psi = self.vmiCalc.computeLocalUsingPreviousObservations(
-                javify(self.past_V), jV)[0]
-        for Xip,calc in zip(self.past_X, self.xmiCalcs):
-            calc.finaliseAddObservations()
-            psi -= calc.computeLocalUsingPreviousObservations(javify(Xip), jV)[0]
+        if self.use_local:
+            psi = self.vmiCalc.computeLocalUsingPreviousObservations(
+                    javify(self.past_V), jV)[0]
+            for Xip,calc in zip(self.past_X, self.xmiCalcs):
+                calc.finaliseAddObservations()
+                psi -= calc.computeLocalUsingPreviousObservations(javify(Xip), jV)[0]
 
-        if self.use_correction:
-            marginal_mi = [ calc.computeAverageLocalOfObservations()
-                            for calc in self.xmiCalcs ]
-            psi += (self.N - 1) * np.min(marginal_mi)
+            if self.use_correction:
+                marginal_mi = [ calc.computeAverageLocalOfObservations()
+                                for calc in self.xmiCalcs ]
+                psi += (self.N - 1) * np.min(marginal_mi)
+
+        else:
+            psi = self.vmiCalc.computeAverageLocalOfObservations()
+            for calc in self.xmiCalcs:
+                calc.finaliseAddObservations()
+                psi -= calc.computeAverageLocalOfObservations()
+
+            if self.use_correction:
+                marginal_mi = [ calc.computeAverageLocalOfObservations()
+                                for calc in self.xmiCalcs ]
+                psi += (self.N - 1) * np.min(marginal_mi)
 
         return psi
 
