@@ -6,7 +6,7 @@ server:
   PORT: 8888
   #CAMERA: 'pi'
   #CAMERA: 0
-  CAMERA: ../media/video/6.avi
+  CAMERA: ../media/video/pilot0_210609_1.avi
 game:
   task: "emergence"
 tracking:
