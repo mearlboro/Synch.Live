@@ -1,13 +1,22 @@
 ---
+- name: Stop startup loop
+  tags: test, pilot, breathe, rainbow, exposure
+  hosts: players
+  tasks:
+  - name: stop startup
+    become: true
+    shell:
+      cmd: "pkill -f startup"
+    ignore_errors: true
+
 - name: Turn on pilot
   tags: test, pilot
   hosts: players
   tasks:
   - name: Turn on pilot
     shell:
-      cmd: python3 startup.py
+      cmd: python3 wait.py pilot
       chdir: /home/pi/leds
-
 
 - name: Run breathing
   tags: test, breathe
@@ -18,7 +27,6 @@
       cmd: python3 wait.py breathe
       chdir: /home/pi/leds
 
-
 - name: Run rainbow
   tags: test, rainbow
   hosts: players
@@ -26,6 +34,15 @@
   - name: Run rainbow
     shell:
       cmd: python3 wait.py rainbow
+      chdir: /home/pi/leds
+
+- name: Turn on experimental lights and keep on to calibrate exposure
+  tags: test, exposure
+  hosts: players
+  tasks:
+  - name: Run exposure
+    shell:
+      cmd: python3 wait.py exposure
       chdir: /home/pi/leds
 
 
@@ -53,7 +70,7 @@
     shell: "python3 /home/pi/leds/stop.py"
 
   - name: Turn on pilot
-    shell: "python3 /home/pi/leds/startup.py"
+    shell: "python3 /home/pi/leds/wait.py pilot"
 
   - name: Delete cron job
     cron:

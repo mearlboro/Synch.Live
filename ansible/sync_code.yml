@@ -118,7 +118,7 @@
       mode: 0644
     with_fileglob: leds/*.py
 
-  - name: Add cron job that starts the pilot at boot
+  - name: Add cron job for startup
     cron:
       name: 'startup_pilot'
       special_time: reboot

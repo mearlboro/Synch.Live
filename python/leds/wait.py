@@ -11,11 +11,16 @@ if len(sys.argv):
 
 leds = WS2801Headset((0,0,100), (0,255,0), 0.5, 1.5)
 
-if mode == 'breathe':
+if mode == 'pilot':
+    leds.pilot()
+elif mode == 'breathe':
     while True:
         leds.crown_breathe()
 elif mode == 'rainbow':
     while True:
         leds.crown_rainbow()
+elif mode == 'exposure':
+    leds.crown_on()
+    leds.pilot()
 else:
     print("Mode is either 'breathe' or 'rainbow', pass as argument")

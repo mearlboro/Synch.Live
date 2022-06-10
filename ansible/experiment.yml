@@ -1,19 +1,15 @@
 ---
 
-- name: Turn on pilot
-  tags: experiment, pilot
-  hosts: players
-
-  tasks:
-  - name: Turn on pilot
-    shell: "python3 /home/pi/leds/startup.py"
-
-
 - name: Run experiment
   tags: experiment, start
   hosts: players
 
   tasks:
+  - name: Make sure startup loop is not running
+    become: true
+    shell:
+      cmd: "pkill -f startup"
+    ignore_errors: yes
   - name: Add cron job
     cron:
       name: "synch-loop-{{ MINUTE }}"
