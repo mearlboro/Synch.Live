@@ -434,7 +434,9 @@ class VideoProcessor():
             self.psi  = 0
             if self.task == 'emergence':
                 logging.info("Initilised EmergenceCalculator")
-                self.calc = EmergenceCalculator(compute_macro)
+                # TODO: add to config!!
+                self.calc = EmergenceCalculator(compute_macro,
+                    use_correction = True, psi_buffer_size = 36)
             elif self.task == '':
                 logging.info("No task specified, continuing")
 
@@ -474,6 +476,7 @@ class VideoProcessor():
                 self.video_writer.release()
 
         if self.task == 'emergence':
-            self.calc.exit()
+            if self.calc:
+                self.calc.exit()
 
 
