@@ -51,11 +51,11 @@ async def loop(leds: Headset, period: float, rand: float) -> None:
             return
 
 
-        rand = (1 - sync) * leds.OFF_DELAY
+        rand = sync * leds.OFF_DELAY
 
         if rand > leds.OFF_DELAY:
             rand = leds.OFF_DELAY
-        if rand < 0:
+        if rand < 0.001:
             rand = 0
         logging.info(f'Rand: {rand}')
 
@@ -63,6 +63,9 @@ async def loop(leds: Headset, period: float, rand: float) -> None:
         logging.info(f'Tick')
 
         leds.crown_blink_wait(rand)
+
+    if rand == 0:
+        return
 
 
 if __name__ == "__main__":
@@ -86,4 +89,5 @@ if __name__ == "__main__":
     print(f"Rand {rand} and period {period}")
 
     asyncio.run(loop(leds, period, rand))
-    asyncio.run(mock_loop(leds, period, 0.5))
+    leds.crown_rainbow()
+    leds.crown_rainbow()

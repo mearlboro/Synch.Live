@@ -8,6 +8,11 @@
     shell:
       cmd: "pkill -f startup"
     ignore_errors: true
+  - name: stop waitloop
+    become: true
+    shell:
+      cmd: "pkill -f wait"
+    ignore_errors: true
 
 - name: Turn on pilot
   tags: test, pilot

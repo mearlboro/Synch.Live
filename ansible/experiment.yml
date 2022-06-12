@@ -10,6 +10,14 @@
     shell:
       cmd: "pkill -f startup"
     ignore_errors: yes
+  - name: Make sure wait loop is not running
+    become: true
+    shell:
+      cmd: "pkill -f wait"
+    ignore_errors: yes
+  - name: Turn off leds
+    shell: "python3 /home/pi/leds/stop.py"
+
   - name: Add cron job
     cron:
       name: "synch-loop-{{ MINUTE }}"
@@ -47,7 +55,4 @@
 
   - name: Turn off leds
     shell: "python3 /home/pi/leds/stop.py"
-
-  - name: start pilot
-    shell: "python3 /home/pi/leds/startup.py"
 
