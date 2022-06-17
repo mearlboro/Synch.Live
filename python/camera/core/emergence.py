@@ -22,7 +22,8 @@ from typing import Callable, Iterable
 import camera.core.logger
 
 INFODYNAMICS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'infodynamics.jar')
-SAMPLE_THRESHOLD = 10
+SAMPLE_THRESHOLD = 180
+PSI_START = -5
 
 def javify(Xi: np.ndarray) -> jp.JArray:
     """
@@ -114,7 +115,7 @@ class EmergenceCalculator():
 
         self.use_correction = use_correction
         self.psi_buffer_size = psi_buffer_size
-        self.past_psi_vals = []
+        self.past_psi_vals = [PSI_START] * psi_buffer_size
 
         self.observation_window_size = observation_window_size
         self.observations_V = []
@@ -129,7 +130,7 @@ class EmergenceCalculator():
             jp.startJVM(jp.getDefaultJVMPath(), '-ea', '-Djava.class.path=%s'%INFODYNAMICS_PATH)
             logging.info('JVM started using jpype1')
 
-        logging.info('Successfully initialised EmergenceCalculator')
+        logging.info('Successfully initialised EmergenceCalculator with buffer {psi_buffer_size} and observation window {observation_window_size}.')
 
 
     def initialise_calculators(self, X: np.ndarray, V: np.ndarray) -> None:
@@ -215,7 +216,7 @@ class EmergenceCalculator():
         """
         V = self.compute_macro(X)
 
-        psi = 0.
+        psi = PSI_START
         if not self.is_initialised:
             self.initialise_calculators(X, V)
 
@@ -231,7 +232,7 @@ class EmergenceCalculator():
         self.past_psi_vals.append(psi)
         if len(self.past_psi_vals) > self.psi_buffer_size:
             self.past_psi_vals.pop(0)
-        psi_filt = np.median(self.past_psi_vals)
+        psi_filt = np.nanmedian(self.past_psi_vals)
 
         logging.info(f'Unfiltered Psi {self.sample_counter}: {psi}')
         logging.info(f'Filtered Psi {self.sample_counter}: {psi_filt}')
