@@ -48,14 +48,14 @@ async def loop(leds: Headset, period: float, rand: float) -> None:
 
         if sync is None:
             logging.info("Sync param was not fetched: entering mock synchronous loop")
-            return
-
+            return 0
 
         rand = sync * leds.OFF_DELAY
 
         if rand > leds.OFF_DELAY:
             rand = leds.OFF_DELAY
-        if rand < 0.001:
+        # people do not often perceive time delays smaller than 20ms
+        if rand < 0.02:
             rand = 0
         logging.info(f'Rand: {rand}')
 
@@ -65,7 +65,8 @@ async def loop(leds: Headset, period: float, rand: float) -> None:
         leds.crown_blink_wait(rand)
 
     if rand == 0:
-        return
+        logging.info("Emergence suceeded! Entering rainbow loop")
+        return 1
 
 
 if __name__ == "__main__":
@@ -88,6 +89,14 @@ if __name__ == "__main__":
 
     print(f"Rand {rand} and period {period}")
 
-    asyncio.run(loop(leds, period, rand))
-    leds.crown_rainbow()
-    leds.crown_rainbow()
+    ret = asyncio.run(loop(leds, period, rand))
+    if ret:
+        leds.crown_rainbow()
+        leds.crown_rainbow()
+        leds.all_off()
+    else:
+        mock_loop(leds, period, 0.5, 2)
+        leds.crown_rainbow()
+        leds.crown_rainbow()
+        leds.all_off()
+

@@ -157,7 +157,7 @@ class WS2801Headset(Headset):
         """
         super().crown_fadein_colour(dt, col)
 
-        self.all_off()
+        self.crown_off()
         if not (col[0] and col[1] and col[2]):
             col = self.crown_col
         r, g, b = col

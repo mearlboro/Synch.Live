@@ -15,6 +15,7 @@ if mode == 'pilot':
     leds.pilot()
 elif mode == 'breathe':
     while True:
+        leds.pilot()
         leds.crown_breathe()
 elif mode == 'rainbow':
     while True:
@@ -23,4 +24,4 @@ elif mode == 'exposure':
     leds.crown_on()
     leds.pilot()
 else:
-    print("Mode is either 'breathe' or 'rainbow', pass as argument")
+    print("Mode is either 'breathe', 'exposure', 'pilot, or 'rainbow', pass as argument")

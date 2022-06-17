@@ -10,7 +10,7 @@ from headset import Headset
 import logger
 
 
-def mock_loop(leds: Headset, period: float, rand: float) -> None:
+def mock_loop(leds: Headset, period: float, rand: float, repeats: int = 100) -> None:
     """
     This function uses a generator defined below in the tick() function to call
     the Headset function that makes the lights blink with a period given by the
@@ -35,7 +35,7 @@ def mock_loop(leds: Headset, period: float, rand: float) -> None:
 
         rand -= 0.1
 
-    for _ in range(100):
+    for _ in range(repeats):
         time.sleep(next(gen))
         logging.info(f'Tick')
 
