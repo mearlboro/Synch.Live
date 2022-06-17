@@ -22,7 +22,8 @@ from typing import Callable, Iterable
 import camera.core.logger
 
 INFODYNAMICS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'infodynamics.jar')
-SAMPLE_THRESHOLD = 10
+SAMPLE_THRESHOLD = 180
+PSI_START = -5
 
 def javify(Xi: np.ndarray) -> jp.JArray:
     """
@@ -76,12 +77,18 @@ def compute_macro(X: Iterable[np.ndarray]) -> np.ndarray:
 class EmergenceCalculator():
     def __init__(self,
             macro_fun: Callable[[np.ndarray], np.ndarray],
-            use_correction: bool = True
+            use_correction: bool = True,
+            psi_buffer_size : int = 12,
+            observation_window_size : int = -1,
+            use_local : bool = True
         ) -> None:
         """
         Construct the emergence calculator by setting member variables and
         checking the JVM is started. The JIDT calculators will be initialised
         later, when the first batch of data is provided.
+
+        After calculating the value of emergence for a given frame, it is
+        median-filtered with recent past values to reduce volatility.
 
         Parameters
         ----------
@@ -91,12 +98,30 @@ class EmergenceCalculator():
         use_correction : bool
             Whether to use the 1st-order lattice correction for emergence
             calculation.
+        psi_buffer_size : int
+            Number of past emergence values used for the median filter
+            (default: 12).
+        observation_window_size : int
+            Number of past observations to take into account for the calculation
+            of psi. If negative or zero, use all past data (default: -1).
+        use_local : bool
+            If true, computes psi the local (i.e. pointwise) mutual info of
+            the latest sample. If false, uses the standard (i.e. average) mutual
+            info of the observation window (Default: true).
         """
 
         self.is_initialised = False
         self.sample_counter = 0
 
         self.use_correction = use_correction
+        self.psi_buffer_size = psi_buffer_size
+        self.past_psi_vals = [PSI_START] * psi_buffer_size
+
+        self.observation_window_size = observation_window_size
+        self.observations_V = []
+        self.observations_X = []
+
+        self.use_local = use_local
 
         self.compute_macro = macro_fun
 
@@ -105,7 +130,7 @@ class EmergenceCalculator():
             jp.startJVM(jp.getDefaultJVMPath(), '-ea', '-Djava.class.path=%s'%INFODYNAMICS_PATH)
             logging.info('JVM started using jpype1')
 
-        logging.info('Successfully initialised EmergenceCalculator')
+        logging.info('Successfully initialised EmergenceCalculator with buffer {psi_buffer_size} and observation window {observation_window_size}.')
 
 
     def initialise_calculators(self, X: np.ndarray, V: np.ndarray) -> None:
@@ -131,10 +156,27 @@ class EmergenceCalculator():
         """
         """
         jV = javify(V)
-        self.vmiCalc.addObservations(javify(self.past_V), jV)
+        jVp = javify(self.past_V)
+        jXp = [javify(Xip) for Xip in self.past_X]
 
-        for Xip,calc in zip(self.past_X, self.xmiCalcs):
-            calc.addObservations(javify(Xip), jV)
+        if self.observation_window_size <= 0:
+            self.vmiCalc.addObservations(jVp, jV)
+            for jXip,calc in zip(jXp, self.xmiCalcs):
+                calc.addObservations(jXip, jV)
+
+        else:
+            self.observations_V.append((jVp, jV))
+            self.observations_X.append((jXp, jV))
+            if len(self.observations_V) > self.observation_window_size:
+                self.observations_V.pop(0)
+                self.observations_X.pop(0)
+
+            self.initialise_calculators(self.past_X, V)
+            for jVp, jV in self.observations_V:
+                self.vmiCalc.addObservations(jVp, jV)
+            for jXp, jV in self.observations_X:
+                for jXip,calc in zip(jXp, self.xmiCalcs):
+                    calc.addObservations(jXip, jV)
 
 
     def compute_psi(self, V: np.ndarray) -> float:
@@ -143,16 +185,28 @@ class EmergenceCalculator():
         self.vmiCalc.finaliseAddObservations()
         jV = javify(V)
 
-        psi = self.vmiCalc.computeLocalUsingPreviousObservations(
-                javify(self.past_V), jV)[0]
-        for Xip,calc in zip(self.past_X, self.xmiCalcs):
-            calc.finaliseAddObservations()
-            psi -= calc.computeLocalUsingPreviousObservations(javify(Xip), jV)[0]
+        if self.use_local:
+            psi = self.vmiCalc.computeLocalUsingPreviousObservations(
+                    javify(self.past_V), jV)[0]
+            for Xip,calc in zip(self.past_X, self.xmiCalcs):
+                calc.finaliseAddObservations()
+                psi -= calc.computeLocalUsingPreviousObservations(javify(Xip), jV)[0]
 
-        if self.use_correction:
-            marginal_mi = [ calc.computeAverageLocalOfObservations()
-                            for calc in self.xmiCalcs ]
-            psi += (self.N - 1) * np.min(marginal_mi)
+            if self.use_correction:
+                marginal_mi = [ calc.computeAverageLocalOfObservations()
+                                for calc in self.xmiCalcs ]
+                psi += (self.N - 1) * np.min(marginal_mi)
+
+        else:
+            psi = self.vmiCalc.computeAverageLocalOfObservations()
+            for calc in self.xmiCalcs:
+                calc.finaliseAddObservations()
+                psi -= calc.computeAverageLocalOfObservations()
+
+            if self.use_correction:
+                marginal_mi = [ calc.computeAverageLocalOfObservations()
+                                for calc in self.xmiCalcs ]
+                psi += (self.N - 1) * np.min(marginal_mi)
 
         return psi
 
@@ -162,7 +216,7 @@ class EmergenceCalculator():
         """
         V = self.compute_macro(X)
 
-        psi = 0.
+        psi = PSI_START
         if not self.is_initialised:
             self.initialise_calculators(X, V)
 
@@ -175,9 +229,15 @@ class EmergenceCalculator():
         self.past_V = V
         self.sample_counter += 1
 
-        logging.info(f'Psi {self.sample_counter}: {psi}')
+        self.past_psi_vals.append(psi)
+        if len(self.past_psi_vals) > self.psi_buffer_size:
+            self.past_psi_vals.pop(0)
+        psi_filt = np.nanmedian(self.past_psi_vals)
 
-        return psi
+        logging.info(f'Unfiltered Psi {self.sample_counter}: {psi}')
+        logging.info(f'Filtered Psi {self.sample_counter}: {psi_filt}')
+
+        return psi_filt
 
 
     def exit(self) -> None:
