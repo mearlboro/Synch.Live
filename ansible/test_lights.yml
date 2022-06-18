@@ -1,6 +1,6 @@
 ---
 - name: Stop startup loop
-  tags: test, pilot, breathe, rainbow, exposure
+  tags: test, pilot, breathe, rainbow, exposure, stop
   hosts: players
   tasks:
   - name: stop startup
@@ -66,10 +66,6 @@
   tags: test, stop
   hosts: players
   tasks:
-  - name: Stop processes
-    become: true
-    shell: "pkill -f mockloop.py; pkill -f wait.py"
-    ignore_errors: yes
 
   - name: Turn off leds
     shell: "python3 /home/pi/leds/stop.py"
