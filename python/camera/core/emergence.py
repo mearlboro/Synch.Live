@@ -78,9 +78,9 @@ class EmergenceCalculator():
     def __init__(self,
             macro_fun: Callable[[np.ndarray], np.ndarray],
             use_correction: bool = True,
-            psi_buffer_size : int = 12,
-            observation_window_size : int = -1,
-            use_local : bool = True
+            psi_buffer_size : int = 60,
+            observation_window_size : int = 120,
+            use_local : bool = False
         ) -> None:
         """
         Construct the emergence calculator by setting member variables and
