@@ -14,6 +14,8 @@ from mockloop import mock_loop
 import logger
 
 PSI_URL = 'http://observer:8888/sync'
+# people do not often perceive difference in delays shorter than 40ms
+DELAY_THRESHOLD = 0.035
 
 async def fetch_sync() -> Optional[float]:
     try:
@@ -54,8 +56,7 @@ async def loop(leds: Headset, period: float, rand: float) -> None:
 
         if rand > leds.OFF_DELAY:
             rand = leds.OFF_DELAY
-        # people do not often perceive time delays smaller than 20ms
-        if rand < 0.02:
+        if rand < DELAY_THRESHOLD:
             rand = 0
         logging.info(f'Rand: {rand}')
 
