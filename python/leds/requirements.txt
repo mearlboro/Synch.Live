@@ -1,5 +1,2 @@
-abc
 aiohttp
 asyncio
-logging
-typing
