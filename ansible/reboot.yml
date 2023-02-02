@@ -9,7 +9,7 @@
     - name: turn off leds
       shell:
         cmd: python3 stop.py
-        chdir: /home/pi/synch
+        chdir: /home/pi/leds
     - name: shutdown
       community.general.shutdown:
         delay: 0
@@ -23,7 +23,7 @@
     - name: turn off leds
       shell:
         cmd: python3 stop.py
-        chdir: /home/pi/synch
+        chdir: /home/pi/leds
     - name: reboot (wait 10sec)
       reboot:
         reboot_timeout: 10
