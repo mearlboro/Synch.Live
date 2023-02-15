@@ -1,5 +1,5 @@
 import sys, os
-from flask import Flask, jsonify, render_template, redirect, request, url_for
+from flask import Flask, jsonify, render_template, redirect, request, url_for, current_app
 from flask.wrappers import Response
 from imutils.video import VideoStream
 import signal
@@ -32,7 +32,7 @@ def create_app(server_type, conf, conf_path, camera_stream=None):
     conf.conf_path = conf_path
 
     logging.info(f"Creating {server_type} server with config:\n{conf}")
-    proc = VideoProcessor(conf, camera_stream)
+    proc = VideoProcessorProxy(current_app)
 
     def handler(signum, frame):
         res = input("Do you want to exit? Press y.")
@@ -54,18 +54,16 @@ def create_app(server_type, conf, conf_path, camera_stream=None):
 
     @app.route("/sync")
     def return_sync():
-        return jsonify(proc.Sync)
+        return jsonify(proc.sync)
 
     @app.route("/start_tracking")
     def start_tracking():
-        if not proc.running:
-            proc.start()
+        proc.start()
         return redirect(url_for("observe"))
 
     @app.route("/stop_tracking")
     def stop_tracking():
-        if proc.running:
-            proc.stop()
+        proc.stop()
         return redirect(url_for("index"))
 
     @app.route("/calibrate", methods = [ 'GET', 'POST' ])
