@@ -474,6 +474,20 @@ class VideoProcessor():
 class VideoProcessorProxy:
     video_processor = None
 
+    def get_config(self) -> SimpleNamespace:
+        if self.__class__.video_processor is None:
+            raise Exception
+        if self.__class__.video_processor.running:
+            return self.__class__.video_processor.config
+
+    def set_config(self, config: SimpleNamespace):
+        if self.__class__.video_processor is None:
+            raise Exception
+        if self.__class__.video_processor.running:
+            self.__class__.video_processor.config = config
+
+    config = property(get_config, set_config)
+
     def __init__(self, current_app):
         if self.__class__.video_processor is None:
             config_path = current_app.config.get_namespace('VIDEO_').get('config')
@@ -530,12 +544,6 @@ class VideoProcessorProxy:
             raise Exception
         if self.__class__.video_processor.running:
             self.__class__.video_processor.update_picamera(iso, shutter_speed, saturation, awb_mode)
-
-    def config(self) -> SimpleNamespace:
-        if self.__class__.video_processor is None:
-            raise Exception
-        if self.__class__.video_processor.running:
-            return self.__class__.video_processor.config
 
     def task(self) -> str:
         if self.__class__.video_processor is None:
