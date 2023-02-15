@@ -9,6 +9,7 @@ import threading
 import time
 from types import SimpleNamespace
 from typing import Any, Dict, List, Tuple, Generator
+from yaml import safe_load
 
 # initialise logging to file
 import synch_live.camera.core.logger
@@ -468,3 +469,89 @@ class VideoProcessor():
         if self.task == 'emergence':
             if self.calc:
                 self.calc.exit()
+
+
+class VideoProcessorProxy:
+    video_processor = None
+
+    def __init__(self, current_app):
+        if self.__class__.video_processor is None:
+            config_path = current_app.config.get_namespace('VIDEO_').get('config')
+            if not os.path.exists(config_path):
+                raise Exception
+            with open(config_path, 'r') as handle:
+                self.__class__.video_processor = VideoProcessor(parse(safe_load(handle)), None)
+
+    def generate_frame(self) -> Generator[bytes, None, None]:
+        if self.__class__.video_processor is None:
+            raise Exception
+        if not self.__class__.video_processor.running:
+            yield bytes()
+        return self.__class__.video_processor.generate_frame()
+
+    def start(self):
+        if self.__class__.video_processor is None:
+            raise Exception
+        if not self.__class__.video_processor.running:
+            self.__class__.video_processor.start()
+
+    def stop(self):
+        if self.__class__.video_processor is None:
+            raise Exception
+        if self.__class__.video_processor.running:
+            self.__class__.video_processor.stop()
+
+    def running(self) -> bool:
+        if self.__class__.video_processor is None:
+            raise Exception
+        if self.__class__.video_processor.running:
+            return self.__class__.video_processor.running()
+
+    def sync(self) -> float:
+        if self.__class__.video_processor is None:
+            raise Exception
+        if self.__class__.video_processor.running:
+            return self.__class__.video_processor.Sync
+
+    def update_tracking_conf(self, max_players: int):
+        if self.__class__.video_processor is None:
+            raise Exception
+        if self.__class__.video_processor.running:
+            self.__class__.video_processor.update_tracking_conf(max_players)
+
+    def update_detection_conf(self, min_contour: int, max_contour: int, min_color: np.ndarray, max_color: np.ndarray):
+        if self.__class__.video_processor is None:
+            raise Exception
+        if self.__class__.video_processor.running:
+            self.__class__.video_processor.update_detection_conf(min_contour, max_contour, min_color, max_color)
+
+    def update_picamera(self, iso: int, shutter_speed: int, saturation: int, awb_mode: str):
+        if self.__class__.video_processor is None:
+            raise Exception
+        if self.__class__.video_processor.running:
+            self.__class__.video_processor.update_picamera(iso, shutter_speed, saturation, awb_mode)
+
+    def config(self) -> SimpleNamespace:
+        if self.__class__.video_processor is None:
+            raise Exception
+        if self.__class__.video_processor.running:
+            return self.__class__.video_processor.config
+
+    def task(self) -> str:
+        if self.__class__.video_processor is None:
+            raise Exception
+        if self.__class__.video_processor.running:
+            return self.__class__.video_processor.task
+
+    def psi(self) -> float:
+        if self.__class__.video_processor is None:
+            raise Exception
+        if self.__class__.video_processor.running:
+            return self.__class__.video_processor.psi
+
+    def set_manual_psi(self, psi: float):
+        if self.__class__.video_processor is None:
+            raise Exception
+        if self.__class__.video_processor.running:
+            return self.__class__.video_processor.set_manual_psi(psi)
+
