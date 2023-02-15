@@ -134,7 +134,7 @@ if __name__ == '__main__':
 
     host = os.environ.get('HOST', default = '0.0.0.0')
     port = int(os.environ.get('PORT', default = '8888'))
-    conf_path = os.environ.get('CONFIG_PATH', default = os.path.join(os.path.abspath('.'), '../config/default.yml'))
+    conf_path = os.environ.get('CONFIG_PATH', default = os.path.join(os.path.abspath('.'), 'config/default.yml'))
     print(os.path.abspath("."))
 
     logging.info(f"Starting server, listening on {host} at port {port}, using config at {conf_path}")
