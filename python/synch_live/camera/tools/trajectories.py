@@ -11,9 +11,9 @@ import yaml
 
 from typing import Any, List, Tuple, Optional, Union
 
-from camera.core.detection import Detector
-from camera.core.tracking import EuclideanMultiTracker
-from camera.tools.config import parse
+from ..core.detection import Detector
+from ..core.tracking import EuclideanMultiTracker
+from config import parse
 
 def dump_trajectories(traj: List[List[np.ndarray]], out: str, players: int) -> None:
     """
