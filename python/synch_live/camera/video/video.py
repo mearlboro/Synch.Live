@@ -1,6 +1,8 @@
 import cv2
 from collections import OrderedDict
 import datetime
+
+from flask import current_app
 from imutils.video import FileVideoStream, VideoStream
 import logging
 import numpy as np
@@ -474,27 +476,34 @@ class VideoProcessor():
 class VideoProcessorProxy:
     video_processor = None
 
-    def get_config(self) -> SimpleNamespace:
-        if self.__class__.video_processor is None:
-            raise Exception
-        if self.__class__.video_processor.running:
-            return self.__class__.video_processor.config
-
-    def set_config(self, config: SimpleNamespace):
-        if self.__class__.video_processor is None:
-            raise Exception
-        if self.__class__.video_processor.running:
-            self.__class__.video_processor.config = config
-
-    config = property(get_config, set_config)
-
-    def __init__(self, current_app):
+    def __init__(self):
         if self.__class__.video_processor is None:
             config_path = current_app.config.get_namespace('VIDEO_').get('config')
             if not os.path.exists(config_path):
                 raise Exception
             with open(config_path, 'r') as handle:
-                self.__class__.video_processor = VideoProcessor(parse(safe_load(handle)), None)
+                config = parse(safe_load(handle))
+                config.conf_path = config_path
+                # NOTE: to use /dev/video* devices, you must launch in the main process
+                #       so we create the camera stream here
+                camera_number = config.server.CAMERA
+                camera_stream = None
+                if camera_number is not None and type(camera_number) == int:
+                    logging.info(f"Opening Camera {camera_number}")
+                    camera_stream = VideoStream(int(camera_number), framerate=config.camera.framerate)
+                self.__class__.video_processor = VideoProcessor(config, camera_stream)
+
+    @property
+    def config(self) -> SimpleNamespace:
+        if self.__class__.video_processor is None:
+            raise Exception
+        return self.__class__.video_processor.config
+
+    @config.setter
+    def config(self, config: SimpleNamespace):
+        if self.__class__.video_processor is None:
+            raise Exception
+        self.__class__.video_processor.config = config
 
     def generate_frame(self) -> Generator[bytes, None, None]:
         if self.__class__.video_processor is None:
@@ -515,12 +524,13 @@ class VideoProcessorProxy:
         if self.__class__.video_processor.running:
             self.__class__.video_processor.stop()
 
+    @property
     def running(self) -> bool:
         if self.__class__.video_processor is None:
             raise Exception
-        if self.__class__.video_processor.running:
-            return self.__class__.video_processor.running()
+        return self.__class__.video_processor.running
 
+    @property
     def sync(self) -> float:
         if self.__class__.video_processor is None:
             raise Exception
@@ -530,36 +540,37 @@ class VideoProcessorProxy:
     def update_tracking_conf(self, max_players: int):
         if self.__class__.video_processor is None:
             raise Exception
-        if self.__class__.video_processor.running:
-            self.__class__.video_processor.update_tracking_conf(max_players)
+        self.__class__.video_processor.update_tracking_conf(max_players)
 
     def update_detection_conf(self, min_contour: int, max_contour: int, min_color: np.ndarray, max_color: np.ndarray):
         if self.__class__.video_processor is None:
             raise Exception
-        if self.__class__.video_processor.running:
-            self.__class__.video_processor.update_detection_conf(min_contour, max_contour, min_color, max_color)
+        self.__class__.video_processor.update_detection_conf(min_contour, max_contour, min_color, max_color)
 
     def update_picamera(self, iso: int, shutter_speed: int, saturation: int, awb_mode: str):
         if self.__class__.video_processor is None:
             raise Exception
-        if self.__class__.video_processor.running:
-            self.__class__.video_processor.update_picamera(iso, shutter_speed, saturation, awb_mode)
+        self.__class__.video_processor.update_picamera(iso, shutter_speed, saturation, awb_mode)
 
+    @property
     def task(self) -> str:
         if self.__class__.video_processor is None:
             raise Exception
-        if self.__class__.video_processor.running:
-            return self.__class__.video_processor.task
+        return self.__class__.video_processor.task
 
+    @task.setter
+    def task(self, new_task: str):
+        if self.__class__.video_processor is None:
+            raise Exception
+        self.__class__.video_processor.task = new_task
+
+    @property
     def psi(self) -> float:
         if self.__class__.video_processor is None:
             raise Exception
-        if self.__class__.video_processor.running:
-            return self.__class__.video_processor.psi
+        return self.__class__.video_processor.psi
 
     def set_manual_psi(self, psi: float):
         if self.__class__.video_processor is None:
             raise Exception
-        if self.__class__.video_processor.running:
-            return self.__class__.video_processor.set_manual_psi(psi)
-
+        return self.__class__.video_processor.set_manual_psi(psi)
