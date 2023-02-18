@@ -1,0 +1,67 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>One person, one hat: Control</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="hat_standalone.css">
+    <script src="hat_standalone_script.js"></script>
+
+</head>
+<body>
+<nav>            
+    <h1>Synch.live</h1>
+</nav>
+
+<div class="banner" id="all-caps-thin">
+    <p id="controlling" style="alignment: center">Controlling: Hat {number}</p> <!--will -->
+</div>
+
+<h2>Hat Control</h2>
+  
+    <div class="tab">
+        <!--NB: the following lines can be improved.
+        "Deprecated symbol used, consult docs for better alternative"-->
+        <button class="tablinks" onclick="openTab(event, 'Colour')">Colour Picker</button>
+        <button class="tablinks" onclick="openTab(event, 'Effects')">Effects</button>
+        <button class="tablinks" onclick="openTab(event, 'Animations')">Animations</button>
+        <button class="tablinks" onclick="openTab(event, 'Customize')">Customize</button>
+    </div>
+
+  <!-- Tab content -->
+  <div id="Colour" class="tabcontent">
+    <h3>Colour Select</h3>
+    <form>
+        <label for="color">Choose the colour:</label>
+        <!--NB: Could benefit from more nuance, 
+            For example, not letting the user submit 
+            colours that the LEDs can't do black-->
+        <input type="color" id="color" name="color" value="red">
+        <input type="submit" value="Submit">
+    </form>
+    <button class="stoplights">Stop Lights</button>
+  </div>
+  
+  <div id="Effects" class="tabcontent">
+    <h3>Effects</h3>
+    <button>Pilot</button> <!--NB: Add implementation-->
+    <button>Rainbow</button>
+    <button>Exposure</button>
+    <button>Breathe</button>
+    <button class="stoplights">Stop Lights</button>
+  </div>
+  
+  <div id="Animations" class="tabcontent">
+    <h3>Animations</h3>
+    <button>Thing1</button>
+    <button>Thing2</button>
+    <button class="stoplights">Stop Lights</button>
+  </div>
+
+  <div id="Customize" class="tabcontent">
+    <h3>Customize</h3>
+    <p>???</p>
+    <button class="stoplights">Stop Lights</button>
+  </div>
+
+</body>
+</html>
