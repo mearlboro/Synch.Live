@@ -1,4 +1,5 @@
 from flask import Flask, render_template
+from python.leds.ws2801_headset import WS2801Headset
 import os
 import logging
 def create_app(server_type):
@@ -11,6 +12,12 @@ def create_app(server_type):
         return render_template('hat_standalone.html')
 
     return app
+
+    @app.route('/pilotButton')
+    def pilotButton():
+        WS2801Headset.pilot()
+
+
 
 
 if __name__ == '__main__':
