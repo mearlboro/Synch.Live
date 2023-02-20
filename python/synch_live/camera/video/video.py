@@ -508,9 +508,7 @@ class VideoProcessorProxy:
     def generate_frame(self) -> Generator[bytes, None, None]:
         if self.__class__.video_processor is None:
             raise Exception
-        if not self.__class__.video_processor.running:
-            yield bytes()
-        return self.__class__.video_processor.generate_frame()
+        yield from self.__class__.video_processor.generate_frame()
 
     def start(self):
         if self.__class__.video_processor is None:
