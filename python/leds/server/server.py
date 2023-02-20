@@ -1,50 +1,48 @@
 from flask import Flask, render_template
-from python.leds.ws2801_headset import WS2801Headset
+from leds.tools.ws2801_headset import WS2801Headset
 import os
-import logging
-import python.leds.logger
 
 def create_app(server_type):
     app = Flask(__name__)
-    app.debug = True
-    # conf.conf_path = conf_path
-    # logging.info(f"Creating {server_type} server with config:\n{conf}")
     @app.route("/")
     def main():
         return render_template('hat_standalone.html')
 
     @app.route('/pilotButton')
     def pilotButton():
-        WS2801Headset.pilot()
+        WS2801Headset((0,0,100), (0,255,0), 0.5, 1.5).pilot()
+        return render_template('hat_standalone.html')
 
     @app.route('/rainbowButton')
     def rainbowButton():
-        WS2801Headset.crown_rainbow()
+        WS2801Headset((0,0,100), (0,255,0), 0.5, 1.5).crown_rainbow()
+        return render_template('hat_standalone.html')
 
     @app.route('/exposureButton')
     def exposureButton():
-        return
+        WS2801Headset((0,0,100), (0,255,0), 0.5, 1.5).crown_on()
+        WS2801Headset((0,0,100), (0,255,0), 0.5, 1.5).pilot()
+        return render_template('hat_standalone.html')
 
     @app.route('/breatheButton')
     def breatheButton():
-        WS2801Headset.crown_breathe()
+        WS2801Headset((0,0,100), (0,255,0), 0.5, 1.5).crown_breathe()
+        return render_template('hat_standalone.html')
 
     @app.route('/stopButton')
     def stopButton():
-        WS2801Headset.all_off()
+        WS2801Headset((0,0,100), (0,255,0), 0.5, 1.5).all_off()
+        return render_template('hat_standalone.html')
 
     return app
 
 
 if __name__ == '__main__':
-    server_type='hats'
+    server_type = 'hats'
 
-    host = os.environ.get('HOST', default = '0.0.0.0')
-    port = int(os.environ.get('PORT', default = '8080'))
-    # conf_path = os.environ.get('CONFIG_PATH', default = './camera/config/default.yml')
+    host = os.environ.get('HOST', default='0.0.0.0')
+    port = int(os.environ.get('PORT', default='5000'))
 
-    logging.info(f"Starting server, listening on {host} at port {port}")
+    app = create_app(server_type)
+    app.run(debug=True)
 
-    create_app(server_type).run(
-        host = host, port = port, debug = True,
-        threaded = True, use_reloader = False)
