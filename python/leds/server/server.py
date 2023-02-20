@@ -1,37 +1,38 @@
-from flask import Flask, render_template, json
+from flask import Flask, render_template, json, request, jsonify
 from python.leds.ws2801_headset import WS2801Headset
 import os
 
 def create_app(server_type):
     app = Flask(__name__)
+    leds = WS2801Headset((0,0,100), (0,255,0), 0.5, 1.5)
     @app.route("/")
     def main():
         return render_template('hat_standalone.html')
 
     @app.route('/pilotButton')
     def pilotButton():
-        WS2801Headset((0,0,100), (0,255,0), 0.5, 1.5).pilot()
+        leds.pilot()
         return render_template('hat_standalone.html')
 
     @app.route('/rainbowButton')
     def rainbowButton():
-        WS2801Headset((0,0,100), (0,255,0), 0.5, 1.5).crown_rainbow()
+        leds.crown_rainbow()
         return render_template('hat_standalone.html')
 
     @app.route('/exposureButton')
     def exposureButton():
-        WS2801Headset((0,0,100), (0,255,0), 0.5, 1.5).crown_on()
-        WS2801Headset((0,0,100), (0,255,0), 0.5, 1.5).pilot()
+        leds.crown_on()
+        leds.pilot()
         return render_template('hat_standalone.html')
 
     @app.route('/breatheButton')
     def breatheButton():
-        WS2801Headset((0,0,100), (0,255,0), 0.5, 1.5).crown_breathe()
+        leds.crown_breathe()
         return render_template('hat_standalone.html')
 
     @app.route('/stopButton')
     def stopButton():
-        WS2801Headset((0,0,100), (0,255,0), 0.5, 1.5).all_off()
+        leds.all_off()
         return render_template('hat_standalone.html')
 
     @app.route('/ProcessNewColor/<string:newRGBValues>', methods=['POST'])
@@ -40,7 +41,19 @@ def create_app(server_type):
         newColor = newRGBValues2
         print(newColor, flush=True)
 
+        WS2801Headset((0, 0, 100), (newColor[0], newColor[1], newColor[2]), 0.5, 1.5).crown_on()
+        WS2801Headset((newColor[0], newColor[1], newColor[2]), (0,255,0), 0.5, 1.5).pilot()
+
         return render_template('hat_standalone.html')
+
+    # @app.route('/get_color', methods=['POST'])
+    # def get_color():
+    #     color_value = request.json['color']
+    #     rgb_values = tuple(int(color_value[i:i + 2], 16) for i in (1, 3, 5))
+    #
+    #     WS2801Headset((rgb_values[0], rgb_values[1], rgb_values[2]), (0,255,0), 0.5, 1.5).crown_on()
+    #
+    #     return render_template('hat_standalone.html')
 
     return app
 

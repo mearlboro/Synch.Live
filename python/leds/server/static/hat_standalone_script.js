@@ -17,17 +17,27 @@ function openTab(evt, tabName) {
     // Show the current tab, and add an "active" class to the button that opened the tab
     document.getElementById(tabName).style.display = "block";
     evt.currentTarget.className += " active";
-  }
+}
 
 
 function changedColor() {
-var newRGBHex = document.getElementById("colorPicker").value;
-var newRGBValues = hexToRgb(newRGBHex);
-const request = new XMLHttpRequest();
-request.open('POST', '/ProcessNewColor/${JSON.stringify(newRGBValues)}');
-request.send();
-window.alert(newRGBValues);
+    var newRGBHex = document.getElementById("colorPicker").value;
+    var newRGBValues = hexToRgb(newRGBHex);
+    const request = new XMLHttpRequest();
+    request.open('POST', '/ProcessNewColor/${JSON.stringify(newRGBValues)}');
+    request.send();
+    window.alert(newRGBValues);
 }
+
+//function changedColor() {
+//    const colorPicker = document.getElementById('colorPicker');
+//    const colorValue = colorPicker.value;
+//    fetch('/get_color', {
+//        method: 'POST',
+//        body: JSON.stringify({color: colorValue}),
+//        headers: {'Content-Type': 'application/json'}
+//    });
+//}
 
 function hexToRgb(hex){
     var c;
