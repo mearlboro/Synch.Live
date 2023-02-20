@@ -26,24 +26,26 @@ awb_modes = [
     "greyworld"
 ]
 
-def create_app(server_type, conf, conf_path, camera_stream=None):
-    app = Flask(__name__)
+def create_app(server_type = None, conf = None):
+    app = Flask(__name__, instance_relative_config=True)
+    app.config.from_mapping(
+        VIDEO_CONFIG=os.path.join(app.instance_path, 'video_config.yml'),
+    )
+
     app.debug = True
-    conf.conf_path = conf_path
 
     logging.info(f"Creating {server_type} server with config:\n{conf}")
-    proc = VideoProcessorProxy(current_app)
 
     def handler(signum, frame):
         res = input("Do you want to exit? Press y.")
         if res == 'y':
-            proc.stop()
+            VideoProcessorProxy().stop()
             exit(1)
 
     signal.signal(signal.SIGINT, handler)
 
     def is_running():
-        if proc.running:
+        if VideoProcessorProxy().running:
             return "Tracking is running, view at the live feed."
         else:
             return "Tracking is off. Please press Start Tracking to begin the experiment."
@@ -54,20 +56,21 @@ def create_app(server_type, conf, conf_path, camera_stream=None):
 
     @app.route("/sync")
     def return_sync():
-        return jsonify(proc.sync)
+        return jsonify(VideoProcessorProxy().sync)
 
     @app.route("/start_tracking")
     def start_tracking():
-        proc.start()
+        VideoProcessorProxy().start()
         return redirect(url_for("observe"))
 
     @app.route("/stop_tracking")
     def stop_tracking():
-        proc.stop()
+        VideoProcessorProxy().stop()
         return redirect(url_for("index"))
 
     @app.route("/calibrate", methods = [ 'GET', 'POST' ])
     def calibrate():
+        proc = VideoProcessorProxy()
         use_picamera = proc.config.server.CAMERA == 'pi'
 
         if request.method == 'GET':
@@ -101,6 +104,7 @@ def create_app(server_type, conf, conf_path, camera_stream=None):
 
     @app.route("/observe", methods = ['GET', 'POST'])
     def observe():
+        proc = VideoProcessorProxy()
         if request.method == "POST":
             psi = int(request.form.get("manPsi"))
             use_psi = request.form.get("psi")
@@ -121,7 +125,7 @@ def create_app(server_type, conf, conf_path, camera_stream=None):
         ------
             HTTP response of corresponding type containing the generated stream
         """
-        return Response(proc.generate_frame(),
+        return Response(VideoProcessorProxy().generate_frame(),
             mimetype = "multipart/x-mixed-replace; boundary=frame")
 
     return app
@@ -151,6 +155,6 @@ if __name__ == '__main__':
             logging.info(f"Opening Camera {camera_number}")
             camera_stream = VideoStream(int(camera_number), framerate = config.camera.framerate)
 
-        create_app(server_type, config, conf_path, camera_stream=camera_stream).run(
+        create_app(server_type, config).run(
                 host = host, port = port, debug = True,
                 threaded = True, use_reloader = False)
