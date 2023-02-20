@@ -13,8 +13,6 @@ def create_app(server_type):
     def main():
         return render_template('hat_standalone.html')
 
-    return app
-
     @app.route('/pilotButton')
     def pilotButton():
         WS2801Headset.pilot()
@@ -34,6 +32,8 @@ def create_app(server_type):
     @app.route('/stopButton')
     def stopButton():
         WS2801Headset.all_off()
+
+    return app
 
 
 if __name__ == '__main__':
