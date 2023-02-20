@@ -20,19 +20,19 @@ def create_app(server_type):
         WS2801Headset.pilot()
 
     @app.route('/rainbowButton')
-    def pilotButton():
+    def rainbowButton():
         WS2801Headset.crown_rainbow()
 
     @app.route('/exposureButton')
-    def pilotButton():
+    def exposureButton():
         return
 
     @app.route('/breatheButton')
-    def pilotButton():
+    def breatheButton():
         WS2801Headset.crown_breathe()
 
     @app.route('/stopButton')
-    def pilotButton():
+    def stopButton():
         WS2801Headset.all_off()
 
 
