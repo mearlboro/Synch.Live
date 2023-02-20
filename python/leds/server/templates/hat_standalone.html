@@ -31,11 +31,11 @@
     <div class="tabcontent" id="Colour">
         <h3>Colour Select</h3>
         <form>
-            <label for="color">Choose the colour:</label>
+            <label for="colorPicker">Choose the colour:</label>
             <!--NB: Could benefit from more nuance,
                 For example, not letting the user submit
                 colours that the LEDs can't do black-->
-            <input id="color" name="color" type="color" value="red">
+            <input id="colorPicker" name="color" type="color" value="#000064" onchange="changedColor()">
             <input type="submit" value="Submit">
         </form>
         <button class="stoplights">Stop Lights</button>

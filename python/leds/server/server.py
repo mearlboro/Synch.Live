@@ -1,5 +1,5 @@
-from flask import Flask, render_template
-from leds.tools.ws2801_headset import WS2801Headset
+from flask import Flask, render_template, json
+from python.leds.ws2801_headset import WS2801Headset
 import os
 
 def create_app(server_type):
@@ -32,6 +32,14 @@ def create_app(server_type):
     @app.route('/stopButton')
     def stopButton():
         WS2801Headset((0,0,100), (0,255,0), 0.5, 1.5).all_off()
+        return render_template('hat_standalone.html')
+
+    @app.route('/ProcessNewColor/<string:newRGBValues>', methods=['POST'])
+    def ProcessNewColor(newRGBValues):
+        newRGBValues2 = json.loads(newRGBValues)
+        newColor = newRGBValues2
+        print(newColor, flush=True)
+
         return render_template('hat_standalone.html')
 
     return app
