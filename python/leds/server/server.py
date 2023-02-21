@@ -2,9 +2,11 @@ from flask import Flask, render_template, json, request, jsonify
 from python.leds.ws2801_headset import WS2801Headset
 import os
 
+
 def create_app(server_type):
     app = Flask(__name__)
-    leds = WS2801Headset((0,0,100), (0,255,0), 0.5, 1.5)
+    leds = WS2801Headset((0, 0, 100), (0, 255, 0), 0.5, 1.5)
+
     @app.route("/")
     def main():
         return render_template('hat_standalone.html')
@@ -35,25 +37,20 @@ def create_app(server_type):
         leds.all_off()
         return render_template('hat_standalone.html')
 
-    @app.route('/ProcessNewColor/<string:newRGBValues>', methods=['POST'])
-    def ProcessNewColor(newRGBValues):
-        newRGBValues2 = json.loads(newRGBValues)
-        newColor = newRGBValues2
-        print(newColor, flush=True)
+    @app.route('/handle_color_picker', methods=['POST'])
+    def handle_color_picker():
+        color = request.form['color']
+        # color is a string in the format "#RRGGBB"
+        r = int(color[1:3], 16)
+        g = int(color[3:5], 16)
+        b = int(color[5:7], 16)
 
-        WS2801Headset((0, 0, 100), (newColor[0], newColor[1], newColor[2]), 0.5, 1.5).crown_on()
-        WS2801Headset((newColor[0], newColor[1], newColor[2]), (0,255,0), 0.5, 1.5).pilot()
+        WS2801Headset((r, g, b), (r, g, b), 0.5, 1.5).crown_on()
 
+        # Do not remove this return statement - in the future might want
+        # to show in the browser which colour was chosen.
+        # return "Color submitted: ({}, {}, {})".format(r, g, b)
         return render_template('hat_standalone.html')
-
-    # @app.route('/get_color', methods=['POST'])
-    # def get_color():
-    #     color_value = request.json['color']
-    #     rgb_values = tuple(int(color_value[i:i + 2], 16) for i in (1, 3, 5))
-    #
-    #     WS2801Headset((rgb_values[0], rgb_values[1], rgb_values[2]), (0,255,0), 0.5, 1.5).crown_on()
-    #
-    #     return render_template('hat_standalone.html')
 
     return app
 
@@ -66,4 +63,3 @@ if __name__ == '__main__':
 
     app = create_app(server_type)
     app.run(debug=True)
-

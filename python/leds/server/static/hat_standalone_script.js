@@ -20,34 +20,24 @@ function openTab(evt, tabName) {
 }
 
 
-function changedColor() {
-    var newRGBHex = document.getElementById("colorPicker").value;
-    var newRGBValues = hexToRgb(newRGBHex);
-    const request = new XMLHttpRequest();
-    request.open('POST', '/ProcessNewColor/${JSON.stringify(newRGBValues)}');
-    request.send();
-    window.alert(newRGBValues);
-}
-
 //function changedColor() {
-//    const colorPicker = document.getElementById('colorPicker');
-//    const colorValue = colorPicker.value;
-//    fetch('/get_color', {
-//        method: 'POST',
-//        body: JSON.stringify({color: colorValue}),
-//        headers: {'Content-Type': 'application/json'}
-//    });
+//    var newRGBHex = document.getElementById("colorPicker").value;
+//    var newRGBValues = hexToRgb(newRGBHex);
+//    const request = new XMLHttpRequest();
+//    request.open('POST', '/ProcessNewColor/${JSON.stringify(newRGBValues)}');
+//    request.send();
+//    window.alert(newRGBValues);
 //}
-
-function hexToRgb(hex){
-    var c;
-    if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
-        c= hex.substring(1).split('');
-        if(c.length== 3){
-            c= [c[0], c[0], c[1], c[1], c[2], c[2]];
-        }
-        c= '0x'+c.join('');
-        return [(c>>16)&255, (c>>8)&255, c&255].join(',');
-    }
-    throw new Error('Bad Hex');
-}
+//
+//function hexToRgb(hex){
+//    var c;
+//    if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
+//        c= hex.substring(1).split('');
+//        if(c.length== 3){
+//            c= [c[0], c[0], c[1], c[1], c[2], c[2]];
+//        }
+//        c= '0x'+c.join('');
+//        return [(c>>16)&255, (c>>8)&255, c&255].join(',');
+//    }
+//    throw new Error('Bad Hex');
+//}
