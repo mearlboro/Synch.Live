@@ -46,6 +46,8 @@ def create_app(server_type):
         b = int(color[5:7], 16)
 
         WS2801Headset((r, g, b), (r, g, b), 0.5, 1.5).crown_on()
+        # might want to consider whether we want to control crown
+        # and pilot separately in the future
 
         # Do not remove this return statement - in the future might want
         # to show in the browser which colour was chosen.
