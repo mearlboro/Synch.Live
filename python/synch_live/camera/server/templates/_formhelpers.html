@@ -1,0 +1,41 @@
+{% macro render_field(field) %}
+    <li class="flex flex-row gap-2 items-center">
+        {% if field.widget.__class__.__name__ == "FieldsetWidget" %}
+            {{ field(fieldset_kwargs=dict(class="flex flex-col gap-2"),
+                     legend_kwargs=dict(class="text-2xl font-medium contents"),
+                     ul_kwargs=dict(class="flex flex-col gap-2"),
+                     li_kwargs=dict(class="flex flex-row gap-2 items-center"),
+                     label_kwargs=dict(class="text-lg font-medium"),
+                     errors_caller=render_errors,
+                     class="bg-gray-200 dark:bg-slate-800 py-1 px-2 rounded-sm box-content focus:outline-none
+                            focus:ring-4 focus:ring-blue-400 focus:ring-opacity-75 transition", **kwargs)|safe }}
+        {% else %}
+            {{ field.label(class="text-lg font-medium") }}
+            {{ field(class="bg-gray-200 dark:bg-slate-800 py-1 px-2 rounded-sm box-content focus:outline-none focus:ring-4 focus:ring-blue-400 focus:ring-opacity-75 transition", **kwargs)|safe }}
+            {{ render_errors(field.errors) }}
+        {% endif %}
+    </li>
+{% endmacro %}
+{% macro render_submit_field(value) %}
+    <input type="submit" value="{{ value }}"
+           class="py-2 px-4 rounded-lg bg-gray-200 hover:bg-gray-300 active:bg-gray-400 transition dark:bg-slate-800 dark:hover:bg-slate-700 dark:active:bg-slate-700 text-lg font-bold">
+{% endmacro %}
+{% macro render_errors(errors) %}
+    {% if errors %}
+        <ul class="flex flex-row gap-2 items-center">
+            {% for error in errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endmacro %}
+{% macro render_form(form, submit_value) %}
+    <form method="post" enctype="application/x-www-form-urlencoded" class="flex flex-col gap-4 items-start">
+        <ul class="flex flex-col gap-2">
+            {% for field in form %}
+                {{ render_field(field) }}
+            {% endfor %}
+        </ul>
+        {{ render_submit_field(submit_value) }}
+    </form>
+{% endmacro %}

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>{% block title %}Synch.Live Observer Control{% endblock %}</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+</head>
+<body class="container bg-white dark:bg-black text-black dark:text-white mx-auto px-4 py-4 flex flex-col gap-4">
+<header class="flex flex-row gap-2 items-center text-xl">
+    <p class="font-medium"><a href="{{ url_for('main') }}">Synch.Live Observer Control Interface</a></p>
+    <nav>
+        <ul class="flex flex-row gap-2 items-center">
+            {% for item in navigation() %}
+                <li>
+                    {% if request.path != item.href %}
+                        <a href="{{ item.href }}">{{ item.caption }}</a>
+                    {% else %}
+                        {{ item.caption }}
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </nav>
+</header>
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class="fixed right-8 bottom-8 flex flex-col gap-4">
+    {% for message in messages %}
+      <li class="py-2 px-4 rounded-lg bg-green-200 dark:bg-green-800 dark:hover:bg-slate-700 text-lg">{{ message }}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+<main class="flex flex-col gap-6">
+    {% block content %}{% endblock %}
+</main>
+<footer>
+    {% block footer %}
+    {% endblock %}
+</footer>
+</body>
+</html>

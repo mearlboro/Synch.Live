@@ -9,3 +9,4 @@ pykalman==0.9.5
 matplotlib==3.6.3
 PyYAML==6.0
 Flask==2.2.2
+WTForms==3.0.1

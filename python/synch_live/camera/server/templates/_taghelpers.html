@@ -1,0 +1,12 @@
+{% macro render_h1(value) %}
+    <h1 class="text-7xl font-medium">{{ value }}</h1>
+{% endmacro %}
+{% macro render_h2(value) %}
+    <h2 class="text-4xl font-medium">{{ value }}</h2>
+{% endmacro %}
+{% macro render_section(title) %}
+    <section class="flex flex-col gap-4">
+        {{ render_h2(title) }}
+        {{ caller() }}
+    </section>
+{% endmacro %}

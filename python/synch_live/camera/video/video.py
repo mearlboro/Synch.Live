@@ -503,6 +503,12 @@ class VideoProcessorProxy:
     def config(self, config: SimpleNamespace):
         if self.__class__.video_processor is None:
             raise Exception
+        self.__class__.video_processor.update_tracking_conf(config.tracking.max_players)
+        self.__class__.video_processor.update_detection_conf(config.detection.min_contour, config.detection.max_contour, config.detection.min_color,
+                                                             config.detection.max_color)
+        if self.config.server.CAMERA == 'pi':
+            self.__class__.video_processor.update_picamera(config.iso, config.shutter_speed, config.saturation,
+                                                           config.awb_mode)
         self.__class__.video_processor.config = config
 
     def generate_frame(self) -> Generator[bytes, None, None]:
@@ -534,21 +540,6 @@ class VideoProcessorProxy:
             raise Exception
         if self.__class__.video_processor.running:
             return self.__class__.video_processor.Sync
-
-    def update_tracking_conf(self, max_players: int):
-        if self.__class__.video_processor is None:
-            raise Exception
-        self.__class__.video_processor.update_tracking_conf(max_players)
-
-    def update_detection_conf(self, min_contour: int, max_contour: int, min_color: np.ndarray, max_color: np.ndarray):
-        if self.__class__.video_processor is None:
-            raise Exception
-        self.__class__.video_processor.update_detection_conf(min_contour, max_contour, min_color, max_color)
-
-    def update_picamera(self, iso: int, shutter_speed: int, saturation: int, awb_mode: str):
-        if self.__class__.video_processor is None:
-            raise Exception
-        self.__class__.video_processor.update_picamera(iso, shutter_speed, saturation, awb_mode)
 
     @property
     def task(self) -> str:
