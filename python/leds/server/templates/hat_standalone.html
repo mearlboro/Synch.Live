@@ -3,69 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <title>One person, one hat: Control</title>
-    <link href="../static/style.css" rel="stylesheet">
-    <link href="../static/hat_standalone.css" rel="stylesheet">
+    <link rel="stylesheet" href="../static/style.css">
+    <link rel="stylesheet" href="../static/hat_standalone.css">
     <script src="../static/hat_standalone_script.js"></script>
 
 </head>
 <body>
-    <nav>
-        <h1>Synch.live</h1>
-    </nav>
+<nav>
+    <h3>synch.live</h3>
+</nav>
 
-    <div class="banner" id="all-caps-thin">
-        <p id="controlling" style="alignment: center">Controlling: Hat {number}</p> <!--will -->
-    </div>
+<div class="banner" id="all-caps-thin"> <!-- If {number} isn't gonna be implemented we should comment this bit out -->
+    <p id="controlling" style="alignment: center">Controlling: Hat {number}</p>
+</div>
 
-    <h2>Hat Control</h2>
+<h1>Hat Control</h1>
 
     <div class="tab">
         <!--NB: the following lines can be improved.
         "Deprecated symbol used, consult docs for better alternative"-->
-        <button class="tablinks" onclick="openTab(event, 'Colour')">Colour Picker</button>
-        <button class="tablinks" onclick="openTab(event, 'Effects')">Effects</button>
-        <button class="tablinks" onclick="openTab(event, 'Animations')">Animations</button>
-        <button class="tablinks" onclick="openTab(event, 'Customize')">Customize</button>
+        <button class="tablinks" onclick="openTab(event, 'Colour')">Custom</button>
+        <button class="tablinks" onclick="openTab(event, 'Effects')">Pre-made Effects</button>
     </div>
 
-    <!-- Tab content -->
-    <div class="tabcontent" id="Colour">
-        <h3>Colour Select</h3>
-        <form method="POST" action="/handle_color_picker">
-            <label for="colorPicker">Choose the colour:</label>
-            <!--NB: Could benefit from more nuance,
-                For example, not letting the user submit
-                colours that the LEDs can't do black-->
-            <input id="colorPicker" name="color" type="color" value="#000064">
-            <input id="colorSubmit" type="submit" value="Submit">
-        </form>
-        <button id="stopButtonColorPicker" type="button" onclick="window.location.href='/stopButton';">Stop Lights</button>
-    </div>
+  <!-- Tab content -->
 
-    <div class="tabcontent" id="Effects">
-        <h3>Effects</h3>
-        <button id="pilotButton" type="button" onclick="window.location.href='/pilotButton';">Pilot</button> <!--NB: Add implementation-->
-        <button id="rainbowButton" type="button" onclick="window.location.href='/rainbowButton';">Rainbow</button>
-        <button id="exposureButton" type="button" onclick="window.location.href='/exposureButton';">Exposure</button>
-        <button id="breatheButton" type="button" onclick="window.location.href='/breatheButton';">Breathe</button>
-        <button id="stopButton" type="button" onclick="window.location.href='/stopButton';">Stop Lights</button>
-    </div>
+<div id="Colour" class="tabcontent">
+  <form method="POST" action="/handle_color_picker">
+    <label for="colorPicker">Enter a color:</label>
+    <input id="colorPicker" name="color" type="color" value="#000064">
+    <br>
 
-    <div class="tabcontent" id="Animations">
-        <h3>Animations</h3>
-        <button>Thing1</button>
-        <button>Thing2</button>
-        <button class="stoplights">Stop Lights</button>
-    </div>
+    <label for="blickfrequency">Light Blink Frequency:</label>
+    <input type="number" id="blickfrequency" name="blickfrequency" min="1" max="5" value="1">
+    <br>
 
-    <div class="tabcontent" id="Customize">
-        <h3>Customize</h3>
-        <p>???</p>
-        <button class="stoplights">Stop Lights</button>
-    </div>
+    <label for="effectduration">Effect Duration (in seconds):</label>
+    <input type="number" id="effectduration" name="effectduration" min="1" max="20" value="1">
+    <br>
 
+    <input id="colorSubmit" type="submit" value="Run">
+  </form>
+    <button type="button" id="save-btn">Save</button>
+</div>
+
+<div id="Effects" class="tabcontent">
+    <button id="policeButton" type="button" onclick="window.location.href='/policeButton';">Police Lights</button>
+    <button id="rainbowButton" type="button" onclick="window.location.href='/rainbowButton';">Rainbow</button>
+    <button id="exposureButton" type="button" onclick="window.location.href='/exposureButton';">Exposure</button>
+    <button id="breatheButton" type="button" onclick="window.location.href='/breatheButton';">Breathe</button>
+  </div>
+</div>
+
+<button id="stopButton" type="button" onclick="window.location.href='/stopButton';">Stop Lights</button>
 </body>
 </html>
-
-
-

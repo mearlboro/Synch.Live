@@ -27,6 +27,12 @@ def create_app(server_type):
         leds.pilot()
         return render_template('hat_standalone.html')
 
+    @app.route('/policeButton')
+    def exposureButton():
+        #leds.crown_on()
+        #leds.pilot()
+        return render_template('hat_standalone.html')
+
     @app.route('/breatheButton')
     def breatheButton():
         leds.crown_breathe()
