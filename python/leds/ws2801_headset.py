@@ -255,8 +255,7 @@ class WS2801Headset(Headset):
 
     def crown_fire(self, dt: float = 0.2) -> None:
         """
-        All leds in the crown cycle for `dt` seconds through the 256 possible
-        colours, starting from consecutive colours
+        All leds change between varying shades of red, orange and yellow randomly.
         """
         super().crown_fire(dt)
         for j in range(100):
@@ -293,6 +292,25 @@ class WS2801Headset(Headset):
             self.pixels.show()
             time.sleep(dt)
 
+    def crown_paparazzi(self) -> None:
+        """
+        Some leds in the crown flash white randomly while others stay black.
+        """
+        super().crown_paparazzi()
+        for j in range(100):
+            for i in self.CROWN_RANGE:
+                col = (0, 0, 0)
+                random_number = random.randint(0, 100)
+                if random_number <= 40:
+                    # White
+                    col = (255, 255, 255)
+                else:
+                    # Black
+                    col = (0, 0, 0)
+                self.pixels.set_pixel(i, LED.RGB_to_color(*col))
+            self.pixels.show()
+            dt = random.uniform(0.2, 0.5)
+            time.sleep(dt)
 
 
     def crown_rainbow_repeat(self,

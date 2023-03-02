@@ -155,17 +155,22 @@ class Headset(ABC):
 
     def crown_police(self, dt: float = 1.0) -> None:
         """
-        All leds in the crown cycle for `dt` seconds through the 256 possible
-        colours, starting from consecutive colours
+        All leds in the crown flash alternative colours for `dt` seconds through either blue
+        or red, starting from alternate colours.
         """
         logging.info("Cycling police lights")
 
-
     def crown_fire(self, dt: float = 1.0) -> None:
         """
-        All leds in the crown randomly choose a shade of red or green, and flicker through them.
+        All leds change between varying shades of red, orange and yellow randomly.
         """
-        logging.info("Begin fire effect")
+        logging.info("Begin fire animation")
+
+    def crown_paparazzi(self) -> None:
+        """
+        Some leds in the crown flash white randomly while others stay black.
+        """
+        logging.info("Begin paparazzi effect")
 
 
     def crown_rainbow_repeat(self,

@@ -26,6 +26,11 @@ def create_app(server_type):
         leds.crown_police()
         return render_template('hat_standalone.html')
 
+    @app.route('/paparazziButton')
+    def paparazziButton():
+        leds.crown_paparazzi()
+        return render_template('hat_standalone.html')
+
     @app.route('/fireButton')
     def fireButton():
         leds.crown_fire()
