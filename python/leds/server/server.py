@@ -46,10 +46,18 @@ def create_app(server_type):
         leds.crown_breathe()
         return render_template('hat_standalone.html')
 
+    @app.route('/startButton')
+    def startButton():
+        return render_template('hat_standalone.html')
+
     @app.route('/stopButton')
     def stopButton():
         leds.crown_off()
         leds.all_off()
+        return render_template('hat_standalone.html')
+
+    @app.route('/clearButton')
+    def clearButton():
         return render_template('hat_standalone.html')
 
     @app.route('/handle_color_picker', methods=['POST'])
@@ -62,6 +70,10 @@ def create_app(server_type):
         # do something with the RGB values
         WS2801Headset((r, g, b), (r, g, b), 0.5, 1.5).crown_on()
         # return "Color submitted: ({}, {}, {})".format(r, g, b)
+        return render_template('hat_standalone.html')
+
+    @app.route('/saveButton')
+    def saveButton():
         return render_template('hat_standalone.html')
 
     return app
