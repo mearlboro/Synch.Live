@@ -1,9 +1,21 @@
+body {
+    font-family: Arial, serif;
+}
+
+button {
+    margin: 8px 0;
+}
+
 /* Style the tab */
 .tab {
     overflow: hidden;
     border: 1px solid #ccc;
     background-color: #f1f1f1;
-  }
+}
+
+input {
+    margin: 10px 0;
+}
   
 /* Style the buttons that are used to open the tab content */
 .tab button {

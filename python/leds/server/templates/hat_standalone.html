@@ -18,11 +18,9 @@
 
 <h1>Hat Control</h1>
 
-    <button class="startlights">Start Lights</button>
-    <button id="stopButton" type="button" onclick="window.location.href='/stopButton';">Stop Lights</button>
-    <button class="clear">Clear</button>
-
-    <h2></h2>
+    <button class="startlights" id="startButton" type="button" onclick="window.location.href='/startButton';">Start Lights</button>
+    <button class="stoplights" id="stopButton" type="button" onclick="window.location.href='/stopButton';">Stop Lights</button>
+    <button class="clear" id="clearButton" type="button" onclick="window.location.href='/clearButton';">Clear</button>
 
     <div class="tab">
         <!--NB: the following lines can be improved.
@@ -56,15 +54,14 @@
 <div id="Effects" class="tabcontent">
     <button id="pilotButton" type="button" onclick="window.location.href='/pilotButton';">Pilot</button>
     <button id="policeButton" type="button" onclick="window.location.href='/policeButton';">Police Lights</button>
-    <button id="paparazziButton" type="button" onclick="window.location.href='/paparazziButton';">Paparazzi</button>
-    <button>Party Lights</button>
+    <button id="fireButton" type="button" onclick="window.location.href='/fireButton';">Fire Effect</button>
+    <button id="partyButton" type="button" onclick="window.location.href='/partyButton';">Party Lights</button>
     <button id="exposureButton" type="button" onclick="window.location.href='/exposureButton';">Exposure</button>
     <button id="breatheButton" type="button" onclick="window.location.href='/breatheButton';">Breathe</button>
 </div>
 
 <div id="Animations" class="tabcontent">
     <button id="rainbowButton" type="button" onclick="window.location.href='/rainbowButton';">Rainbow Loop</button>
-    <button id="fireButton" type="button" onclick="window.location.href='/fireButton';">Fire</button>
 </div>
 
 </body>

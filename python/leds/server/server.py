@@ -36,6 +36,10 @@ def create_app(server_type):
         leds.crown_fire()
         return render_template('hat_standalone.html')
 
+    @app.route('/partyButton')
+    def fireButton():
+        return render_template('hat_standalone.html')
+
     @app.route('/exposureButton')
     def exposureButton():
         leds.crown_on()
