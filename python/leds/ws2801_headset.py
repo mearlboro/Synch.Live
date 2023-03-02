@@ -223,6 +223,36 @@ class WS2801Headset(Headset):
             self.pixels.show()
             time.sleep(dt)
 
+    def crown_police(self, dt: float = 0.1) -> None:
+        """
+        All leds in the crown flash alternative colours for `dt` seconds through either blue
+        or red, starting from alternate colours
+        """
+        super().crown_police(dt)
+        switcher = 0
+        for j in range(8):
+            for i in self.CROWN_RANGE:
+                col = (0, 0, 0)
+                if switcher == 0:
+                    if i % 2 == 0:
+                        col = (0, 0 ,255)
+                    else:
+                        col = (255, 0, 0)
+                if switcher == 1:
+                    if i % 2 == 1:
+                        col = (0, 0 ,255)
+                    else:
+                        col = (255, 0, 0)
+
+                self.pixels.set_pixel(i, LED.RGB_to_color(*col))
+            self.pixels.show()
+            time.sleep(dt)
+            if switcher == 0:
+                switcher = 1
+            else:
+                switcher = 0
+
+
 
     def crown_rainbow_repeat(self,
             dt: float = 0.01, duration: float = 2

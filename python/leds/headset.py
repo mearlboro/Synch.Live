@@ -153,6 +153,13 @@ class Headset(ABC):
         """
         logging.info("Cycling through rainbow colours")
 
+    def crown_police(self, dt: float = 1.0) -> None:
+        """
+        All leds in the crown cycle for `dt` seconds through the 256 possible
+        colours, starting from consecutive colours
+        """
+        logging.info("Cycling police lights")
+
 
     def crown_rainbow_repeat(self,
             dt: float = 0.01, duration: float = 2
