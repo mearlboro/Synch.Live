@@ -8,7 +8,7 @@ import time
 from typing import List, Tuple
 
 # initialise logging to file
-import logger
+import leds.logger
 
 """
 Abstract class implementing the main behaviour of the LED headset

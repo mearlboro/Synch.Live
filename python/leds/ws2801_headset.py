@@ -13,10 +13,10 @@ import Adafruit_GPIO.SPI as SPI
 import RPi.GPIO as GPIO
 
 # initialise logging to file
-import logger
+import leds.logger
 
 # import abstract headset class
-from headset import Headset
+from leds.headset import Headset
 
 """
 Class implementing the behaviour of a LED headset on an actual RaspberryPi
