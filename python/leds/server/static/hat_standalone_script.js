@@ -19,6 +19,12 @@ function openTab(evt, tabName) {
     evt.currentTarget.className += " active";
 }
 
+function loadCustomOnLoad() {
+    openTab(event, 'Colour');
+}
+
+window.onload = loadCustomOnLoad;
+
 const blickfrequencySlider = document.getElementById("blickfrequency");
 const blickfrequencyValue = document.getElementById("blickfrequency-value");
 blickfrequencyValue.innerHTML = blickfrequencySlider.value;
