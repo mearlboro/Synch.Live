@@ -35,7 +35,7 @@
   <!-- Tab content -->
 
 <div id="Colour" class="tabcontent">
-  <form>
+  <form method="POST" action="/handle_color_picker">
     <label for="color">Enter a color:</label>
     <input type="color" id="color" name="color" value="red">
     <br>
@@ -54,15 +54,15 @@
 </div>
 
 <div id="Effects" class="tabcontent">
-    <button>Pilot</button>
+    <button id="pilotButton" type="button" onclick="window.location.href='/pilotButton';">Pilot</button>
     <button>Police Lights</button>
     <button>Party Lights</button>
-    <button>Exposure</button>
-    <button>Breathe</button>
+    <button id="exposureButton" type="button" onclick="window.location.href='/exposureButton';">Exposure</button>
+    <button id="breatheButton" type="button" onclick="window.location.href='/breatheButton';">Breathe</button>
 </div>
 
 <div id="Animations" class="tabcontent">
-    <button>Rainbow Loop</button>
+    <button id="rainbowButton" type="button" onclick="window.location.href='/rainbowButton';">Rainbow Loop</button>
 </div>
 
 </body>

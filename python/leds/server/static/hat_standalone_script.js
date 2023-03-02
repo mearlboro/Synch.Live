@@ -19,6 +19,33 @@ function openTab(evt, tabName) {
     evt.currentTarget.className += " active";
 }
 
+const blickfrequencySlider = document.getElementById("blickfrequency");
+const blickfrequencyValue = document.getElementById("blickfrequency-value");
+blickfrequencyValue.innerHTML = blickfrequencySlider.value;
+
+blickfrequencySlider.oninput = function() {
+    blickfrequencyValue.innerHTML = this.value;
+};
+
+const effectdurationSlider = document.getElementById("effectduration");
+const effectdurationValue = document.getElementById("effectduration-value");
+effectdurationValue.innerHTML = effectdurationSlider.value;
+
+effectdurationSlider.oninput = function() {
+    effectdurationValue.innerHTML = this.value;
+};
+
+//document.getElementById("defaultOpen").click();
+//
+//$('.tablinks').click(function(){
+//    var activetab = $(this).attr('id');
+//    localStorage.setItem('activetab', activetab );
+//});
+//
+//$(function() {  //short hand for $(document).ready()
+//    var activetab = localStorage.getItem('activetab');
+//    document.getElementById(activetab).click();
+//});
 
 //function changedColor() {
 //    var newRGBHex = document.getElementById("colorPicker").value;

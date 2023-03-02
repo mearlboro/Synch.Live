@@ -1,7 +1,6 @@
-from flask import Flask, render_template, json, request, jsonify
-from python.leds.ws2801_headset import WS2801Headset
 import os
-
+from flask import Flask, render_template, request, redirect, url_for
+from leds.tools.ws2801_headset import WS2801Headset
 
 def create_app(server_type):
     app = Flask(__name__)
@@ -11,14 +10,10 @@ def create_app(server_type):
     def main():
         return render_template('hat_standalone.html')
 
+
     @app.route('/pilotButton')
     def pilotButton():
         leds.pilot()
-        return render_template('hat_standalone.html')
-
-    @app.route('/policeButton')
-    def policeButton():
-        leds.crown_rainbow()
         return render_template('hat_standalone.html')
 
     @app.route('/rainbowButton')
@@ -39,6 +34,7 @@ def create_app(server_type):
 
     @app.route('/stopButton')
     def stopButton():
+        leds.crown_off()
         leds.all_off()
         return render_template('hat_standalone.html')
 
@@ -49,13 +45,8 @@ def create_app(server_type):
         r = int(color[1:3], 16)
         g = int(color[3:5], 16)
         b = int(color[5:7], 16)
-
+        # do something with the RGB values
         WS2801Headset((r, g, b), (r, g, b), 0.5, 1.5).crown_on()
-        # might want to consider whether we want to control crown
-        # and pilot separately in the future
-
-        # Do not remove this return statement - in the future might want
-        # to show in the browser which colour was chosen.
         # return "Color submitted: ({}, {}, {})".format(r, g, b)
         return render_template('hat_standalone.html')
 
