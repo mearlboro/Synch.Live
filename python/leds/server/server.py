@@ -37,7 +37,7 @@ def create_app(server_type):
         return render_template('hat_standalone.html')
 
     @app.route('/partyButton')
-    def fireButton():
+    def partyButton():
         return render_template('hat_standalone.html')
 
     @app.route('/exposureButton')
