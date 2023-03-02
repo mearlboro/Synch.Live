@@ -21,6 +21,16 @@ def create_app(server_type):
         leds.crown_rainbow()
         return render_template('hat_standalone.html')
 
+    @app.route('/policeButton')
+    def policeButton():
+        leds.crown_police()
+        return render_template('hat_standalone.html')
+
+    @app.route('/fireButton')
+    def fireButton():
+        leds.crown_fire()
+        return render_template('hat_standalone.html')
+
     @app.route('/exposureButton')
     def exposureButton():
         leds.crown_on()

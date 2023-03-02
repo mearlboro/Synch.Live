@@ -161,6 +161,13 @@ class Headset(ABC):
         logging.info("Cycling police lights")
 
 
+    def crown_fire(self, dt: float = 1.0) -> None:
+        """
+        All leds in the crown randomly choose a shade of red or green, and flicker through them.
+        """
+        logging.info("Begin fire effect")
+
+
     def crown_rainbow_repeat(self,
             dt: float = 0.01, duration: float = 2
         ) -> None:

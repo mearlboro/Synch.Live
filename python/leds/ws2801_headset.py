@@ -5,6 +5,7 @@ import logging
 import random
 import time
 from typing import List, Tuple
+import random
 
 # hardware controllers
 import Adafruit_WS2801 as LED
@@ -251,6 +252,46 @@ class WS2801Headset(Headset):
                 switcher = 1
             else:
                 switcher = 0
+
+    def crown_fire(self, dt: float = 0.2) -> None:
+        """
+        All leds in the crown cycle for `dt` seconds through the 256 possible
+        colours, starting from consecutive colours
+        """
+        super().crown_fire(dt)
+        for j in range(100):
+            for i in self.CROWN_RANGE:
+                col = (0, 0, 0)
+                random_number = random.randint(0, 100)
+                if random_number <= 10:
+                    # Dark red
+                    col = (148, 27, 27)
+                elif random_number <= 20:
+                    col = (171, 32, 32)
+                elif random_number <= 30:
+                    col = (222, 10, 10)
+                elif random_number <= 40:
+                    # Dark Orange
+                    col = (204, 102, 0)
+                elif random_number <= 50:
+                    col = (255, 128, 0)
+                elif random_number <= 60:
+                    col = (255, 128, 0)
+                elif random_number <= 70:
+                    # Light Orange
+                    col = (255, 153, 51)
+                elif random_number <= 80:
+                    # Dark yellow
+                    col = (204, 204, 0)
+                elif random_number <= 90:
+                    # Medium yellow
+                    col = (255, 255, 0)
+                else:
+                    # Orange
+                    col = (255, 128, 0)
+                self.pixels.set_pixel(i, LED.RGB_to_color(*col))
+            self.pixels.show()
+            time.sleep(dt)
 
 
 
