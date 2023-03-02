@@ -16,6 +16,11 @@ def create_app(server_type):
         leds.pilot()
         return render_template('hat_standalone.html')
 
+    @app.route('/policeButton')
+    def policeButton():
+        leds.crown_rainbow()
+        return render_template('hat_standalone.html')
+
     @app.route('/rainbowButton')
     def rainbowButton():
         leds.crown_rainbow()
@@ -58,10 +63,8 @@ def create_app(server_type):
 
 
 if __name__ == '__main__':
-    server_type = 'hats'
-
-    host = os.environ.get('HOST', default='0.0.0.0')
-    port = int(os.environ.get('PORT', default='5000'))
+    server_type='hats'
 
     app = create_app(server_type)
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
+
