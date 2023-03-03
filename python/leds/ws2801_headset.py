@@ -150,7 +150,7 @@ class WS2801Headset(Headset):
 
 
     def crown_fadein_colour(self,
-            dt: float = 0.01, col: Tuple[int, int, int] = (0, 0, 0)
+            dt: float = 0.01, col: Tuple[int, int, int] = (255, 255, 255)
         ) -> None:
         """
         All leds in the crown should fade in to the `col` param or, if that is
@@ -192,7 +192,7 @@ class WS2801Headset(Headset):
 
 
     def crown_breathe(self,
-            dt: float = 0.01, delay: float = 0, col: Tuple[int, int, int] = (0, 0, 0)
+            dt: float = 0.01, delay: float = 0, col: Tuple[int, int, int] = (255, 255, 255)
         ) -> None:
         """
         All leds in the crown should fade in to colour specified in `col` param,

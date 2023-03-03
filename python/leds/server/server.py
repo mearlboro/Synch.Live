@@ -18,6 +18,14 @@ def create_app(server_type):
             frequency = rgb['frequency']
             duration = rgb['duration']
             return origColour, frequency, duration
+    def loadOnlyRGBFromYaml():
+        with open('leds/server/config.yaml', 'r') as f:
+            rgb = yaml.load(f, Loader=yaml.FullLoader)
+            r = rgb['r']
+            g = rgb['g']
+            b = rgb['b']
+            return r, g, b
+
     def webpage():
         if os.path.exists('leds/server/config.yaml'):
             origCol, freq, dur = loadHexFromYaml()
@@ -67,7 +75,9 @@ def create_app(server_type):
 
     @app.route('/breatheButton')
     def breatheButton():
-        leds.crown_breathe()
+        r,g,b = loadOnlyRGBFromYaml()
+        colour = (r,g,b)
+        leds.crown_breathe(col=colour)
         return webpage()
 
     @app.route('/startButton')
