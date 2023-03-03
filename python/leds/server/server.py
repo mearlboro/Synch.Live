@@ -12,19 +12,26 @@ def create_app(server_type):
     lastTwoDigits = ipAddress.split(".")[-1][-2:]
 
     def loadHexFromYaml():
-        with open('leds/server/config.yaml', 'r') as f:
-            rgb = yaml.load(f, Loader=yaml.FullLoader)
-            origColour = rgb['hexColor']
-            frequency = rgb['frequency']
-            duration = rgb['duration']
-            return origColour, frequency, duration
+        if os.path.exists('leds/server/config.yaml'):
+            with open('leds/server/config.yaml', 'r') as f:
+                rgb = yaml.load(f, Loader=yaml.FullLoader)
+                origColour = rgb['hexColor']
+                frequency = rgb['frequency']
+                duration = rgb['duration']
+                return origColour, frequency, duration
+        else:
+            return 255,255,255
+
     def loadOnlyRGBFromYaml():
-        with open('leds/server/config.yaml', 'r') as f:
-            rgb = yaml.load(f, Loader=yaml.FullLoader)
-            r = rgb['r']
-            g = rgb['g']
-            b = rgb['b']
-            return r, g, b
+        if os.path.exists('leds/server/config.yaml'):
+            with open('leds/server/config.yaml', 'r') as f:
+                rgb = yaml.load(f, Loader=yaml.FullLoader)
+                r = rgb['r']
+                g = rgb['g']
+                b = rgb['b']
+                return r, g, b
+        else:
+            return 255,255,255
 
     def webpage():
         if os.path.exists('leds/server/config.yaml'):
