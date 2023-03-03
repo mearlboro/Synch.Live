@@ -171,6 +171,28 @@ class WS2801Headset(Headset):
             if dt:
                 time.sleep(dt)
 
+    def crown_fade_between_colours(self,
+                            dt: float = 0.03, col1: Tuple[int, int, int] = (255, 255, 255),
+                                   col2: Tuple[int, int, int] = (0, 0, 255), dur: float = 5.0
+                            ) -> None:
+        """
+        All leds in the crown should fade in to the `col` param or, if that is
+        not specified, to the `crown_col` set in the constructor in `dt` second
+        increments
+        """
+        super().crown_fade_between_colours(dt, col1, col2)
+        sleep_duration = float((dur - 1.5)/100)
+        r1, g1, b1 = col1
+        r2, g2, b2 = col2
+        WS2801Headset((r1, g1, b1), (r1, g1, b1), 0.5, 1.5).crown_on()
+
+        for j in range(100):
+            for i in self.CROWN_RANGE:
+                self.pixels.set_pixel(i, LED.RGB_to_color(
+                    int(r1+((r2-r1) * j / 100)), int(g1+((g2-g1) * j / 100)), int(b1+((b2-b1) * j / 100))))
+            self.pixels.show()
+            time.sleep(sleep_duration)
+
 
     def crown_fadeout(self, dt: float = 0.01) -> None:
         """
@@ -413,5 +435,7 @@ class WS2801Headset(Headset):
             time.sleep(sleep_duration)
 
         WS2801Headset((r, g, b), (r, g, b), 0.5, 1.5).crown_on()
-        self.pixels.set_pixel(i, LED.RGB_to_color(*self.pilot_col))
+        for i in self.PILOT_RANGE:
+            self.pixels.set_pixel(i, LED.RGB_to_color(*self.pilot_col))
+        self.pixels.show()
 

@@ -20,7 +20,7 @@
 
     <button class="startlights" id="startButton" type="button" onclick="window.location.href='/startButton';">Start Lights</button>
     <button class="stoplights" id="stopButton" type="button" onclick="window.location.href='/stopButton';">Stop Lights</button>
-    <button class="clear" id="clearButton" type="button" onclick="window.location.href='/clearButton';">Clear</button>
+    <button class="clear" id="clearButton" type="button" onclick="window.location.href='/clearButton';">Clear saved configuration</button>
 
     <div class="tab">
         <!--NB: the following lines can be improved.
@@ -34,8 +34,12 @@
 
 <div id="Colour" class="tabcontent">
   <form method="POST" action="/handle_color_picker">
-    <label for="color">Enter a color:</label>
+    <label for="color">Enter a main color:</label>
     <input type="color" id="color" name="color" value="{{ origCol|default('#2B43DC') }}">
+    <br>
+
+    <label for="color2">Enter a secondary color:</label>
+    <input type="color" id="color2" name="color2" value="{{ origCol2|default('#FF0000') }}">
     <br>
 
     <label for="blickfrequency">Light Blink Frequency (per second):</label>
@@ -58,6 +62,7 @@
     <button id="exposureButton" type="button" onclick="window.location.href='/exposureButton';">Exposure</button>
     <button id="breatheButton" type="button" onclick="window.location.href='/breatheButton';">Breathe</button>
     <button id="fadeInButton" type="button" onclick="window.location.href='/fadeInButton';">Fade In</button>
+    <button id="fadeBetweenColorsButton" type="button" onclick="window.location.href='/fadeBetweenColoursButton';">Fade from Main to Secondary Colour</button>
 </div>
 
 <div id="Animations" class="tabcontent">

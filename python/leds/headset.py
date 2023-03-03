@@ -118,6 +118,15 @@ class Headset(ABC):
             col = self.crown_col
         logging.info(f"Fade into colour {col} for duration {dt * 256}")
 
+    def crown_fade_between_colours(self,
+            dt: float = 0.01, col1: Tuple[int, int, int] = (0, 0, 0), col2: Tuple[int, int, int] = (0, 0, 0)
+        ) -> None:
+        """
+        All leds in the crown should fade in to the `col2` param  from 'col1' param in `dt` second
+        increments
+        """
+        logging.info(f"Begin fade from colour {col1} into colour {col2} for duration {dt * 256}")
+
     def crown_fadeout(self, dt: float = 0.01) -> None:
         """
         All leds in the crown should fade out from the current colour to black,

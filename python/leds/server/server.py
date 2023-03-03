@@ -16,13 +16,14 @@ def create_app(server_type):
             with open('leds/server/config.yaml', 'r') as f:
                 rgb = yaml.load(f, Loader=yaml.FullLoader)
                 origColour = rgb['hexColor']
+                origColour2 = rgb['hexColor2']
                 frequency = rgb['frequency']
                 duration = rgb['duration']
-                return origColour, frequency, duration
+                return origColour, origColour2, frequency, duration
         else:
-            return 255,255,255
+            return '#FFFFFF','#000000', 1, 10
 
-    def loadOnlyRGBFromYaml():
+    def loadOnlyRGB1FromYaml():
         if os.path.exists('leds/server/config.yaml'):
             with open('leds/server/config.yaml', 'r') as f:
                 rgb = yaml.load(f, Loader=yaml.FullLoader)
@@ -33,11 +34,25 @@ def create_app(server_type):
         else:
             return 255,255,255
 
+    def loadBothRGBFromYaml():
+        if os.path.exists('leds/server/config.yaml'):
+            with open('leds/server/config.yaml', 'r') as f:
+                rgb = yaml.load(f, Loader=yaml.FullLoader)
+                r = rgb['r']
+                g = rgb['g']
+                b = rgb['b']
+                r2 = rgb['r2']
+                g2 = rgb['g2']
+                b2 = rgb['b2']
+                return r, g, b, r2, g2, b2
+        else:
+            return 0, 0, 0, 255, 255, 255
+
     def webpage():
         if os.path.exists('leds/server/config.yaml'):
-            origCol, freq, dur = loadHexFromYaml()
+            hexCol, hexCol2, freq, dur = loadHexFromYaml()
             return render_template('hat_standalone.html',
-                                   lastTwoDigits=lastTwoDigits, origCol=origCol, freq=freq, dur=dur)
+                                   lastTwoDigits=lastTwoDigits, origCol=hexCol, origCol2=hexCol2, freq=freq, dur=dur)
         else:
             return render_template('hat_standalone.html', lastTwoDigits=lastTwoDigits)
 
@@ -77,9 +92,23 @@ def create_app(server_type):
 
     @app.route('/fadeInButton')
     def fadeInButton():
-        r, g, b = loadOnlyRGBFromYaml()
+        r, g, b = loadOnlyRGB1FromYaml()
         colour = (r, g, b)
         leds.crown_fadein_colour(col=colour)
+        return webpage()
+
+    @app.route('/fadeBetweenColoursButton')
+    def fadeBetweenColoursButton():
+        color1, color2, frequency, duration = loadHexFromYaml()
+        r = int(color1[1:3], 16)
+        g = int(color1[3:5], 16)
+        b = int(color1[5:7], 16)
+        r2 = int(color2[1:3], 16)
+        g2 = int(color2[3:5], 16)
+        b2 = int(color2[5:7], 16)
+        colour1 = (r, g, b)
+        colour2 = (r2, g2, b2)
+        leds.crown_fade_between_colours(col1=colour1, col2=colour2, dur=duration)
         return webpage()
 
     @app.route('/exposureButton')
@@ -90,7 +119,7 @@ def create_app(server_type):
 
     @app.route('/breatheButton')
     def breatheButton():
-        r,g,b = loadOnlyRGBFromYaml()
+        r,g,b = loadOnlyRGB1FromYaml()
         colour = (r,g,b)
         leds.crown_breathe(col=colour)
         return webpage()
@@ -101,7 +130,6 @@ def create_app(server_type):
             # load RGB values from YAML file
             with open('leds/server/config.yaml', 'r') as f:
                 rgb = yaml.load(f, Loader=yaml.FullLoader)
-                origColour = rgb['hexColor']
                 r = rgb['r']
                 g = rgb['g']
                 b = rgb['b']
@@ -129,11 +157,16 @@ def create_app(server_type):
     def handle_color_picker():
 
         color = request.form['color']
+        color2 = request.form['color2']
         # color is a string in the format "#RRGGBB"
         origCol = color
+        origCol2 = color2
         r = int(color[1:3], 16)
         g = int(color[3:5], 16)
         b = int(color[5:7], 16)
+        r2 = int(color2[1:3], 16)
+        g2 = int(color2[3:5], 16)
+        b2 = int(color2[5:7], 16)
         frequency = int(request.form['blickfrequency'])
         duration = int(request.form['effectduration'])
 
@@ -143,10 +176,11 @@ def create_app(server_type):
         elif 'saveConfigButton' in request.form:
             # Save the configuration to YAML file
             with open('leds/server/config.yaml', 'w') as f:
-                yaml.dump({'hexColor': origCol, 'r': r, 'g': g, 'b': b, 'frequency': frequency, 'duration': duration}, f)
+                yaml.dump({'hexColor': origCol, 'hexColor2': origCol2, 'r': r, 'g': g, 'b': b, 'r2': r2, 'g2': g2,
+                           'b2': b2, 'frequency': frequency, 'duration': duration}, f)
 
-        return render_template('hat_standalone.html',
-                               lastTwoDigits=lastTwoDigits, origCol=origCol, freq=frequency, dur=duration)
+        return render_template('hat_standalone.html',lastTwoDigits=lastTwoDigits, origCol=origCol, origCol2=origCol2,
+                               freq=frequency, dur=duration)
 
     return app
 
