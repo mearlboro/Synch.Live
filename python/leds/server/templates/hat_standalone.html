@@ -35,27 +35,26 @@
 <div id="Colour" class="tabcontent">
   <form method="POST" action="/handle_color_picker">
     <label for="color">Enter a color:</label>
-    <input type="color" id="color" name="color" value="red">
+    <input type="color" id="color" name="color" value="{{ origCol|default('#2B43DC') }}">
     <br>
 
-    <label for="blickfrequency">Light Blink Frequency:</label>
-    <input type="number" id="blickfrequency" name="blickfrequency" min="1" max="5" value="1">
+    <label for="blickfrequency">Light Blink Frequency (per second):</label>
+    <input type="number" id="blickfrequency" name="blickfrequency" min="1" max="5" value="{{ freq|default('1') }}">
     <br>
 
     <label for="effectduration">Effect Duration (in seconds):</label>
-    <input type="number" id="effectduration" name="effectduration" min="1" max="20" value="1">
+    <input type="number" id="effectduration" name="effectduration" min="1" max="20" value="{{ dur|default('1') }}">
     <br>
 
-    <input type="submit" value="Try">
+    <input name="TrialConfigButton" type="submit" value="Trial this configuration">
+      <br />
+    <input name="saveConfigButton" type="submit" value="Save configuration">
+
   </form>
-    <button type="button" id="saveButton" type="button" onclick="window.location.href='/saveButton';">Save</button>
 </div>
 
 <div id="Effects" class="tabcontent">
     <button id="pilotButton" type="button" onclick="window.location.href='/pilotButton';">Pilot</button>
-    <button id="policeButton" type="button" onclick="window.location.href='/policeButton';">Police Lights</button>
-    <button id="paparazziButton" type="button" onclick="window.location.href='/paparazziButton';">Paparazzi</button>
-    <button id="partyButton" type="button" onclick="window.location.href='/partyButton';">Party Lights</button>
     <button id="exposureButton" type="button" onclick="window.location.href='/exposureButton';">Exposure</button>
     <button id="breatheButton" type="button" onclick="window.location.href='/breatheButton';">Breathe</button>
 </div>
@@ -63,6 +62,10 @@
 <div id="Animations" class="tabcontent">
     <button id="rainbowButton" type="button" onclick="window.location.href='/rainbowButton';">Rainbow Loop</button>
     <button id="fireButton" type="button" onclick="window.location.href='/fireButton';">Fire</button>
+    <button id="policeButton" type="button" onclick="window.location.href='/policeButton';">Police Lights</button>
+    <button id="paparazziButton" type="button" onclick="window.location.href='/paparazziButton';">Paparazzi</button>
+    <button id="partyButton" type="button" onclick="window.location.href='/partyButton';">Party Lights</button>
+
 </div>
 
 </body>

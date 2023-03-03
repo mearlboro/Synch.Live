@@ -172,6 +172,11 @@ class Headset(ABC):
         """
         logging.info("Begin paparazzi effect")
 
+    def crown_trial_config_log(self, r=255, g=255, b=255, blink_freq=1, effect_dur=1) -> None:
+        """
+        Set the colour, blink frequency and effect duration to the custom configuration, and run for 5 seconds.
+        """
+        logging.info("Begin trial of custom configuration")
 
     def crown_rainbow_repeat(self,
             dt: float = 0.01, duration: float = 2
