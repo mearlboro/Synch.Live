@@ -166,6 +166,12 @@ class Headset(ABC):
         """
         logging.info("Begin fire animation")
 
+    def crown_party(self, dt: float = 1.0) -> None:
+        """
+        All leds change between varying disco-esque colours.
+        """
+        logging.info("Begin party animation")
+
     def crown_paparazzi(self) -> None:
         """
         Some leds in the crown flash white randomly while others stay black.

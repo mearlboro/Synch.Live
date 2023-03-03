@@ -72,6 +72,7 @@ def create_app(server_type):
 
     @app.route('/partyButton')
     def partyButton():
+        leds.crown_party()
         return webpage()
 
     @app.route('/fadeInButton')
