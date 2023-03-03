@@ -67,6 +67,13 @@ def create_app(server_type):
     def partyButton():
         return webpage()
 
+    @app.route('/fadeInButton')
+    def fadeInButton():
+        r, g, b = loadOnlyRGBFromYaml()
+        colour = (r, g, b)
+        leds.crown_fadein_colour(col=colour)
+        return webpage()
+
     @app.route('/exposureButton')
     def exposureButton():
         leds.crown_on()
