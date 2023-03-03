@@ -101,18 +101,17 @@ def create_app(server_type):
             # load RGB values from YAML file
             with open('leds/server/config.yaml', 'r') as f:
                 rgb = yaml.load(f, Loader=yaml.FullLoader)
+                origColour = rgb['hexColor']
                 r = rgb['r']
                 g = rgb['g']
                 b = rgb['b']
-                origCol = rgb['hexColor']
-                frequency = int(request.form['blickfrequency'])
-                duration = int(request.form['effectduration'])
-                # do something with the RGB values
-                WS2801Headset((r, g, b), (r, g, b), 0.5, 1.5).crown_on()
-            return render_template('hat_standalone.html',
-                                   lastTwoDigits=lastTwoDigits, origCol=origCol, freq=frequency, dur=duration)
+                frequency = rgb['frequency']
+                duration = rgb['duration']
+                leds.crown_run_config(r=r, g=g, b=b, blink_freq=frequency, effect_dur=duration)
         else:
-            return render_template('hat_standalone.html', lastTwoDigits=lastTwoDigits)
+            leds.crown_run_config(r=43, g=67, b=220, blink_freq=1, effect_dur=5)
+        return webpage()
+
 
     @app.route('/stopButton')
     def stopButton():
