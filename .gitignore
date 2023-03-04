@@ -59,3 +59,4 @@ dmypy.json
 # vim swap files
 *.swp
 *.swo
+node_modules

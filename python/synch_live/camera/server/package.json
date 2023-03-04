@@ -1,0 +1,10 @@
+{
+  "name": "server",
+  "version": "0.0.1",
+  "scripts": {
+    "tailwindcss": "tailwindcss"
+  },
+  "dependencies": {
+    "tailwindcss": "^3.2.7"
+  }
+}
