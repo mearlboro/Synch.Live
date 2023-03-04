@@ -21,32 +21,36 @@ def create_app(server_type):
                 duration = rgb['duration']
                 return origColour, origColour2, frequency, duration
         else:
-            return '#FFFFFF','#000000', 1, 10
+            return '#000000','#FFFFFF', 1, 10
 
     def loadOnlyRGB1FromYaml():
         if os.path.exists('leds/server/config.yaml'):
             with open('leds/server/config.yaml', 'r') as f:
                 rgb = yaml.load(f, Loader=yaml.FullLoader)
-                r = rgb['r']
-                g = rgb['g']
-                b = rgb['b']
-                return r, g, b
+                r1 = rgb['r']
+                g1 = rgb['g']
+                b1 = rgb['b']
+                freq = rgb['frequency']
+                dur = rgb['duration']
+                return r1, g1, b1, freq, dur
         else:
-            return 255,255,255
+            return 255,255,255, 1, 10
 
     def loadBothRGBFromYaml():
         if os.path.exists('leds/server/config.yaml'):
             with open('leds/server/config.yaml', 'r') as f:
                 rgb = yaml.load(f, Loader=yaml.FullLoader)
-                r = rgb['r']
-                g = rgb['g']
-                b = rgb['b']
+                r1 = rgb['r']
+                g1 = rgb['g']
+                b1 = rgb['b']
                 r2 = rgb['r2']
                 g2 = rgb['g2']
                 b2 = rgb['b2']
-                return r, g, b, r2, g2, b2
+                freq = rgb['frequency']
+                dur = rgb['duration']
+                return r1, g1, b1, r2, g2, b2, freq, dur
         else:
-            return 0, 0, 0, 255, 255, 255
+            return 0, 0, 0, 255, 255, 255, 1, 10
 
     def webpage():
         if os.path.exists('leds/server/config.yaml'):
@@ -92,23 +96,17 @@ def create_app(server_type):
 
     @app.route('/fadeInButton')
     def fadeInButton():
-        r, g, b = loadOnlyRGB1FromYaml()
+        r,g,b,freq,dur = loadOnlyRGB1FromYaml()
         colour = (r, g, b)
-        leds.crown_fadein_colour(col=colour)
+        leds.crown_fadein_colour(col=colour, dur=dur)
         return webpage()
 
     @app.route('/fadeBetweenColoursButton')
     def fadeBetweenColoursButton():
-        color1, color2, frequency, duration = loadHexFromYaml()
-        r = int(color1[1:3], 16)
-        g = int(color1[3:5], 16)
-        b = int(color1[5:7], 16)
-        r2 = int(color2[1:3], 16)
-        g2 = int(color2[3:5], 16)
-        b2 = int(color2[5:7], 16)
-        colour1 = (r, g, b)
+        r1, g1, b1, r2, g2, b2, freq, dur = loadBothRGBFromYaml()
+        colour1 = (r1, g1, b1)
         colour2 = (r2, g2, b2)
-        leds.crown_fade_between_colours(col1=colour1, col2=colour2, dur=duration)
+        leds.crown_fade_between_colours(col1=colour1, col2=colour2, dur=dur)
         return webpage()
 
     @app.route('/exposureButton')
@@ -119,7 +117,7 @@ def create_app(server_type):
 
     @app.route('/breatheButton')
     def breatheButton():
-        r,g,b = loadOnlyRGB1FromYaml()
+        r,g,b,freq,dur = loadOnlyRGB1FromYaml()
         colour = (r,g,b)
         leds.crown_breathe(col=colour)
         return webpage()
@@ -129,13 +127,8 @@ def create_app(server_type):
         if os.path.exists('leds/server/config.yaml'):
             # load RGB values from YAML file
             with open('leds/server/config.yaml', 'r') as f:
-                rgb = yaml.load(f, Loader=yaml.FullLoader)
-                r = rgb['r']
-                g = rgb['g']
-                b = rgb['b']
-                frequency = rgb['frequency']
-                duration = rgb['duration']
-                leds.crown_run_config(r=r, g=g, b=b, blink_freq=frequency, effect_dur=duration)
+                r,g,b,freq,dur = loadOnlyRGB1FromYaml()
+                leds.crown_run_config(r=r, g=g, b=b, blink_freq=freq, effect_dur=dur)
         else:
             leds.crown_run_config(r=43, g=67, b=220, blink_freq=1, effect_dur=5)
         return webpage()

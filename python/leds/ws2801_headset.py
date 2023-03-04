@@ -150,7 +150,7 @@ class WS2801Headset(Headset):
 
 
     def crown_fadein_colour(self,
-            dt: float = 0.01, col: Tuple[int, int, int] = (255, 255, 255)
+            dt: float = 0.01, col: Tuple[int, int, int] = (255, 255, 255), dur: float = 5.0
         ) -> None:
         """
         All leds in the crown should fade in to the `col` param or, if that is
@@ -160,6 +160,7 @@ class WS2801Headset(Headset):
         super().crown_fadein_colour(dt, col)
 
         self.crown_off()
+        sleep_duration = float((dur - 1.5) / 100)
         if not (col[0] and col[1] and col[2]):
             col = self.crown_col
         r, g, b = col
@@ -169,7 +170,7 @@ class WS2801Headset(Headset):
                         int(r * j/100), int(g * j/100), int(b * j/100)))
             self.pixels.show()
             if dt:
-                time.sleep(dt)
+                time.sleep(sleep_duration)
 
     def crown_fade_between_colours(self,
                             dt: float = 0.03, col1: Tuple[int, int, int] = (255, 255, 255),
