@@ -476,9 +476,8 @@ class VideoProcessor():
 class VideoProcessorProxy:
     video_processor = None
 
-    def __init__(self):
+    def __init__(self, config_path=None):
         if self.__class__.video_processor is None:
-            config_path = current_app.config.get_namespace('VIDEO_').get('config')
             if not os.path.exists(config_path):
                 raise Exception
             with open(config_path, 'r') as handle:

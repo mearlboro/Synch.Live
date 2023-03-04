@@ -2,6 +2,8 @@ import os
 
 from flask import Flask, render_template, url_for
 
+from synch_live.camera.video.video import VideoProcessorProxy
+
 
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
@@ -41,5 +43,8 @@ def create_app(test_config=None):
     app.register_blueprint(setup.bp)
     app.register_blueprint(experiment.bp)
     app.register_blueprint(tracking.bp)
+
+    config_path = app.config.get_namespace('VIDEO_').get('config')
+    VideoProcessorProxy(config_path)
 
     return app
