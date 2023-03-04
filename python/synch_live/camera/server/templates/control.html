@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+{% from "_formhelpers.html" import render_form %}
+{% from "_taghelpers.html" import render_h1, render_h2, render_section %}
+{% from "_componenthelpers.html" import render_label %}
+{% block title %}Synch.Live Observer Control{% endblock %}
+{% block content %}
+    {{ render_h1('Experiment') }}
+    <div>
+        <p>Enter the experiment ID and location, then click 'Start'</p>
+    </div>
+    {% call render_section('Experiment Info') %}
+        {{ render_form(form, 'Start!') }}
+    {% endcall %}
+{% endblock %}
