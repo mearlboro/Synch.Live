@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request
 
-from synch_live.camera.video.video import VideoProcessorProxy
+from synch_live.camera.video.proxy import VideoProcessorClient
 
 bp = Blueprint('experiment', __name__, url_prefix='/experiment')
 
@@ -12,7 +12,7 @@ def observe():
         use_psi = request.form.get("psi")
 
         if use_psi:
-            VideoProcessorProxy().task = 'emergence'
+            VideoProcessorClient().task = 'emergence'
         else:
-            VideoProcessorProxy().set_manual_psi(psi)
+            VideoProcessorClient().psi = psi
     return render_template('observe.html')

@@ -1,32 +1,34 @@
 from copy import deepcopy
+from types import SimpleNamespace
 
 import yaml
-from flask import Blueprint, request, render_template, flash
+from flask import Blueprint, request, render_template, flash, current_app
 from markupsafe import Markup
 from wtforms import Form, IntegerField, validators, StringField, widgets, SelectField, BooleanField, FormField
 from wtforms.widgets import html_params
 
 from synch_live.camera.tools.colour import hsv_to_hex, hex_to_hsv
 from synch_live.camera.tools.config import unparse, unwrap_hsv, parse
-from synch_live.camera.video.video import VideoProcessorProxy
+from synch_live.camera.video.proxy import VideoProcessorClient
 
 bp = Blueprint('calibrate', __name__, url_prefix='/calibration')
 
 
 @bp.route('/calibrate', methods=['GET', 'POST'])
 def calibrate():
-    if VideoProcessorProxy().config.server.CAMERA == 'pi':
-        form = PiCalibrationForm(request.form, VideoProcessorProxy().config)
+    video_processor: VideoProcessorClient = VideoProcessorClient()
+    if video_processor.config.server.CAMERA == 'pi':
+        form = PiCalibrationForm(request.form, video_processor.config)
     else:
-        form = CalibrationForm(request.form, VideoProcessorProxy().config)
+        form = CalibrationForm(request.form, video_processor.config)
 
     if request.method == 'POST' and form.validate():
         if form.save_config.data.get('save_file'):
             save_config(form.save_config.data.get('conf_path'))
-        form.detection.form.populate_obj(VideoProcessorProxy().config.detection)
-        form.tracking.form.populate_obj(VideoProcessorProxy().config.tracking)
-        if form.__contains__('camera'):
-            form.camera.form.populate_obj(VideoProcessorProxy().config.camera)
+        form.__delitem__('save_config')
+        config = SimpleNamespace(**video_processor.config.__dict__)
+        form.populate_obj(config)
+        video_processor.config = config
 
         flash('Calibration complete!')
         return render_template('calibrate.html', form=form)
@@ -35,7 +37,7 @@ def calibrate():
 
 def save_config(conf_path):
     file = open(conf_path, 'w')
-    conf_to_save = deepcopy(VideoProcessorProxy().config)
+    conf_to_save = deepcopy(VideoProcessorClient().config)
     conf_to_save.detection.min_colour = parse(unwrap_hsv(conf_to_save.detection.min_colour))
     conf_to_save.detection.max_colour = parse(unwrap_hsv(conf_to_save.detection.max_colour))
     delattr(conf_to_save, 'conf_path')
@@ -55,7 +57,7 @@ class ColorField(StringField):
 
 class SaveConfigForm(Form):
     save_file = BooleanField('Save to file')
-    conf_path = StringField('Path', default=lambda: VideoProcessorProxy().config.conf_path)
+    conf_path = StringField('Path', default=lambda: VideoProcessorClient().config.conf_path)
 
 
 class FieldsetWidget:
