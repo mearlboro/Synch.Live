@@ -24,4 +24,5 @@ def sync():
 
 @bp.route('/feed')
 def feed():
-    return Response(VideoProcessorProxy().generate_frame(), mimetype="multipart/x-mixed-replace; boundary=frame")
+    return Response(VideoProcessorClient().generate_frame(), mimetype="multipart/x-mixed-replace; boundary=frame",
+                    headers={'Cache-Control': 'no-store'})
