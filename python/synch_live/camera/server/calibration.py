@@ -2,7 +2,7 @@ from copy import deepcopy
 from types import SimpleNamespace
 
 import yaml
-from flask import Blueprint, request, render_template, flash, current_app
+from flask import Blueprint, request, render_template, flash, current_app, redirect, url_for
 from markupsafe import Markup
 from wtforms import Form, IntegerField, validators, StringField, widgets, SelectField, BooleanField, FormField
 from wtforms.widgets import html_params
@@ -34,7 +34,7 @@ def calibrate():
         video_processor.config = config
 
         flash('Calibration complete!')
-        return render_template('calibrate.html', form=calibration_form(video_processor.config))
+        return redirect(url_for('calibrate.calibrate'))
     return render_template('calibrate.html', form=form)
 
 
