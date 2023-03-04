@@ -19,7 +19,7 @@ import os
 from typing import Callable, Iterable
 
 # initialise logging to file
-import synch_live.camera.core.logger
+from . import logger
 
 INFODYNAMICS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'infodynamics.jar')
 SAMPLE_THRESHOLD = 180

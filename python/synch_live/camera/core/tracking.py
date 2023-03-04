@@ -6,7 +6,7 @@ from scipy.optimize import linear_sum_assignment
 from typing import List, Tuple
 
 # initialise logging to file
-import synch_live.camera.core.logger
+from . import logger
 
 from .motion_model import ConstantMotionModel, KFMotionModel
 
