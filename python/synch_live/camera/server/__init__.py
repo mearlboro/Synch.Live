@@ -1,7 +1,8 @@
 import os
 import threading
+import weakref
 
-from flask import Flask, render_template, url_for
+from flask import Flask, render_template, url_for, send_from_directory
 
 from synch_live.camera.video.proxy import VideoProcessorServer, video_process
 
@@ -29,6 +30,14 @@ def create_app(test_config=None):
             dict(href=url_for('experiment.observe'), caption='Observe'),
         ]
 
+    @app.template_global()
+    def importmap():
+        return {
+            "imports": {
+                "turbo": url_for('node_modules', filename='@hotwired/turbo/dist/turbo.es2017-esm.js')
+            }
+        }
+
     try:
         os.makedirs(app.instance_path)
     except OSError:
@@ -40,6 +49,12 @@ def create_app(test_config=None):
     @app.route('/')
     def main():
         return render_template('main.html')
+
+    app.add_url_rule(
+        f"{'/node_modules'}/<path:filename>",
+        endpoint="node_modules",
+        view_func=lambda **kw: send_from_directory('node_modules', path=kw['filename']),
+    )
 
     from . import calibration, setup, experiment, tracking
     app.register_blueprint(calibration.bp)
