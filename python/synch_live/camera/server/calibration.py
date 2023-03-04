@@ -14,14 +14,17 @@ from synch_live.camera.video.proxy import VideoProcessorClient
 bp = Blueprint('calibrate', __name__, url_prefix='/calibration')
 
 
+def calibration_form(config):
+    if config.server.CAMERA == 'pi':
+        return PiCalibrationForm(request.form, config)
+    else:
+        return CalibrationForm(request.form, config)
+
+
 @bp.route('/calibrate', methods=['GET', 'POST'])
 def calibrate():
     video_processor: VideoProcessorClient = VideoProcessorClient()
-    if video_processor.config.server.CAMERA == 'pi':
-        form = PiCalibrationForm(request.form, video_processor.config)
-    else:
-        form = CalibrationForm(request.form, video_processor.config)
-
+    form = calibration_form(video_processor.config)
     if request.method == 'POST' and form.validate():
         if form.save_config.data.get('save_file'):
             save_config(form.save_config.data.get('conf_path'))
@@ -31,7 +34,7 @@ def calibrate():
         video_processor.config = config
 
         flash('Calibration complete!')
-        return render_template('calibrate.html', form=form)
+        return render_template('calibrate.html', form=calibration_form(video_processor.config))
     return render_template('calibrate.html', form=form)
 
 
