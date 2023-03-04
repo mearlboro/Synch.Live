@@ -94,8 +94,8 @@ class TrackingForm(Form):
 class DetectionForm(Form):
     min_contour = IntegerField('Minimum contour length', [validators.number_range(min=10, max=200)])
     max_contour = IntegerField('Maximum contour length', [validators.number_range(min=10, max=1000)])
-    min_color = ColorField('Minimum tracking colour')
-    max_color = ColorField('Maximum tracking colour')
+    min_colour = ColorField('Minimum tracking colour')
+    max_colour = ColorField('Maximum tracking colour')
 
 
 class CalibrationForm(Form):

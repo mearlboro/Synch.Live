@@ -63,8 +63,8 @@ class VideoProcessorServer:
     def set_config(config: SimpleNamespace):
         VideoProcessorServer.processor.update_tracking_conf(config.tracking.max_players)
         VideoProcessorServer.processor.update_detection_conf(config.detection.min_contour, config.detection.max_contour,
-                                                             hsv_to_hex(config.detection.min_color.__dict__),
-                                                             hsv_to_hex(config.detection.max_color.__dict__))
+                                                             hsv_to_hex(config.detection.min_colour.__dict__),
+                                                             hsv_to_hex(config.detection.max_colour.__dict__))
         if VideoProcessorServer.get_config().server.CAMERA == 'pi':
             VideoProcessorServer.processor.update_picamera(config.iso, config.shutter_speed, config.saturation,
                                                            config.awb_mode)
