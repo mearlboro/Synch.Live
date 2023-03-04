@@ -10,10 +10,10 @@
     <script type="module">import * as Turbo from "turbo"</script>
 </head>
 <body class="container bg-white dark:bg-black text-black dark:text-white mx-auto px-4 py-4 flex flex-col gap-4">
-<header class="flex flex-row gap-2 items-center text-xl">
+<header class="flex flex-row gap-8 items-center text-xl">
     <p class="font-medium"><a href="{{ url_for('main') }}">Synch.Live Observer Control Interface</a></p>
     <nav>
-        <ul class="flex flex-row gap-2 items-center">
+        <ul class="flex flex-row gap-8 items-center">
             {% for item in navigation() %}
                 <li>
                     {% if request.path != item.href %}

@@ -125,6 +125,9 @@ class EmergenceCalculator():
 
         self.compute_macro = macro_fun
 
+        self.psi = PSI_START
+        self.psi_filt = PSI_START
+
         if not jp.isJVMStarted():
             logging.info('Starting JVM...')
             jp.startJVM(jp.getDefaultJVMPath(), '-ea', '-Djava.class.path=%s'%INFODYNAMICS_PATH)
@@ -236,6 +239,10 @@ class EmergenceCalculator():
 
         logging.info(f'Unfiltered Psi {self.sample_counter}: {psi}')
         logging.info(f'Filtered Psi {self.sample_counter}: {psi_filt}')
+
+        # updated psi attributes for database writing access
+        self.psi = psi
+        self.psi_filt = psi_filt
 
         return psi_filt
 

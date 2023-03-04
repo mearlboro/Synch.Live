@@ -3,6 +3,7 @@ import threading
 import weakref
 
 from flask import Flask, render_template, url_for, send_from_directory
+from . import download, download
 
 from synch_live.camera.video.proxy import VideoProcessorServer, video_process, VideoProcessorClient
 
@@ -25,10 +26,12 @@ def create_app(test_config=None):
         tracking_toggle_label = f'{"Stop" if VideoProcessorClient().running else "Start"} tracking'
         return [
             dict(href=url_for('main'), caption='Home'),
-            dict(href=url_for('setup.start_setup'), caption='Start setup'),
+            dict(href=url_for('setup.start_setup'), caption='Setup'),
+            dict(href=url_for('tracking.control'), caption='Experiment'),
             dict(href=url_for('tracking.toggle'), caption=tracking_toggle_label),
             dict(href=url_for('calibrate.calibrate'), caption='Calibrate'),
             dict(href=url_for('experiment.observe'), caption='Observe'),
+            dict(href=url_for('download.get_data'), caption='Data'),
         ]
 
     @app.template_global()
@@ -57,10 +60,12 @@ def create_app(test_config=None):
         view_func=lambda **kw: send_from_directory('node_modules', path=kw['filename']),
     )
 
-    from . import calibration, setup, experiment, tracking
+    from . import calibration, setup, experiment, tracking, download
     app.register_blueprint(calibration.bp)
     app.register_blueprint(setup.bp)
     app.register_blueprint(experiment.bp)
     app.register_blueprint(tracking.bp)
+    app.register_blueprint(download.bp)
 
     return app
+

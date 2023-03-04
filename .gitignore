@@ -59,4 +59,9 @@ dmypy.json
 # vim swap files
 *.swp
 *.swo
+
+# database
+*.db
+
+# node modules
 node_modules
