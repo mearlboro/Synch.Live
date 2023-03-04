@@ -2,7 +2,7 @@ import os
 import yaml
 import socket
 from flask import Flask, render_template, request, redirect, url_for
-from leds.tools.ws2801_headset import WS2801Headset
+from leds.ws2801_headset import WS2801Headset
 
 
 def create_app(server_type):
