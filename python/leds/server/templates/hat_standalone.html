@@ -43,11 +43,11 @@
     <br>
 
     <label for="blickfrequency">Light Blink Frequency (per second):</label>
-    <input type="number" id="blickfrequency" name="blickfrequency" min="1" max="5" value="{{ freq|default('1') }}">
+    <input type="number" id="blickfrequency" name="blickfrequency" min="0" max="5" value="{{ freq|default('0') }}">
     <br>
 
     <label for="effectduration">Effect Duration (in seconds):</label>
-    <input type="number" id="effectduration" name="effectduration" min="1" max="20" value="{{ dur|default('1') }}">
+    <input type="number" id="effectduration" name="effectduration" min="1" max="20" value="{{ dur|default('3') }}">
     <br>
 
     <input name="TrialConfigButton" type="submit" value="Trial this configuration">
