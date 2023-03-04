@@ -5,17 +5,15 @@ from synch_live.camera.video.proxy import VideoProcessorClient
 bp = Blueprint('tracking', __name__, url_prefix='/tracking')
 
 
-@bp.route('/start')
-def start_tracking():
-    VideoProcessorClient().start()
-    return redirect(url_for('experiment.observe'))
-
-
-@bp.route('/stop')
-def stop_tracking():
-    VideoProcessorClient().stop()
-    return redirect(url_for('main'))
-
+@bp.route('/toggle')
+def toggle():
+    video_processor = VideoProcessorClient()
+    if video_processor.running:
+        VideoProcessorClient().stop()
+        return redirect(url_for('main'))
+    else:
+        VideoProcessorClient().start()
+        return redirect(url_for('experiment.observe'))
 
 @bp.route('/sync')
 def sync():

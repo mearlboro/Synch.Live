@@ -4,7 +4,8 @@ import weakref
 
 from flask import Flask, render_template, url_for, send_from_directory
 
-from synch_live.camera.video.proxy import VideoProcessorServer, video_process
+from synch_live.camera.video.proxy import VideoProcessorServer, video_process, VideoProcessorClient
+
 
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
@@ -21,11 +22,11 @@ def create_app(test_config=None):
 
     @app.template_global()
     def navigation():
+        tracking_toggle_label = f'{"Stop" if VideoProcessorClient().running else "Start"} tracking'
         return [
             dict(href=url_for('main'), caption='Home'),
             dict(href=url_for('setup.start_setup'), caption='Start setup'),
-            dict(href=url_for('tracking.start_tracking'), caption='Start tracking'),
-            dict(href=url_for('tracking.stop_tracking'), caption='Stop tracking'),
+            dict(href=url_for('tracking.toggle'), caption=tracking_toggle_label),
             dict(href=url_for('calibrate.calibrate'), caption='Calibrate'),
             dict(href=url_for('experiment.observe'), caption='Observe'),
         ]
