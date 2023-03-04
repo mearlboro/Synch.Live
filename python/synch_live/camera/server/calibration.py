@@ -48,11 +48,11 @@ class ColorField(StringField):
     widget = widgets.ColorInput()
 
     def _value(self):
-        # color picker expects hex colours
-        return hsv_to_hex(vars(self.data)) if self.data is not None else ""
+        return hsv_to_hex(self.data.__dict__) if self.data is not None else ''
 
     def process_formdata(self, valuelist):
-        self.data = parse(hex_to_hsv(valuelist[0])) if valuelist and valuelist[0] is not None else None
+        if valuelist and valuelist[0] is not None:
+            self.data = parse(hex_to_hsv(valuelist[0]))
 
 
 class SaveConfigForm(Form):
