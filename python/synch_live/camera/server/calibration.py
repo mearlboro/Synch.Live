@@ -23,7 +23,7 @@ def calibration_form(config):
 
 @bp.route('/calibrate', methods=['GET', 'POST'])
 def calibrate():
-    video_processor: VideoProcessorClient = VideoProcessorClient()
+    video_processor = VideoProcessorClient()
     form = calibration_form(video_processor.config)
     if request.method == 'POST' and form.validate():
         if form.save_config.data.get('save_file'):
