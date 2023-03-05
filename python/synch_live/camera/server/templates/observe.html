@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+{% from "_formhelpers.html" import render_form, render_submit_field %}
 {% from "_taghelpers.html" import render_h1 %}
 {% block title %}Synch.Live Observer Control{% endblock %}
 {% block content %}
@@ -10,4 +11,7 @@
         </ul>
     </nav>
         <img src="{{ url_for('tracking.feed') }}" alt="Tracking feed" width = "600" height="500">
+    
+    {{ render_form(form, 'Submit')}}
+
 {% endblock %}

@@ -492,6 +492,9 @@ class VideoProcessor():
         # TO DO: Does not execute if called after closing video stream due to threading issues
         write_in_experiment_parameters_end_time(self.experiment_id)
 
+        # updating frame id at the end of the experiment
+        self.frame_id = 0
+
         if self.video_stream:
             logging.info('Closing video streamer...')
             self.video_stream.stop()
