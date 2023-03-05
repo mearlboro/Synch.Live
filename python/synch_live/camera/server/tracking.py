@@ -30,7 +30,7 @@ def control():
         
         return redirect(url_for('experiment.observe'))
     
-    return render_template('control.html', form=form)
+    return render_template('control.html', form=form, tab='control')
 
 @bp.route('/toggle')
 def toggle():

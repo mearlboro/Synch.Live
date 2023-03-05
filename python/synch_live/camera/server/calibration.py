@@ -35,7 +35,7 @@ def calibrate():
 
         flash('Calibration complete!')
         return redirect(url_for('calibrate.calibrate'))
-    return render_template('calibrate.html', form=form)
+    return render_template('control.html', form=form, tab='calibrate')
 
 
 def save_config(conf_path):
