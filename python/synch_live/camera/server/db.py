@@ -92,6 +92,7 @@ def create_table_experiment_parameters():
     #cursor.execute('DROP TABLE IF EXISTS experiment_parameters')
     cursor.execute('''CREATE TABLE IF NOT EXISTS experiment_parameters
                 (experiment_id text, 
+                experiment_is_test text,
                 date date, 
                 location text, 
                 start_time time, 
@@ -105,14 +106,15 @@ def create_table_experiment_parameters():
     cursor.close()
 
 # writing 'experiment_id','location', 'date' and 'start_time' in table 'experiment_parameters'
-def write_in_experiment_parameters(experiment_id, experiment_location):
+def write_in_experiment_parameters(experiment_id, experiment_location, experiment_is_test):
     cursor = sqlite3.connect(datapath)
     cursor.execute('''INSERT INTO experiment_parameters 
         (experiment_id, 
+        experiment_is_test,
         location,
         date, 
-        start_time) values (?, ?, ?, ?)''', 
-        (experiment_id, experiment_location, today, datetime.datetime.now().strftime('%H:%M:%S')))
+        start_time) values (?, ?, ?, ?, ?)''', 
+        (experiment_id, experiment_is_test, experiment_location, today, datetime.datetime.now().strftime('%H:%M:%S')))
     cursor.commit()
     cursor.close()
 
@@ -189,13 +191,15 @@ def clean_query():
     # deleting from the table 'trajectories'
     cursor.execute('''DELETE 
         FROM trajectories
-        WHERE experiment_id IN (SELECT experiment_id FROM experiment_parameters WHERE date(date) <= date(?))''', [date_cutoff])
+        WHERE experiment_id IN (SELECT experiment_id 
+        FROM experiment_parameters 
+        WHERE experiment_is_test = 'YES' AND date(date) <= date(?))''', [date_cutoff])
     connection.commit()
 
     # deleting from the table 'experiment_parameters'
     cursor.execute('''DELETE
         FROM experiment_parameters 
-        WHERE date(date) <= date(?)''', [date_cutoff])
+        WHERE experiment_is_test = 'YES' AND date(date) <= date(?)''', [date_cutoff])
 
     connection.commit()
     connection.close()

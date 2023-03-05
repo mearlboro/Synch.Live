@@ -8,7 +8,8 @@ CREATE TABLE IF NOT EXISTS trajectories
                 filtered_psi real);
 
 CREATE TABLE IF NOT EXISTS experiment_parameters
-                (experiment_id text, 
+                (experiment_id text,
+                experiment_is_test text, 
                 date date, 
                 location text, 
                 start_time time, 

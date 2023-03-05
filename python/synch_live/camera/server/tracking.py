@@ -9,16 +9,19 @@ bp = Blueprint('tracking', __name__, url_prefix='/tracking')
 
 @bp.route('/control', methods=['GET','POST'])
 def control():
-    
+
     form = ExperimentInfoForm(request.form)
     
     if request.method == 'POST' and form.validate():
         experiment_id = form.experiment_id.data
         experiment_location = form.experiment_location.data
-        experiment_is_test = form.experiment_test.data
+        
+        if form.experiment_test.data:
+            experiment_is_test = 'YES'
+        else:
+            experiment_is_test = 'NO'
         # writing date, start time, experiment id, location to database
-        #TODO: include test flag in database write
-        write_in_experiment_parameters(experiment_id, experiment_location) 
+        write_in_experiment_parameters(experiment_id, experiment_location, experiment_is_test) 
 
         proc = VideoProcessorProxy()
         proc.set_experiment_id(experiment_id)
