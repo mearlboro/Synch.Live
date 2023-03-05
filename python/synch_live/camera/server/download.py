@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, make_response
 from wtforms import Form, IntegerField, validators, StringField, widgets, SelectField, BooleanField, FormField
 from wtforms.widgets import html_params
 
-from synch_live.camera.server.db import *
+from synch_live.camera.db import process_query, get_all_experiment_ids_query
 
 bp = Blueprint('download', __name__, url_prefix='/download')
 

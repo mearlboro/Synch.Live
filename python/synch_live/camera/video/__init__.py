@@ -24,7 +24,7 @@ from synch_live.camera.core.detection import Detector
 from synch_live.camera.core.tracking import EuclideanMultiTracker
 
 # importing writing in database functions
-from synch_live.camera.server.db import *
+from synch_live.camera.db import *
 
 
 class Camera():

@@ -3,7 +3,7 @@ from wtforms import Form, IntegerField, validators, StringField, widgets, Select
 from wtforms.widgets import html_params
 
 from synch_live.camera.video.proxy import VideoProcessorClient
-from synch_live.camera.server.db import *
+from synch_live.camera.db import write_in_experiment_parameters
 
 bp = Blueprint('tracking', __name__, url_prefix='/tracking')
 
