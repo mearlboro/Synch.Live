@@ -1,35 +1,25 @@
 import time
 
-from flask import Blueprint, render_template, request
-from wtforms import Form, BooleanField, IntegerRangeField
-from wtforms.widgets import html_params
+from flask import Blueprint, render_template, request, redirect, url_for
+from wtforms import Form, BooleanField, IntegerRangeField, validators
 
 from synch_live.camera.video.proxy import VideoProcessorClient
 
 bp = Blueprint('experiment', __name__, url_prefix='/experiment')
 
 
-@bp.route('/observe', methods=['GET','POST'])
+@bp.route('/observe', methods=['GET', 'POST'])
 def observe():
-
+    video_processor = VideoProcessorClient()
     form = ManualSettings(request.form)
-    form.manPsi(min=0, max=10)
-
-    if request.method == "POST":
-        psi = int(request.form.get("manPsi"))
-        
-        if request.form.get("psi"):
-            use_psi = 1
-        else:
-            use_psi = 0
-
-        if use_psi:
-            VideoProcessorClient().task = 'emergence'
+    if request.method == "POST" and form.validate():
+        if form.psi.data:
+            video_processor.task = 'emergence'
             # writing sigmoids to database
-            VideoProcessorClient().sync
-
+            video_processor.sync
         else:
-            VideoProcessorClient().psi = psi
+            video_processor.psi = form.manual_psi.data
+        return redirect(url_for('experiment.observe'))
     return render_template('observe.html', form=form, time=time.time())
 
 class ManualSettings(Form):
