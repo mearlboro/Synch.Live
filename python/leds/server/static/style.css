@@ -1,10 +1,12 @@
 /* General Stylesheet (not specific to hat_standalone) */
-
+* {
+    font-family: Helvetica, sans-serif;
+}
 #banner {
     background-color: #333;
     color: #fff;
     padding: 20px;
-    text-align: center;
+    text-align: left;
 }
 
 #banner-content {
@@ -13,9 +15,6 @@
 }
 
 #all-caps-thin {
-    background-color: #777;
-    color: #fff;
-    text-align: center;
     font-size: 20px;
     font-weight: bold;
     text-transform: uppercase;
@@ -33,15 +32,74 @@
     margin-bottom: 0;
 }
 
-nav {
-    background-color: #555;
-}
-nav a {
-    color: #fff;
-    text-decoration: none;
+/* Tailwind classes */
+.text-7xl {
+    font-size: 4.5rem;
+    line-height: 1;
 }
 
-nav h3 {
-    padding: 10px;
-    color: #fff;
+.font-medium {
+    font-weight: 100;
+}
+
+.flex {
+display: flex;
+}
+
+.flex-row {
+flex-direction: row;
+}
+
+.flex-col {
+flex-direction: column;
+}
+
+.gap-2 {gap: 0.5rem;}
+
+.items-center {align-items: center;
+}
+
+.text-xl {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+}
+
+.py-2 {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+.px-4 {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+.rounded-lg {
+    border-radius: 0.5rem;
+}
+.bg-gray-200 {
+    background-color: #E5E7EB;
+}
+.bg-gray-300 {
+    background-color: #D1D5DB;
+}
+.bg-gray-400 {
+    background-color: #9CA3AF;
+}
+.transition {
+    transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+}
+
+.text-lg {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+}
+.font-bold {
+    font-weight: 700;
+}
+
+.gap-4 {
+    gap: 1rem;
+}
+
+.items-start {
+    align-items: flex-start;
 }
