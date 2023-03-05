@@ -7,18 +7,18 @@
                      li_kwargs=dict(class="flex flex-row gap-2 items-center"),
                      label_kwargs=dict(class="text-lg font-medium"),
                      errors_caller=render_errors,
-                     class="bg-gray-200 dark:bg-slate-800 py-1 px-2 rounded-sm box-content focus:outline-none
+                     class="bg-gray-200 dark:bg-gray-800 py-1 px-2 rounded-sm box-content focus:outline-none
                             focus:ring-4 focus:ring-blue-400 focus:ring-opacity-75 transition", **kwargs)|safe }}
         {% else %}
             {{ field.label(class="text-lg font-medium") }}
-            {{ field(class="bg-gray-200 dark:bg-slate-800 py-1 px-2 rounded-sm box-content focus:outline-none focus:ring-4 focus:ring-blue-400 focus:ring-opacity-75 transition", **kwargs)|safe }}
+            {{ field(class="bg-gray-200 dark:bg-gray-800 py-1 px-2 rounded-sm box-content focus:outline-none focus:ring-4 focus:ring-blue-400 focus:ring-opacity-75 transition", **kwargs)|safe }}
             {{ render_errors(field.errors) }}
         {% endif %}
     </li>
 {% endmacro %}
 {% macro render_submit_field(value) %}
     <input type="submit" value="{{ value }}"
-           class="py-2 px-4 rounded-lg bg-gray-200 hover:bg-gray-300 active:bg-gray-400 transition dark:bg-slate-800 dark:hover:bg-slate-700 dark:active:bg-slate-700 text-lg font-bold">
+           class="py-2 px-4 rounded-lg bg-gray-200 hover:bg-gray-300 active:bg-gray-400 transition dark:bg-gray-800 dark:hover:bg-gray-700 dark:active:bg-gray-700 text-lg font-bold">
 {% endmacro %}
 {% macro render_errors(errors) %}
     {% if errors %}
