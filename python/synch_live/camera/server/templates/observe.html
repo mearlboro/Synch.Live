@@ -10,8 +10,8 @@
             <a href="{{ url_for('tracking.toggle') }}">{{ "Stop" }}</a>
         </ul>
     </nav>
-        <img src="{{ url_for('tracking.feed') }}" alt="Tracking feed" width = "600" height="500">
-    
+        <img src="{{ url_for('tracking.feed', nonce=time) }}" alt="Tracking feed" width = "600" height="500">
+
     {{ render_form(form, 'Submit')}}
 
 {% endblock %}

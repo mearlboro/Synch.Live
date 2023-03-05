@@ -1,3 +1,5 @@
+import time
+
 from flask import Blueprint, render_template, request
 from wtforms import Form, BooleanField, IntegerRangeField
 from wtforms.widgets import html_params
@@ -28,7 +30,7 @@ def observe():
 
         else:
             VideoProcessorClient().psi = psi
-    return render_template('observe.html', form=form)
+    return render_template('observe.html', form=form, time=time.time())
 
 class ManualSettings(Form):
     psi = BooleanField('Psi')
