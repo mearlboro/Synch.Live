@@ -9,9 +9,11 @@ bp = Blueprint('download', __name__, url_prefix='/download')
 @bp.route('/get_data', methods=['GET','POST'])
 def get_data():
     
-    form = DataInfoForm(request.form)
+    #form = DataInfoForm(request.form)
+    form = DataInfoDropdown(request.form)
     
     if request.method == 'POST' and form.validate():
+
         experiment_id = form.experiment_id.data        
 
         response = process_query(experiment_id)
@@ -23,8 +25,15 @@ def get_data():
 
         return response
 
+    #return render_template('data.html', form=form)
     return render_template('data.html', form=form)
 
 class DataInfoForm(Form):
     experiment_id = StringField('Experiment ID')
+
+class DataInfoDropdown(Form):
+
+    id_list = get_all_experiment_ids_query()
+
+    experiment_id = SelectField('Experiment ID', choices = id_list)
 

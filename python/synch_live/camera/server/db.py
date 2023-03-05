@@ -200,6 +200,17 @@ def clean_query():
     connection.commit()
     connection.close()
 
+# creating a query to get all distinct 'experiment_id' in 'experiment_parameters' table in database.db  
+def get_all_experiment_ids_query():
+    connection = sqlite3.connect(datapath)
+    cursor = connection.cursor()
+
+    cursor.execute('SELECT DISTINCT experiment_id FROM experiment_parameters ORDER BY experiment_id')
+    experiment_ids = [row[0] for row in cursor.fetchall()]
+
+    connection.close()
+
+    return experiment_ids
 
 # creating tables 'trajectories' and 'experiment_parameters' in database.db    
 create_table_trajectories()
