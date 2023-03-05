@@ -38,7 +38,7 @@ def toggle():
     video_processor = VideoProcessorClient()
     if video_processor.running:
         VideoProcessorClient().stop()
-        return redirect(url_for('main'))
+        return redirect(url_for('tracking.control'))
     else:
         experiment_id = "test"
         experiment_location = "home"
