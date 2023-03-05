@@ -39,12 +39,7 @@ def toggle():
         VideoProcessorClient().stop()
         return redirect(url_for('tracking.control'))
     else:
-        experiment_id = "test"
-        experiment_location = "home"
-        # writing date, start time, experiment id, location to database
-        write_in_experiment_parameters(experiment_id, experiment_location)
         VideoProcessorClient().start()
-        
         return redirect(url_for('experiment.observe'))
 
 @bp.route('/sync')
