@@ -22,7 +22,7 @@ def control():
         # writing date, start time, experiment id, location to database
         write_in_experiment_parameters(experiment_id, experiment_location, experiment_is_test) 
 
-        proc = VideoProcessorProxy()
+        proc = VideoProcessorClient()
         proc.set_experiment_id(experiment_id)
         proc.start()
         
