@@ -1,12 +1,28 @@
 {% extends "layout.html" %}
-{% from "_formhelpers.html" import render_form %}
+{% from "_formhelpers.html" import render_form, render_submit_field %}
 {% from "_taghelpers.html" import render_h1, render_h2, render_section %}
 {% from "_componenthelpers.html" import render_label %}
 {% block title %}Synch.Live Observer Control{% endblock %}
 {% block content %}
     {{ render_h1('Experiment') }}
+    <!--
+    <nav>
+        <ul class="text-2xl font-medium flex flex-row gap-4 items-center">
+            <a href="{{ url_for('tracking.control') }}">{{ 'Play' }}</a>
+            <a href="{{ url_for('calibrate.calibrate') }}">{{ 'Calibrate' }}</a>
+        </ul>
+    </nav>
+-->
+    <nav>
+        <ul class="text-2xl font-medium flex flex-row gap-4 items-center">
+                <a href="{{ url_for('tracking.control') }}">{{ 'Play' }} </a>
+                <a href="{{ url_for('calibrate.calibrate') }}" style="color:#939393;">{{ 'Calibrate' }}</a>
+        </ul>
+    </nav>
+
     <div>
         <p>Enter the experiment ID and location, then click 'Start!'</p>
+        <p>Go to 'Calibrate' first if you want to update the experiment settings.</p>
     </div>
     {{ render_form(form, 'Start!')}}
 {% endblock %}
