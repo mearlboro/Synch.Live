@@ -15,7 +15,7 @@
     <nav>
         <ul class="flex flex-row items-center divide-x">
             {% for item in navigation() %}
-                <li class="px-4">
+                <li class="px-4 {% if request.path == item.href %}text-gray-500{% endif %}">
                     {% if request.path != item.href %}
                         <a href="{{ item.href }}">{{ item.caption }}</a>
                     {% else %}
