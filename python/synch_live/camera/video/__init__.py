@@ -501,6 +501,6 @@ class VideoProcessor():
                 logging.info('Closing video writer...')
                 self.video_writer.release()
 
-        if self.task == 'emergence':
-            if self.calc:
-                self.calc.exit()
+        # if self.task == 'emergence':
+        #     if self.calc:
+        #         self.calc.exit()
