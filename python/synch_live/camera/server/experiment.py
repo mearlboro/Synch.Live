@@ -1,6 +1,6 @@
 import time
 
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for, flash
 from wtforms import Form, BooleanField, IntegerRangeField, validators
 
 from synch_live.camera.video.proxy import VideoProcessorClient
@@ -19,6 +19,7 @@ def observe():
             video_processor.sync
         else:
             video_processor.psi = form.manual_psi.data
+        flash('PSI updated!')
         return redirect(url_for('experiment.observe'))
     return render_template('observe.html', form=form, time=time.time())
 
