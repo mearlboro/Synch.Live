@@ -26,12 +26,12 @@
         </ul>
     </nav>
 </header>
-<hr class="h-1 bg-slate-800 dark:bg-gray-200" />
+<hr class="h-1 bg-gray-800 dark:bg-gray-200" />
 {% with messages = get_flashed_messages() %}
   {% if messages %}
     <ul class="fixed right-8 bottom-8 flex flex-col gap-4">
     {% for message in messages %}
-      <li class="py-2 px-4 rounded-lg bg-green-200 dark:bg-green-800 dark:hover:bg-slate-700 text-lg">{{ message }}</li>
+      <li class="py-2 px-4 rounded-lg bg-green-200 dark:bg-green-800 text-lg">{{ message }}</li>
     {% endfor %}
     </ul>
   {% endif %}
