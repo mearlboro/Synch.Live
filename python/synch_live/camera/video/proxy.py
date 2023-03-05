@@ -103,7 +103,12 @@ class VideoProcessorClient:
         self.process.submit(VideoProcessorServer.start).result()
 
     def stop(self):
+        global video_process
         self.process.submit(VideoProcessorServer.stop).result()
+        self.process.shutdown()
+        video_process = ProcessPoolExecutor(max_workers=1)
+        self.process = video_process
+        self.process.submit(VideoProcessorServer, current_app.config['VIDEO_CONFIG']).result()
 
     def generate_frame(self) -> Generator[bytes, None, None]:
         while True:
