@@ -7,7 +7,7 @@
     <nav>
         <ul class="flex flex-row gap-8 items-center">
             <!-- <a href="{{ url_for('calibrate.calibrate') }}">{{ "Calibrate" }}</a> -->
-            <a href="{{ url_for('tracking.stop_tracking') }}">{{ "Stop" }}</a>
+            <a href="{{ url_for('tracking.toggle') }}">{{ "Stop" }}</a>
         </ul>
     </nav>
         <img src="{{ url_for('tracking.feed') }}" alt="Tracking feed" width = "600" height="500">
