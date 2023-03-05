@@ -38,6 +38,11 @@ class VideoProcessorServer:
                 camera_stream = VideoStream(int(camera_number), framerate=config.camera.framerate)
             VideoProcessorServer.processor = VideoProcessor(config, camera_stream)
 
+    def __del__(self):
+        if VideoProcessorServer.processor is None:
+            return
+        VideoProcessorServer.stop()
+
     @staticmethod
     def next_frame() -> bytes | StopIteration:
         try:
