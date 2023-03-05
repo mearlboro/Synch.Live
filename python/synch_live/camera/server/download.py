@@ -10,7 +10,9 @@ bp = Blueprint('download', __name__, url_prefix='/download')
 def get_data():
     
     #form = DataInfoForm(request.form)
+    id_list = get_all_experiment_ids_query()
     form = DataInfoDropdown(request.form)
+    form.experiment_id.choices = id_list
     
     if request.method == 'POST' and form.validate():
 
@@ -32,8 +34,5 @@ class DataInfoForm(Form):
     experiment_id = StringField('Experiment ID')
 
 class DataInfoDropdown(Form):
-
-    id_list = get_all_experiment_ids_query()
-
-    experiment_id = SelectField('Experiment ID', choices = id_list)
+    experiment_id = SelectField('Experiment ID')
 
