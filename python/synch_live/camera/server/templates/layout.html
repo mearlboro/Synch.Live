@@ -13,9 +13,9 @@
 <header class="flex flex-row gap-6 items-center text-xl">
     <p class="text-6xl font-medium"><a href="{{ url_for('main') }}">Synch.Live</a></p>
     <nav>
-        <ul class="flex flex-row gap-8 items-center divide-x">
+        <ul class="flex flex-row items-center divide-x">
             {% for item in navigation() %}
-                <li>
+                <li class="px-4">
                     {% if request.path != item.href %}
                         <a href="{{ item.href }}">{{ item.caption }}</a>
                     {% else %}
