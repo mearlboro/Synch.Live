@@ -1,7 +1,7 @@
 import time
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from wtforms import Form, BooleanField, IntegerRangeField, validators
+from wtforms import Form, BooleanField, IntegerField, validators
 
 from synch_live.camera.video.proxy import VideoProcessorClient
 
@@ -26,4 +26,4 @@ def observe():
 
 class ManualSettings(Form):
     psi = BooleanField('Use PSI')
-    manual_psi = IntegerRangeField('Manual PSI', [validators.number_range(min=0, max=10)])
+    manual_psi = IntegerField('Manual PSI', [validators.number_range(min=0, max=10)])
