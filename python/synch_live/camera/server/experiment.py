@@ -22,7 +22,7 @@ def observe():
         return redirect(url_for('experiment.observe'))
     return render_template('observe.html', form=form, time=time.time())
 
-class ManualSettings(Form):
-    psi = BooleanField('Psi')
-    manPsi = IntegerRangeField('manPsi')
 
+class ManualSettings(Form):
+    psi = BooleanField('Use PSI')
+    manual_psi = IntegerRangeField('Manual PSI', [validators.number_range(min=0, max=10)])
