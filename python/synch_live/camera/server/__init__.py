@@ -3,10 +3,9 @@ import threading
 import weakref
 
 from flask import Flask, render_template, url_for, send_from_directory
-from . import download, download
+from . import download
 
 from synch_live.camera.video.proxy import VideoProcessorServer, video_process, VideoProcessorClient
-from synch_live.camera.server.db import *
 
 
 def create_app(test_config=None):

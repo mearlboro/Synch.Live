@@ -1,6 +1,5 @@
 from flask import Blueprint, render_template, request, make_response
-from wtforms import Form, IntegerField, validators, StringField, widgets, SelectField, BooleanField, FormField
-from wtforms.widgets import html_params
+from wtforms import Form, StringField, SelectField
 
 from synch_live.camera.db import process_query, get_all_experiment_ids_query
 

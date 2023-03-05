@@ -1,6 +1,5 @@
 from flask import Blueprint, redirect, url_for, Response, jsonify, render_template, request
-from wtforms import Form, IntegerField, validators, StringField, widgets, SelectField, BooleanField, FormField
-from wtforms.widgets import html_params
+from wtforms import Form, StringField, BooleanField
 
 from synch_live.camera.video.proxy import VideoProcessorClient
 from synch_live.camera.db import write_in_experiment_parameters
