@@ -61,7 +61,7 @@ class Headset(ABC):
 
     def crown_on(self) -> None:
         """
-        Turn on all LEDS in the crown range in the headset
+        Turn on all LEDS in the crown range in the headset. A specified colour can be passed in as a parameter.
         """
         logging.info('Crown on')
 

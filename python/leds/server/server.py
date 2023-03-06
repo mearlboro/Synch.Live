@@ -111,7 +111,9 @@ def create_app(server_type):
 
     @app.route('/exposureButton')
     def exposureButton():
-        leds.crown_on()
+        r, g, b, freq, dur = loadOnlyRGB1FromYaml()
+        colour = (r, g, b)
+        leds.crown_on(col=colour)
         leds.pilot()
         return webpage()
 

@@ -96,12 +96,16 @@ class WS2801Headset(Headset):
         super().pilot()
 
 
-    def crown_on(self) -> None:
+    def crown_on(self, col: Tuple[int, int, int] = None ) -> None:
         """
-        Turn on all LEDS in the crown range in the headset
+        Turn on all LEDS in the crown range in the headset. A specified colour can be passed in as a parameter.
         """
+
         for i in self.CROWN_RANGE:
-            self.pixels.set_pixel(i, LED.RGB_to_color(*self.crown_col))
+            if col is not None:
+                self.pixels.set_pixel(i, LED.RGB_to_color(col))
+            else:
+                self.pixels.set_pixel(i, LED.RGB_to_color(*self.crown_col))
         self.pixels.show()
         super().crown_on()
 
