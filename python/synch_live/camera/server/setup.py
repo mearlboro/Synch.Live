@@ -24,11 +24,16 @@ def start_setup():
         status_queue.put(event)
 
     if not lock.locked():
-        with lock:
-            global _runner, _runner_process
-            (_runner, _runner_process) = ansible_runner.run_async(private_data_dir=current_app.config['ANSIBLE_DIR'],
-                                                                  playbook='setup.yml', forks=10, limit='players',
-                                                                  event_handler=event_handler)
+        lock.acquire()
+        global _runner, _runner_process
+        (_runner, _runner_process) = ansible_runner.run_async(private_data_dir=current_app.config['ANSIBLE_DIR'],
+                                                              playbook='setup.yml', forks=10, limit='players',
+                                                              event_handler=event_handler)
+        try:
+            pass
+        finally:
+            _runner.cancel_callback = lambda: True
+            lock.release()
     return render_template('setup.html')
 
 
