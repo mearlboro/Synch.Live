@@ -52,7 +52,8 @@ def create_app(test_config=None):
 
     @app.route('/')
     def main():
-        return render_template('main.html')
+        players = [dict(caption=f"Player {n}", href=f"http://player{n}.local:5000") for n in range(12)]
+        return render_template('main.html', players=players)
 
     app.add_url_rule(
         f"{'/node_modules'}/<path:filename>",

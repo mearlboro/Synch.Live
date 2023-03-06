@@ -3,7 +3,13 @@
 {% block title %}Synch.Live Observer Control{% endblock %}
 {% block content %}
     {{ render_h1('Home') }}
-    <div>
-        <p>Links to hats will go here</p>
-    </div>
+    <nav>
+        <ul class="text-2xl font-medium flex flex-col gap-4">
+            {% for player in players %}
+                <li>
+                    <a href="{{ player.href }}">{{ player.caption }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    </nav>
 {% endblock %}
