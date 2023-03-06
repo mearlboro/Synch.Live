@@ -161,8 +161,6 @@ class WS2801Headset(Headset):
 
         self.crown_off()
         sleep_duration = float((dur - 1.5) / 100)
-        if not (col[0] and col[1] and col[2]):
-            col = self.crown_col
         r, g, b = col
         for j in range(100):
             for i in self.CROWN_RANGE:
@@ -257,14 +255,14 @@ class WS2801Headset(Headset):
         """
         super().crown_rainbow_repeat(dt, duration)
 
-    def crown_police(self, dt: float = 0.1) -> None:
+    def crown_police(self, dt: float = 0.9) -> None:
         """
         All leds in the crown flash alternative colours for `dt` seconds through either blue
         or red, starting from alternate colours
         """
         super().crown_police(dt)
         switcher = 0
-        for j in range(100):
+        for j in range(8):
             for i in self.CROWN_RANGE:
                 col = (0, 0, 0)
                 if switcher == 0:
@@ -295,30 +293,14 @@ class WS2801Headset(Headset):
         for j in range(20):
             for i in self.CROWN_RANGE:
                 col = (0, 0, 0)
-                random_number = random.randint(0, 100)
+                random_number = random.randint(0, 40)
                 if random_number <= 10:
                     # Dark red
-                    col = (148, 27, 27)
+                    col = (102, 0, 0)
                 elif random_number <= 20:
-                    col = (171, 32, 32)
+                    col = (255, 51, 51)
                 elif random_number <= 30:
-                    col = (222, 10, 10)
-                elif random_number <= 40:
-                    # Dark Orange
-                    col = (204, 102, 0)
-                elif random_number <= 50:
                     col = (255, 128, 0)
-                elif random_number <= 60:
-                    col = (255, 128, 0)
-                elif random_number <= 70:
-                    # Light Orange
-                    col = (255, 153, 51)
-                elif random_number <= 80:
-                    # Dark yellow
-                    col = (204, 204, 0)
-                elif random_number <= 90:
-                    # Medium yellow
-                    col = (255, 255, 0)
                 else:
                     # Orange
                     col = (255, 128, 0)

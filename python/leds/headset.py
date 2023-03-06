@@ -149,7 +149,7 @@ class Headset(ABC):
         logging.info(f"Begin breathing effect with {delay} delay")
 
         self.crown_off()
-        self.crown_fadein_colour(dt, col)
+        self.crown_fadein_colour(dt, col = col)
         time.sleep(delay)
         self.crown_fadeout(dt)
         time.sleep(delay)
