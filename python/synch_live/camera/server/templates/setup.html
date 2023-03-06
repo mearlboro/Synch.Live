@@ -2,9 +2,13 @@
 {% from "_taghelpers.html" import render_h1 %}
 {% block title %}Synch.Live Observer Control{% endblock %}
 {% from "_componenthelpers.html" import render_pulse %}
+{% from "_formhelpers.html" import render_submit_field %}
 {% block content %}
     {{ render_h1('Setup') }}
     <turbo-stream-source src="{{ url_for('setup.messages') }}"></turbo-stream-source>
+    <form action="{{ url_for('setup.stop_setup') }}" method="get">
+        {{ render_submit_field(value="Stop") }}
+    </form>
     <ol id="messages"></ol>
     {{ render_pulse() }}
 {% endblock %}

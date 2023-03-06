@@ -12,6 +12,8 @@ bp = Blueprint('setup', __name__, url_prefix='/setup')
 status_queue = SimpleQueue()
 
 lock = Lock()
+_runner = None
+_runner_process = None
 
 @bp.route('/start')
 def start_setup():
@@ -23,8 +25,10 @@ def start_setup():
 
     if not lock.locked():
         with lock:
-            ansible_runner.run_async(private_data_dir=current_app.config['ANSIBLE_DIR'], playbook='setup.yml',
-                                     forks=10, limit='players', event_handler=event_handler)
+            global _runner, _runner_process
+            (_runner, _runner_process) = ansible_runner.run_async(private_data_dir=current_app.config['ANSIBLE_DIR'],
+                                                                  playbook='setup.yml', forks=10, limit='players',
+                                                                  event_handler=event_handler)
     return render_template('setup.html')
 
 
@@ -46,4 +50,7 @@ def messages():
 
 @bp.route('/stop')
 def stop_setup():
+    with lock:
+        if _runner is not None:
+            _runner.cancel_callback = lambda: True
     return redirect(url_for('main'))
