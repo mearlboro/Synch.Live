@@ -8,7 +8,7 @@
         {{ render_submit_field(value="Stop") }}
     </form>
 
-    <img src="{{ url_for('tracking.feed', nonce=time) }}" alt="Tracking feed" width = "600" height="500">
+    <img src="{{ url_for('tracking.feed', nonce=time) }}" alt="Tracking feed" class="max-w-xl">
 
     {{ render_form(form, 'Submit')}}
 
