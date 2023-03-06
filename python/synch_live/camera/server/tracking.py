@@ -32,11 +32,9 @@ def control():
         write_in_experiment_parameters(experiment_id, experiment_location, experiment_is_test) 
 
         proc = VideoProcessorClient()
-        proc.set_experiment_id(experiment_id)
+        proc.experiment_id = experiment_id
         proc.start()
-        
-        #VideoProcessorProxy().start()
-        
+
         return redirect(url_for('experiment.observe'))
     
     return render_template('control.html', form=form, tab='control')

@@ -99,6 +99,14 @@ class VideoProcessorServer:
     def set_psi(psi: float):
         VideoProcessorServer.processor.set_manual_psi(psi)
 
+    @staticmethod
+    def get_experiment_id() -> str:
+        return VideoProcessorServer.processor.experiment_id
+
+    @staticmethod
+    def set_experiment_id(experiment_id):
+        VideoProcessorServer.processor.experiment_id = experiment_id
+
 
 class VideoProcessorClient:
     def __init__(self):
@@ -153,3 +161,11 @@ class VideoProcessorClient:
     @task.setter
     def task(self, task: str):
         self.process.submit(VideoProcessorServer.set_task, task).result()
+
+    @property
+    def experiment_id(self) -> str:
+        return self.process.submit(VideoProcessorServer.get_experiment_id).result()
+
+    @experiment_id.setter
+    def experiment_id(self, experiment_id: str):
+        self.process.submit(VideoProcessorServer.set_experiment_id, experiment_id).result()
