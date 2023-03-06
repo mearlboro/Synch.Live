@@ -20,13 +20,12 @@ def live_players():
             target = f'player_{player_id}'
         else:
             target = 'players'
-        response = render_turbo_stream(job['action'], target,
-                                       caller=lambda: render_template('player_link.html', player=dict(
-                                           id=player_id,
-                                           href=f'http://{job["host"]}:{job["port"]}',
-                                           caption=job['name']
-                                       )))
-        return response
+        return render_turbo_stream(job['action'], target,
+                                   caller=lambda: render_template('player_link.html', player=dict(
+                                       id=player_id,
+                                       href=f'http://{job["host"]}:{job["port"]}',
+                                       caption=job['name']
+                                   )))
 
     @stream_with_context
     def generate():

@@ -762,6 +762,10 @@ select {
   display: contents;
 }
 
+.hidden {
+  display: none;
+}
+
 .h-1 {
   height: 0.25rem;
 }
@@ -770,12 +774,20 @@ select {
   height: 0.75rem;
 }
 
+.h-6 {
+  height: 1.5rem;
+}
+
 .h-full {
   height: 100%;
 }
 
 .w-3 {
   width: 0.75rem;
+}
+
+.w-6 {
+  width: 1.5rem;
 }
 
 .w-full {
