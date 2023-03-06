@@ -39,6 +39,7 @@ def create_app(test_config=None):
         return {
             "imports": {
                 "@hotwired/turbo": url_for('node_modules', filename='@hotwired/turbo/dist/turbo.es2017-esm.js'),
+                "@hotwired/stimulus": url_for('node_modules', filename='@hotwired/stimulus/dist/stimulus.js'),
             }
         }
 
