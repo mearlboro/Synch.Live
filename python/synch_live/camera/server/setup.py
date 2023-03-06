@@ -20,17 +20,15 @@ def start_setup():
     def event_handler(event):
         status_queue.put(event)
 
+    def finished_callback(processor):
+        lock.release()
+
     if not lock.locked():
         lock.acquire()
-        global _runner, _runner_process
         (_runner, _runner_process) = ansible_runner.run_async(private_data_dir=current_app.config['ANSIBLE_DIR'],
                                                               playbook='setup.yml', forks=10, limit='players',
-                                                              event_handler=event_handler)
-        try:
-            pass
-        finally:
-            _runner.cancel_callback = lambda: True
-            lock.release()
+                                                              event_handler=event_handler,
+                                                              finished_callback=finished_callback)
     return render_template('setup.html')
 
 
@@ -52,7 +50,6 @@ def messages():
 
 @bp.route('/stop')
 def stop_setup():
-    with lock:
-        if _runner is not None:
-            _runner.cancel_callback = lambda: True
+    if _runner is not None:
+        _runner.cancel_callback = lambda: True
     return redirect(url_for('main'))
