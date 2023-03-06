@@ -17,9 +17,6 @@ _runner_process = None
 
 @bp.route('/start')
 def start_setup():
-    def status_handler(status, runner_config):
-        status_queue.put(status)
-
     def event_handler(event):
         status_queue.put(event)
 
