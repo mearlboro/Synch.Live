@@ -1,0 +1,7 @@
+{% macro render_turbo_stream(action, target) %}
+    <turbo-stream action="{{ action }}" target="{{ target }}">
+        <template>
+            {{ caller() | safe }}
+        </template>
+    </turbo-stream>
+{% endmacro %}

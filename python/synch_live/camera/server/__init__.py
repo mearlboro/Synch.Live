@@ -55,8 +55,7 @@ def create_app(test_config=None):
 
     @app.route('/')
     def main():
-        players = [dict(caption=f"Player {n}", href=f"http://player{n}.local:5000") for n in range(12)]
-        return render_template('main.html', players=players)
+        return render_template('main.html', players=[])
 
     app.add_url_rule(
         f"{'/node_modules'}/<path:filename>",
@@ -64,12 +63,13 @@ def create_app(test_config=None):
         view_func=lambda **kw: send_from_directory('node_modules', path=f"{kw['filename']}.js"),
     )
 
-    from . import calibration, setup, experiment, tracking, download
+    from . import calibration, setup, experiment, tracking, download, players_listener
     app.register_blueprint(calibration.bp)
     app.register_blueprint(setup.bp)
     app.register_blueprint(experiment.bp)
     app.register_blueprint(tracking.bp)
     app.register_blueprint(download.bp)
+    app.register_blueprint(players_listener.bp)
 
     return app
 

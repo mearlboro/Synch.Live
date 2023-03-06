@@ -4,11 +4,10 @@
 {% block content %}
     {{ render_h1('Home') }}
     <nav>
-        <ul class="text-2xl font-medium flex flex-col gap-4">
+        <turbo-stream-source src="{{ url_for('players_listener.live_players') }}"></turbo-stream-source>
+        <ul id="players" class="text-2xl font-medium flex flex-col gap-4">
             {% for player in players %}
-                <li>
-                    <a href="{{ player.href }}">{{ player.caption }}</a>
-                </li>
+                {% include 'player_link.html' %}
             {% endfor %}
         </ul>
     </nav>
