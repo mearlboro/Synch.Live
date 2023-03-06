@@ -839,10 +839,6 @@ select {
   border-left-width: calc(1px * calc(1 - var(--tw-divide-x-reverse)));
 }
 
-.whitespace-normal {
-  white-space: normal;
-}
-
 .whitespace-pre-wrap {
   white-space: pre-wrap;
 }
