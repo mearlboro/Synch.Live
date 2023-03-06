@@ -29,9 +29,6 @@ def create_app(test_config=None):
             dict(href=url_for('main'), caption='Home'),
             dict(href=url_for('setup.start_setup'), caption='Setup'),
             dict(href=url_for('tracking.control'), caption='Experiment'),
-            dict(href=url_for('tracking.toggle'), caption=tracking_toggle_label),
-            dict(href=url_for('calibrate.calibrate'), caption='Calibrate'),
-            dict(href=url_for('experiment.observe'), caption='Observe'),
             dict(href=url_for('download.get_data'), caption='Data'),
         ]
 
