@@ -24,7 +24,6 @@ def create_app(test_config=None):
 
     @app.template_global()
     def navigation():
-        tracking_toggle_label = f'{"Stop" if VideoProcessorClient().running else "Start"} tracking'
         return [
             dict(href=url_for('main'), caption='Home'),
             dict(href=url_for('setup.start_setup'), caption='Setup'),
