@@ -38,8 +38,8 @@ def create_app(test_config=None):
     def importmap():
         return {
             "imports": {
-                "@hotwired/turbo": url_for('node_modules', filename='@hotwired/turbo/dist/turbo.es2017-esm.js'),
-                "@hotwired/stimulus": url_for('node_modules', filename='@hotwired/stimulus/dist/stimulus.js'),
+                "@hotwired/turbo": url_for('node_modules', filename='@hotwired/turbo/dist/turbo.es2017-esm'),
+                "@hotwired/stimulus": url_for('node_modules', filename='@hotwired/stimulus/dist/stimulus'),
             }
         }
 
@@ -59,7 +59,7 @@ def create_app(test_config=None):
     app.add_url_rule(
         f"{'/node_modules'}/<path:filename>",
         endpoint="node_modules",
-        view_func=lambda **kw: send_from_directory('node_modules', path=kw['filename']),
+        view_func=lambda **kw: send_from_directory('node_modules', path=f"{kw['filename']}.js"),
     )
 
     from . import calibration, setup, experiment, tracking, download

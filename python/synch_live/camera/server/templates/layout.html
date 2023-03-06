@@ -5,7 +5,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='output.css') }}">
     <title>{% block title %}Synch.Live{% endblock %}</title>
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
-    <script async src="{{ url_for('node_modules', filename='es-module-shims/dist/es-module-shims.js') }}"></script>
+    <script async src="{{ url_for('node_modules', filename='es-module-shims/dist/es-module-shims') }}"></script>
     <script type="importmap">{{ importmap() | tojson }}</script>
     <script type="module">import * as Turbo from "@hotwired/turbo"</script>
     <script type="module" src="{{ url_for('static', filename='main.js') }}"></script>
