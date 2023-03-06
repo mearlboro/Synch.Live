@@ -38,7 +38,7 @@ def create_app(test_config=None):
     def importmap():
         return {
             "imports": {
-                "turbo": url_for('node_modules', filename='@hotwired/turbo/dist/turbo.es2017-esm.js')
+                "@hotwired/turbo": url_for('node_modules', filename='@hotwired/turbo/dist/turbo.es2017-esm.js'),
             }
         }
 
