@@ -40,6 +40,8 @@ def create_app(test_config=None):
             "imports": {
                 "@hotwired/turbo": url_for('node_modules', filename='@hotwired/turbo/dist/turbo.es2017-esm'),
                 "@hotwired/stimulus": url_for('node_modules', filename='@hotwired/stimulus/dist/stimulus'),
+                "@hotwired/turbo-rails": url_for('node_modules',
+                                                 filename='@hotwired/turbo-rails/app/javascript/turbo/index'),
             }
         }
 

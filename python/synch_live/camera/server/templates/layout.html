@@ -7,7 +7,6 @@
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <script async src="{{ url_for('node_modules', filename='es-module-shims/dist/es-module-shims') }}"></script>
     <script type="importmap">{{ importmap() | tojson }}</script>
-    <script type="module">import * as Turbo from "@hotwired/turbo"</script>
     <script type="module" src="{{ url_for('static', filename='main.js') }}"></script>
 </head>
 <body class="container bg-white dark:bg-black text-black dark:text-white mx-auto px-4 py-4 flex flex-col gap-4">
