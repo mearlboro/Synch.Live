@@ -137,7 +137,6 @@ def create_app(server_type):
     @app.route('/stopButton')
     def stopButton():
         leds.crown_off()
-        leds.all_off()
         return webpage()
 
     @app.route('/clearButton')
