@@ -3,7 +3,7 @@
 {% from "_taghelpers.html" import render_h1, render_h2, render_section %}
 {% from "_componenthelpers.html" import render_label %}
 {% block title %}Synch.Live Observer Control{% endblock %}
-{% set control_navigation = [dict(caption='Play', href=url_for('tracking.control')), dict(caption='Calibrate', href=url_for('calibrate.calibrate'))] %}
+{% set control_navigation = [dict(caption='Play', href=url_for('tracking.control')), dict(caption='Calibrate', href=url_for('tracking.calibrate'))] %}
 {% block content %}
     {{ render_h1('Experiment') }}
     <nav>

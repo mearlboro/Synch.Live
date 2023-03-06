@@ -60,8 +60,7 @@ def create_app(test_config=None):
         view_func=lambda **kw: send_from_directory('node_modules', path=f"{kw['filename']}.js"),
     )
 
-    from . import calibration, setup, experiment, tracking, download, players_listener
-    app.register_blueprint(calibration.bp)
+    from . import setup, experiment, tracking, download, players_listener
     app.register_blueprint(setup.bp)
     app.register_blueprint(experiment.bp)
     app.register_blueprint(tracking.bp)
