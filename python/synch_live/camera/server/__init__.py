@@ -14,6 +14,7 @@ def create_app(test_config=None):
         SECRET_KEY='dev',
         DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
         VIDEO_CONFIG=os.path.join(app.instance_path, 'video_config.yml'),
+        ANSIBLE_DIR=os.path.join(app.root_path, '../../../../ansible'),
     )
 
     if test_config is None:

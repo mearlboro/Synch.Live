@@ -1,11 +1,10 @@
 {% extends "layout.html" %}
 {% from "_taghelpers.html" import render_h1 %}
-{% from "_componenthelpers.html" import render_pulse, render_label %}
 {% block title %}Synch.Live Observer Control{% endblock %}
+{% from "_componenthelpers.html" import render_pulse %}
 {% block content %}
     {{ render_h1('Setup') }}
-    {% call render_label('Setting up…') %}
-        {{ render_pulse() }}
-    {% endcall %}
-    <ol></ol>
+    <turbo-stream-source src="{{ url_for('setup.messages') }}"></turbo-stream-source>
+    <ol id="messages"></ol>
+    {{ render_pulse() }}
 {% endblock %}
