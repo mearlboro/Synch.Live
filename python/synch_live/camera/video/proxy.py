@@ -1,5 +1,6 @@
 import logging
 import os
+import signal
 from concurrent.futures import ProcessPoolExecutor
 from types import SimpleNamespace
 from typing import Generator
@@ -38,6 +39,11 @@ class VideoProcessorServer:
                 camera_stream = VideoStream(int(camera_number), framerate=config.camera.framerate)
             VideoProcessorServer.processor = VideoProcessor(config, camera_stream)
 
+        def shutdown_handler(signum, frame):
+            VideoProcessorServer.stop()
+
+        signal.signal(signal.SIGINT, shutdown_handler)
+
     def __del__(self):
         if VideoProcessorServer.processor is None:
             return
@@ -57,8 +63,9 @@ class VideoProcessorServer:
 
     @staticmethod
     def stop():
-        if VideoProcessorServer.processor.running:
+        if VideoProcessorServer.processor and VideoProcessorServer.processor.running:
             VideoProcessorServer.processor.stop()
+            VideoProcessorServer.processor = None
 
     @staticmethod
     def get_config() -> SimpleNamespace:
