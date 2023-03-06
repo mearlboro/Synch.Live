@@ -1,4 +1,5 @@
 import os
+import signal
 import threading
 import weakref
 
@@ -48,7 +49,13 @@ def create_app(test_config=None):
         pass
 
     if threading.current_thread() is threading.main_thread():
+        def shutdown_handler(signum, frame):
+            video_process.submit(VideoProcessorServer.stop()).result()
+            handler(signum, frame)
+
         video_process.submit(VideoProcessorServer, app.config['VIDEO_CONFIG']).result()
+        handler = signal.getsignal(signal.SIGINT)
+        signal.signal(signal.SIGINT, shutdown_handler)
 
     @app.route('/')
     def main():
