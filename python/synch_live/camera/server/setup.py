@@ -25,7 +25,8 @@ def start_setup():
 
     if not lock.locked():
         lock.acquire()
-        (_runner, _runner_process) = ansible_runner.run_async(private_data_dir=current_app.config['ANSIBLE_DIR'],
+        global _runner, _runner_process
+        (_runner_process, _runner) = ansible_runner.run_async(private_data_dir=current_app.config['ANSIBLE_DIR'],
                                                               playbook='setup.yml', forks=10, limit='players',
                                                               event_handler=event_handler,
                                                               finished_callback=finished_callback)
