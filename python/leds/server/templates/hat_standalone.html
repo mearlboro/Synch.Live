@@ -15,7 +15,7 @@
   <body onload="document.getElementById('defaultOpen').click();">
   <div class="tab">
     <ul class="text-1xl font-medium flex flex-row gap-2 items-center">
-      <button class="tablinks active" onclick="openTab(event, 'Colour')" id="defaultOpen">Custom</button>
+      <button class="tablinks active" onclick="openTab(event, 'Colour')" id="defaultOpen">Colour</button>
       <button class="tablinks" onclick="openTab(event, 'Effects')">Effects</button>
       <button class="tablinks" onclick="openTab(event, 'Animations')">Animations</button>
     </ul>
@@ -28,11 +28,11 @@
       <ul class="text-1xl font-medium flex flex-row gap-2 items-center">
 
         <label for="color">Choose main color:</label>
-        <input type="color" id="color" name="color" value="{{ origCol|default('#2B43DC') }}" style="width: 100px; height:100px">
+        <input type="color" id="color" name="color" value="{{ origCol|default('#05f238') }}" style="width: 100px; height: 100px;">
         
 
         <label for="color2">Choose secondary color:</label>
-        <input type="color" id="color2" name="color2" value="{{ origCol2|default('#FF0000') }}" style="width: 100px; height:100px">
+        <input type="color" id="color2" name="color2" value="{{ origCol2|default('#FF10F0') }}" style="width: 100px; height:100px;">
       
       </ul>
 
@@ -62,19 +62,30 @@
   </div>
 
   <div id="Effects" class="tabcontent">
-      <button id="pilotButton" type="button" onclick="window.location.href='/pilotButton';">Pilot</button>
-      <button id="exposureButton" type="button" onclick="window.location.href='/exposureButton';">Exposure</button>
-      <button id="breatheButton" type="button" onclick="window.location.href='/breatheButton';">Breathe</button>
-      <button id="fadeInButton" type="button" onclick="window.location.href='/fadeInButton';">Fade in to Main Colour</button>
-      <button id="fadeBetweenColorsButton" type="button" onclick="window.location.href='/fadeBetweenColoursButton';">Fade from Main to Secondary Colour</button>
+
+    <ul class="text-1xl font-medium flex flex-row gap-2 items-center">
+
+        <button id="pilotButton" type="button" onclick="window.location.href='/pilotButton';">Pilot</button>
+        <button id="exposureButton" type="button" onclick="window.location.href='/exposureButton';">Exposure</button>
+        <button id="breatheButton" type="button" onclick="window.location.href='/breatheButton';">Breathe</button>
+        <button id="fadeInButton" type="button" onclick="window.location.href='/fadeInButton';">Fade: Main</button>
+        <button id="fadeBetweenColorsButton" type="button" onclick="window.location.href='/fadeBetweenColoursButton';">Fade: Main to Secondary</button>
+    
+    </ul>
   </div>
 
   <div id="Animations" class="tabcontent">
-      <button id="rainbowButton" type="button" onclick="window.location.href='/rainbowButton';">Rainbow Loop</button>
+
+    <ul class="text-1xl font-medium flex flex-row gap-2 items-center">
+
+      <button id="rainbowButton" type="button" onclick="window.location.href='/rainbowButton';">Rainbow</button>
       <button id="fireButton" type="button" onclick="window.location.href='/fireButton';">Fire</button>
       <button id="policeButton" type="button" onclick="window.location.href='/policeButton';">Police Lights</button>
       <button id="paparazziButton" type="button" onclick="window.location.href='/paparazziButton';">Paparazzi</button>
       <button id="partyButton" type="button" onclick="window.location.href='/partyButton';">Disco</button>
+    
+    </ul>
+  
   </div>
 
   </body>

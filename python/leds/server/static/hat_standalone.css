@@ -18,6 +18,7 @@ button {
     border: 2px solid #414141; */
     border-bottom: 3px solid #1F2937;
     padding: 0px;
+    position:relative;
 }
 
 
@@ -56,12 +57,15 @@ button {
     padding: 0px 12px;
     /*border: 3px solid #1F2937;*/
     border-top: none;
+    position:relative;
 }
 
 .tabcontent button {
     padding: 12px 12px;
     background-color: #e5e7eb;
     border-radius: 8px 8px 8px 8px;
+    width: 100px;
+    height: 100px;
 
 }
 
