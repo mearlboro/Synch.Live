@@ -82,12 +82,12 @@
 
       <ul class="text-1xl font-medium flex flex-row gap-4 items-center">
       
-        <label for="blickfrequency">Blinks per second:</label>
-        <input type="number" id="blickfrequency" name="blickfrequency" min="0" max="5" value="{{ freq|default('0') }}">
+        <label for="blickfrequency">Blinks per minute:</label>
+        <input type="number" id="blickfrequency" name="blickfrequency" min="0" max="30" value="{{ freq|default('0') }}">
         
 
         <label for="effectduration">Effect duration:</label>
-        <input type="number" id="effectduration" name="effectduration" min="1" max="20" value="{{ dur|default('3') }}">
+        <input type="number" id="effectduration" name="effectduration" min="0" max="60" value="{{ dur|default('0') }}">
 
       </ul>
 
