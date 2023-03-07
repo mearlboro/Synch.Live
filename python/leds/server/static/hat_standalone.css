@@ -69,6 +69,11 @@ button {
 
 }
 
+.tabcontent button:hover {
+    background-color:  rgb(209 213 219);
+
+}
+
 .butts {
     padding: 12px 18px;
     background-color: #e5e7eb;
