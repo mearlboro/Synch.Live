@@ -2,12 +2,12 @@ import os
 import yaml
 import socket
 from flask import Flask, render_template, request, redirect, url_for
-#from leds.ws2801_headset import WS2801Headset
+from leds.ws2801_headset import WS2801Headset
 
 
 def create_app(server_type):
     app = Flask(__name__)
-    #leds = WS2801Headset((0, 0, 100), (0, 255, 0), 0.5, 1.5)
+    leds = WS2801Headset((0, 0, 100), (0, 255, 0), 0.5, 1.5)
     ipAddress = socket.gethostbyname(socket.gethostname())
     lastTwoDigits = ipAddress.split(".")[-1][-2:]
 
@@ -67,7 +67,7 @@ def create_app(server_type):
     @app.route("/main")
     def go_to_observer():
         return render_template('main.html')
-    '''
+    
     @app.route('/pilotButton')
     def pilotButton():
         leds.pilot()
@@ -179,7 +179,7 @@ def create_app(server_type):
 
         return render_template('hat_standalone.html',lastTwoDigits=lastTwoDigits, origCol=origCol, origCol2=origCol2,
                                freq=frequency, dur=duration)
-    '''
+    
 
     return app
 
