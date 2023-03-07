@@ -17,7 +17,6 @@
   <header class="flex flex-row gap-6 items-center text-xl">
     <p class="text-6xl font-medium"><a href="/main.html">Synch.Live Hat</a></p>
       <nav>
-
         <ul class="flex flex-row items-center divide-x">
           {% for item in navigation %}
               <li class="px-4 {% if request.path == item.href %}text-gray-500{% endif %}">
