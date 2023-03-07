@@ -1,85 +1,62 @@
+{% extends "layout.html" %}
 {% from "_taghelpers.html" import render_h1, render_h2, render_section %}
-
-<!--TODO: Integrate Tailwind
-For now, I've manually recreated the relevant Tailwind classes in style.css.
-
-In the quest for app consistency,
-A problem arose, quite persistently.
-The other used Tailwind,
-but it left me chagrined,
-So I used CSS, with great urgency.
--->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <link rel="stylesheet" href="{{ url_for('static', filename='output.css') }}">
-    <title>{% block title %}Synch.Live{% endblock %}</title>
-    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
-
-    <title>Hat Control Interface</title>
-    <!--<link href="../static/style.css" rel="stylesheet">-->
-    <link href="../static/hat_standalone.css" rel="stylesheet">
-    <script src="../static/hat_standalone_script.js"></script> 
-</head>
-<body class="container bg-white dark:bg-black text-black dark:text-white mx-auto px-4 py-4 flex flex-col gap-4">
-  <header class="flex flex-row gap-6 items-center text-xl">
-    <p class="text-6xl font-medium"><a href="{{ url_for('main') }}">Synch.Live Hat</a></p>
-        <ul class="flex flex-row gap-6 items-center divide-x">
-        <!--<h3 style="display:inline-block;">Synch.Live Hat Control Interface</h3>-->
-          <a href="main.html">Home</a>
-          <a href="http://192.168.100.105:5000/">Player 5</a>
-          <a href="http://192.168.100.100:5000/">Observer</a>
-        </ul>
-      </nav>
-</header>
-<hr class="h-1 bg-gray-800 dark:bg-gray-200" />
-</body>
-<body>
 {% block content %}
-
-    <!--{{ render_h1('Hat Control') }}-->
-      
-  <!--<h1 class="text-7xl font-medium">Hat Control</h1>-->
 
   <div class="text-4xl font-medium">
       <p id="controlling">Controlling: Hat <span>{{ lastTwoDigits }}</span></p>
   </div>
 
-  <ul class="text-2xl font-medium flex flex-row gap-4 items-center">
-                <button class="{py-2 px-4 rounded-lg bg-gray-200 hover:bg-gray-300 active:bg-gray-400 transition dark:bg-gray-800 dark:hover:bg-gray-700 dark:active:bg-gray-700 text-lg font-bold" id="startButton" type="button" onclick="window.location.href='/startButton';">Start Lights</button>
-                <button class="{py-2 px-4 rounded-lg bg-gray-200 hover:bg-gray-300 active:bg-gray-400 transition dark:bg-gray-800 dark:hover:bg-gray-700 dark:active:bg-gray-700 text-lg font-bold" id="stopButton" type="button" onclick="window.location.href='/stopButton';">Stop Lights</button>
-                <button class="{py-2 px-4 rounded-lg bg-gray-200 hover:bg-gray-300 active:bg-gray-400 transition dark:bg-gray-800 dark:hover:bg-gray-700 dark:active:bg-gray-700 text-lg font-bold" id="clearButton" type="button" onclick="window.location.href='/clearButton';">Clear saved configuration</button>              
+  <ul class="text-2xl font-medium flex flex-row gap-2 items-center">
+      <button class="{py-2 px-4 rounded-lg bg-gray-200 hover:bg-gray-300 active:bg-gray-400 transition dark:bg-gray-800 dark:hover:bg-gray-700 dark:active:bg-gray-700 text-lg font-bold" id="startButton" type="button" onclick="window.location.href='/startButton';">Start</button>
+      <button class="{py-2 px-4 rounded-lg bg-gray-200 hover:bg-gray-300 active:bg-gray-400 transition dark:bg-gray-800 dark:hover:bg-gray-700 dark:active:bg-gray-700 text-lg font-bold" id="stopButton" type="button" onclick="window.location.href='/stopButton';">Stop</button>
+      <button class="{py-2 px-4 rounded-lg bg-gray-200 hover:bg-gray-300 active:bg-gray-400 transition dark:bg-gray-800 dark:hover:bg-gray-700 dark:active:bg-gray-700 text-lg font-bold" id="clearButton" type="button" onclick="window.location.href='/clearButton';">Reset</button>              
   </ul>
 
-
+  <body onload="document.getElementById('defaultOpen').click();">
   <div class="tab">
-      <button class="tablinks" onclick="openTab(event, 'Colour')">Custom</button>
+    <ul class="text-1xl font-medium flex flex-row gap-2 items-center">
+      <button class="tablinks active" onclick="openTab(event, 'Colour')" id="defaultOpen">Custom</button>
       <button class="tablinks" onclick="openTab(event, 'Effects')">Effects</button>
       <button class="tablinks" onclick="openTab(event, 'Animations')">Animations</button>
+    </ul>
   </div>
 
-  <div id="Colour" class="tabcontent">
+  <div id="Colour" class="tabcontent" style="display:block;">
+
     <form method="POST" action="/handle_color_picker" class="flex flex-col items-start">
-      <label for="color">Enter a main color:</label>
-      <input type="color" id="color" name="color" value="{{ origCol|default('#2B43DC') }}">
+      
+      <ul class="text-1xl font-medium flex flex-row gap-2 items-center">
+
+        <label for="color">Choose main color:</label>
+        <input type="color" id="color" name="color" value="{{ origCol|default('#2B43DC') }}" style="width: 100px; height:100px">
+        
+
+        <label for="color2">Choose secondary color:</label>
+        <input type="color" id="color2" name="color2" value="{{ origCol2|default('#FF0000') }}" style="width: 100px; height:100px">
+      
+      </ul>
+
       <br>
 
-      <label for="color2">Enter a secondary color:</label>
-      <input type="color" id="color2" name="color2" value="{{ origCol2|default('#FF0000') }}">
+      <ul class="text-1xl font-medium flex flex-row gap-4 items-center">
+      
+        <label for="blickfrequency">Blinks per second:</label>
+        <input type="number" id="blickfrequency" name="blickfrequency" min="0" max="5" value="{{ freq|default('0') }}">
+        
+
+        <label for="effectduration">Effect duration:</label>
+        <input type="number" id="effectduration" name="effectduration" min="1" max="20" value="{{ dur|default('3') }}">
+
+      </ul>
+
       <br>
 
-      <label for="blickfrequency">Light Blink Frequency (per second):</label>
-      <input type="number" id="blickfrequency" name="blickfrequency" min="0" max="5" value="{{ freq|default('0') }}">
-      <br>
+      <ul class="text-1xl font-medium flex flex-row gap-6 items-center">
 
-      <label for="effectduration">Effect Duration (in seconds):</label>
-      <input type="number" id="effectduration" name="effectduration" min="1" max="20" value="{{ dur|default('3') }}">
-      <br>
+          <input class = "butts" name="TrialConfigButton" type="submit" value="Trial">
+          <input class = "butts" name="saveConfigButton" type="submit" value="Save">
 
-      <input name="TrialConfigButton" type="submit" value="Trial this configuration">
-        <br />
-      <input name="saveConfigButton" type="submit" value="Save configuration">
+      </ul>
 
     </form>
   </div>
@@ -102,5 +79,3 @@ So I used CSS, with great urgency.
 
   </body>
 {% endblock %}
-</html>
-

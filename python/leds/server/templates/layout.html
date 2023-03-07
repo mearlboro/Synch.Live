@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{{ url_for('static', filename='output.css') }}">
+    <title>{% block title %}Synch.Live{% endblock %}</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+
+    <title>Hat Control Interface</title>
+    <!--<link href="../static/style.css" rel="stylesheet">-->
+    <link href="../static/hat_standalone.css" rel="stylesheet">
+    <script src="../static/hat_standalone_script.js"></script> 
+</head>
+<body class="container bg-white dark:bg-black text-black dark:text-white mx-auto px-4 py-4 flex flex-col gap-4">
+  <header class="flex flex-row gap-6 items-center text-xl">
+    <p class="text-6xl font-medium"><a href="/main.html">Synch.Live Hat</a></p>
+        <ul class="flex flex-row gap-6 items-center divide-x">
+        <!--<h3 style="display:inline-block;">Synch.Live Hat Control Interface</h3>-->
+          <a href="{{ url_for('go_to_observer') }}">Home</a>
+          <!--<a href="{{ url_for('main') }}">TESTPLYAER</a>-->
+          <a href="http://192.168.100.104:5000/">Hat 4</a>
+          <a href="http://192.168.100.105:5000/">Hat 5</a>
+        <!--<a href="http://192.168.100.100:5000/">Observer</a>-->
+        </ul>
+      </nav>
+</header>
+<hr class="h-1 bg-gray-800 dark:bg-gray-200" />
+<main class="flex flex-col gap-6">
+  {% block content %}{% endblock %}
+</main>
+<footer>
+  {% block footer %}
+  {% endblock %}
+</footer>
+</body>
+</html>
