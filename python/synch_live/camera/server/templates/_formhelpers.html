@@ -29,8 +29,8 @@
         </ul>
     {% endif %}
 {% endmacro %}
-{% macro render_form(form, submit_value) %}
-    <form method="post" enctype="application/x-www-form-urlencoded" class="flex flex-col gap-4 items-start">
+{% macro render_form(form, submit_value, method='post', turbo=True) %}
+    <form data-turbo="{{ turbo | tojson }}" method="{{ method }}" enctype="application/x-www-form-urlencoded" class="flex flex-col gap-4 items-start">
         <ul class="flex flex-col gap-2">
             {% for field in form %}
                 {{ render_field(field) }}

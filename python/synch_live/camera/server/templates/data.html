@@ -9,6 +9,6 @@
         <p>Select the experiment ID and click 'Download!'</p>
     </div>
     {% call render_section('Download data') %}
-        {{ render_form(form, 'Download!') }}
+        {{ render_form(form, 'Download!', method='get', turbo=False) }}
     {% endcall %}
 {% endblock %}
