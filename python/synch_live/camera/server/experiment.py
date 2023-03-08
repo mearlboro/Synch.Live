@@ -13,7 +13,7 @@ def observe():
     video_processor = VideoProcessorClient()
     form = ManualSettings(request.form)
     if request.method == "POST" and form.validate():
-        if form.psi.data:
+        if form.manual_psi.data:
             video_processor.task = 'emergence'
             # writing sigmoids to database
             video_processor.sync
@@ -25,5 +25,4 @@ def observe():
 
 
 class ManualSettings(Form):
-    psi = BooleanField('Use PSI')
     manual_psi = IntegerField('Manual PSI', [validators.number_range(min=0, max=10)])
