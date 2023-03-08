@@ -407,18 +407,18 @@ class WS2801Headset(Headset):
         """
         super().crown_run_config()
         if blink_freq is not 0:
-            sleep_duration = float(60/blink_freq)
+            sleep_duration = float(60/blink_freq) -0.25
             t_end = time.time() + effect_dur
 
             while time.time() < t_end:
-                if blink_freq is not 0:
-                    self.crown_off()
-                    time.sleep(1)
                 for i in self.CROWN_RANGE:
                     col = (r, g, b)
                     self.pixels.set_pixel(i, LED.RGB_to_color(*col))
                 self.pixels.show()
                 time.sleep(sleep_duration)
+                if blink_freq is not 0:
+                    self.crown_off()
+                    time.sleep(0.25)
 
         WS2801Headset((r, g, b), (r, g, b), 0.5, 1.5).crown_on()
         for i in self.PILOT_RANGE:
