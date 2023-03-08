@@ -62,12 +62,12 @@ def create_app(server_type):
 
     @app.route("/")
     def main():
-        return webpage()
-    
+        return render_template('hat_standalone.html', lastTwoDigits=lastTwoDigits)
+
     @app.route("/main")
     def go_to_observer():
         return render_template('main.html')
-    
+
     @app.route('/pilotButton')
     def pilotButton():
         leds.pilot()

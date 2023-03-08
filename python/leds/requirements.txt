@@ -1,2 +1,6 @@
 aiohttp
 asyncio
+os
+pyyaml
+socket
+Flask

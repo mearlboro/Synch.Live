@@ -31,7 +31,7 @@ Folder with all the HTML templates used by Flask to render pages.
 
 - `_taghelpers.html` : tag helpers template.
 - `hat_standalone.html` : template for the hat control.
-- `layout.html` : template for the layout.
+- `layout.html` : parent template for the layout containing navigation bar, which is extended by all other pages.
 - `main.html` : template for the home page from which you can go to observer.
 
 ### `config.yaml`
