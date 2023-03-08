@@ -4,7 +4,8 @@ import threading
 from flask import Flask, render_template, url_for, send_from_directory
 from . import download
 
-from synch_live.camera.video.proxy import VideoProcessorServer, video_process
+from synch_live.camera.video.proxy import VideoProcessorServer
+from ..video.pool import VideoProcessHandle
 
 
 def create_app(test_config=None):
@@ -47,7 +48,7 @@ def create_app(test_config=None):
         pass
 
     if threading.current_thread() is threading.main_thread():
-        video_process.submit(VideoProcessorServer, app.config['VIDEO_CONFIG']).result()
+        VideoProcessHandle().process.submit(VideoProcessorServer, app.config['VIDEO_CONFIG']).result()
 
     @app.route('/')
     def main():

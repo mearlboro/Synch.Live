@@ -9,11 +9,13 @@ from flask import current_app
 from imutils.video import VideoStream
 from yaml import safe_load
 
+from synch_live.camera.video.pool import VideoProcessHandle
 from synch_live.camera.tools.config import parse
 from . import VideoProcessor
 from ..tools.colour import hsv_to_hex
 
-video_process = ProcessPoolExecutor(max_workers=1)
+
+_current_handler = signal.getsignal(signal.SIGINT)
 
 
 class VideoProcessorServer:
@@ -38,16 +40,6 @@ class VideoProcessorServer:
                 logging.info(f"Opening Camera {camera_number}")
                 camera_stream = VideoStream(int(camera_number), framerate=config.camera.framerate)
             VideoProcessorServer.processor = VideoProcessor(config, camera_stream)
-
-        def shutdown_handler(signum, frame):
-            VideoProcessorServer.stop()
-
-        signal.signal(signal.SIGINT, shutdown_handler)
-
-    def __del__(self):
-        if VideoProcessorServer.processor is None:
-            return
-        VideoProcessorServer.stop()
 
     @staticmethod
     def next_frame() -> bytes | StopIteration:
@@ -116,63 +108,57 @@ class VideoProcessorServer:
 
 
 class VideoProcessorClient:
-    def __init__(self):
-        self.process = video_process
-
     def start(self):
-        self.process.submit(VideoProcessorServer.start).result()
+        VideoProcessHandle().process.submit(VideoProcessorServer.start).result()
 
     def stop(self):
-        global video_process
-        self.process.submit(VideoProcessorServer.stop).result()
-        self.process.shutdown()
-        video_process = ProcessPoolExecutor(max_workers=1)
-        self.process = video_process
-        self.process.submit(VideoProcessorServer, current_app.config['VIDEO_CONFIG']).result()
+        VideoProcessHandle().process.submit(VideoProcessorServer.stop).result()
+        VideoProcessHandle().reset_video_process()
+        VideoProcessHandle().process.submit(VideoProcessorServer, current_app.config['VIDEO_CONFIG']).result()
 
     def generate_frame(self) -> Generator[bytes, None, None]:
         while True:
-            res = self.process.submit(VideoProcessorServer.next_frame).result()
+            res = VideoProcessHandle().process.submit(VideoProcessorServer.next_frame).result()
             if res is StopIteration:
                 break
             yield res
 
     @property
     def running(self) -> bool:
-        return self.process.submit(VideoProcessorServer.get_running).result()
+        return VideoProcessHandle().process.submit(VideoProcessorServer.get_running).result()
 
     @property
     def sync(self) -> float:
-        return self.process.submit(VideoProcessorServer.get_sync).result()
+        return VideoProcessHandle().process.submit(VideoProcessorServer.get_sync).result()
 
     @property
     def config(self) -> SimpleNamespace:
-        return self.process.submit(VideoProcessorServer.get_config).result()
+        return VideoProcessHandle().process.submit(VideoProcessorServer.get_config).result()
 
     @config.setter
     def config(self, config: SimpleNamespace):
-        self.process.submit(VideoProcessorServer.set_config, config).result()
+        VideoProcessHandle().process.submit(VideoProcessorServer.set_config, config).result()
 
     @property
     def psi(self) -> float:
-        return self.process.submit(VideoProcessorServer.get_psi).result()
+        return VideoProcessHandle().process.submit(VideoProcessorServer.get_psi).result()
 
     @psi.setter
     def psi(self, psi: float):
-        self.process.submit(VideoProcessorServer.set_psi, psi).result()
+        VideoProcessHandle().process.submit(VideoProcessorServer.set_psi, psi).result()
 
     @property
     def task(self) -> float:
-        return self.process.submit(VideoProcessorServer.get_task).result()
+        return VideoProcessHandle().process.submit(VideoProcessorServer.get_task).result()
 
     @task.setter
     def task(self, task: str):
-        self.process.submit(VideoProcessorServer.set_task, task).result()
+        VideoProcessHandle().process.submit(VideoProcessorServer.set_task, task).result()
 
     @property
     def experiment_id(self) -> str:
-        return self.process.submit(VideoProcessorServer.get_experiment_id).result()
+        return VideoProcessHandle().process.submit(VideoProcessorServer.get_experiment_id).result()
 
     @experiment_id.setter
     def experiment_id(self, experiment_id: str):
-        self.process.submit(VideoProcessorServer.set_experiment_id, experiment_id).result()
+        VideoProcessHandle().process.submit(VideoProcessorServer.set_experiment_id, experiment_id).result()
