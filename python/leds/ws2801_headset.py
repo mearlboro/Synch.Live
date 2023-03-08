@@ -104,7 +104,7 @@ class WS2801Headset(Headset):
 
         for i in self.CROWN_RANGE:
             if col is not None:
-                self.pixels.set_pixel(i, LED.RGB_to_color(col))
+                self.pixels.set_pixel(i, LED.RGB_to_color(*col))
             else:
                 self.pixels.set_pixel(i, LED.RGB_to_color(*self.crown_col))
         self.pixels.show()
