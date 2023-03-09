@@ -1,7 +1,7 @@
 import logging
 import os
 import signal
-from concurrent.futures import ProcessPoolExecutor
+from multiprocessing import parent_process
 from types import SimpleNamespace
 from typing import Generator
 
@@ -13,9 +13,6 @@ from synch_live.camera.video.pool import VideoProcessHandle
 from synch_live.camera.tools.config import parse
 from . import VideoProcessor
 from ..tools.colour import hsv_to_hex
-
-
-_current_handler = signal.getsignal(signal.SIGINT)
 
 
 class VideoProcessorServer:
@@ -40,6 +37,17 @@ class VideoProcessorServer:
                 logging.info(f"Opening Camera {camera_number}")
                 camera_stream = VideoStream(int(camera_number), framerate=config.camera.framerate)
             VideoProcessorServer.processor = VideoProcessor(config, camera_stream)
+
+        _existing_handler = signal.getsignal(signal.SIGINT)
+
+        def _cleanup(_signal, _frame):
+            try:
+                _existing_handler(_signal, _frame)
+            except KeyboardInterrupt:
+                pass
+
+        if parent_process() is not None:
+            signal.signal(signal.SIGINT, _cleanup)
 
     @staticmethod
     def next_frame() -> bytes | StopIteration:
@@ -109,56 +117,56 @@ class VideoProcessorServer:
 
 class VideoProcessorClient:
     def start(self):
-        VideoProcessHandle().process.submit(VideoProcessorServer.start).result()
+        VideoProcessHandle().exec(VideoProcessorServer.start)
 
     def stop(self):
-        VideoProcessHandle().process.submit(VideoProcessorServer.stop).result()
+        VideoProcessHandle().exec(VideoProcessorServer.stop)
         VideoProcessHandle().reset_video_process()
-        VideoProcessHandle().process.submit(VideoProcessorServer, current_app.config['VIDEO_CONFIG']).result()
+        VideoProcessHandle().exec(VideoProcessorServer, current_app.config['VIDEO_CONFIG'])
 
     def generate_frame(self) -> Generator[bytes, None, None]:
         while True:
-            res = VideoProcessHandle().process.submit(VideoProcessorServer.next_frame).result()
+            res = VideoProcessHandle().exec(VideoProcessorServer.next_frame)
             if res is StopIteration:
                 break
             yield res
 
     @property
     def running(self) -> bool:
-        return VideoProcessHandle().process.submit(VideoProcessorServer.get_running).result()
+        return VideoProcessHandle().exec(VideoProcessorServer.get_running)
 
     @property
     def sync(self) -> float:
-        return VideoProcessHandle().process.submit(VideoProcessorServer.get_sync).result()
+        return VideoProcessHandle().exec(VideoProcessorServer.get_sync)
 
     @property
     def config(self) -> SimpleNamespace:
-        return VideoProcessHandle().process.submit(VideoProcessorServer.get_config).result()
+        return VideoProcessHandle().exec(VideoProcessorServer.get_config)
 
     @config.setter
     def config(self, config: SimpleNamespace):
-        VideoProcessHandle().process.submit(VideoProcessorServer.set_config, config).result()
+        VideoProcessHandle().exec(VideoProcessorServer.set_config, config)
 
     @property
     def psi(self) -> float:
-        return VideoProcessHandle().process.submit(VideoProcessorServer.get_psi).result()
+        return VideoProcessHandle().exec(VideoProcessorServer.get_psi)
 
     @psi.setter
     def psi(self, psi: float):
-        VideoProcessHandle().process.submit(VideoProcessorServer.set_psi, psi).result()
+        VideoProcessHandle().exec(VideoProcessorServer.set_psi, psi)
 
     @property
     def task(self) -> float:
-        return VideoProcessHandle().process.submit(VideoProcessorServer.get_task).result()
+        return VideoProcessHandle().exec(VideoProcessorServer.get_task)
 
     @task.setter
     def task(self, task: str):
-        VideoProcessHandle().process.submit(VideoProcessorServer.set_task, task).result()
+        VideoProcessHandle().exec(VideoProcessorServer.set_task, task)
 
     @property
     def experiment_id(self) -> str:
-        return VideoProcessHandle().process.submit(VideoProcessorServer.get_experiment_id).result()
+        return VideoProcessHandle().exec(VideoProcessorServer.get_experiment_id)
 
     @experiment_id.setter
     def experiment_id(self, experiment_id: str):
-        VideoProcessHandle().process.submit(VideoProcessorServer.set_experiment_id, experiment_id).result()
+        VideoProcessHandle().exec(VideoProcessorServer.set_experiment_id, experiment_id)

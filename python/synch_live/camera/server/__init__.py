@@ -48,7 +48,7 @@ def create_app(test_config=None):
         pass
 
     if threading.current_thread() is threading.main_thread():
-        VideoProcessHandle().process.submit(VideoProcessorServer, app.config['VIDEO_CONFIG']).result()
+        VideoProcessHandle().exec(VideoProcessorServer, app.config['VIDEO_CONFIG'])
 
     @app.route('/')
     def main():
