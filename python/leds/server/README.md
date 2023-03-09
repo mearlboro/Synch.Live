@@ -104,27 +104,72 @@ example of this file is shown on GitHub but it is different on all the hats base
 Currently, only hat 4 and 5 have the files with recently developed Flask web application. If you want to extend it to
 other hats, you need to do the following:
 
-- Install Flask and PyYaml on the hat
-- Transfer recent files on the hat
-- Setup of the systemd service
+1. Install `requirements.txt` on the hat
+2. Transfer recent files on the hat using WinSCP or Ansible
+3. Setup of the SYSTEMD so that server starts on boot:
+    1. Create a unit file
+        - Open a sample unit file using the command as shown below:
+        ```
+        sudo nano /lib/systemd/system/hat.service
+       ```
+        - Add in the following text :
+        ```
+       [Unit]
+       Description=Hat Service
+       
+       [Service]
+       User=pi
+       WorkingDirectory=~
+       Type=simple
+       ExecStart=python3 -m leds.server.server
+       
+       [Install]
+       WantedBy=multi-user.target
+       ```
+        - You should save and exit the nano editor.
+        - The permission needs to be set to 644 for the unit file:
+       ```
+       sudo chmod 644 /lib/systemd/system/hat.service
+       ```
+    2. Configure systemd:
+        - After the unit file has been defined:
+        ```
+       sudo systemctl daemon-reload
+       sudo systemctl enable hat.service
+       ```
+        - Reboot the Pi:
+       ```
+       sudo reboot
+       ```
 
-## How to Use
+## How to Use Hat App
 
 To use this Flask web application, follow these steps:
 
-1. Clone this repository to your local machine.
-2. Navigate to the server directory.
-3. Make sure you have Python and Flask installed on your machine.
-4. Make sure the hat is turned on.
-5. Open your web browser and navigate to http://192.168.100.104:5000/ (for player 4) or http://192.168.100.105:5000/ (
+1. Make sure that the Synch.Live router is turned on.
+2. Connect to the Synch.Live network using the password.
+3. Make sure the hat is turned on.
+4. Open your web browser and navigate to http://192.168.100.104:5000/ (for player 4) or http://192.168.100.105:5000/ (
    for player 5) to view the web application.
-6. Use the web interface to control the LEDs of the player's hat.
+5. Use the panel to control the LEDs of the hat.
+
+- **'Colour' tab**: allows you to try main and secondary colour, blinks per minute and duration time. There is an
+  option of saving the configuration in a config.yaml file, which is later used to apply effects.
+- **'Effects' tab**: configurations from config.yaml file are used to run effects such as pilot, exposure, breathe and
+  two
+  types of fade. If config.yaml doesn't exist (it was not saved), default colours are used.
+- **'Animations' tab**: contains pre-defined effects such as rainbow, fire, police lights, paparazzi and disco lights.
+- **Home page**: navigates to the observer app.
+- **Hat 4**: navigates to hat 4 app.
+- **Hat 5**: navigates to hat 5 app.
 
 ### Troubleshooting notes
 
-- Flask debugger issues
-    - most Flask issues are related to the incorrect routes, so when changing functionality make sure that you are
-      requesting the right one.
+- Flask issues
+    - Most of them are related to the incorrect routes, so when changing functionality make sure that you are
+      requesting the right one. The app is running in debug mode to make debugging easier.
 
 - Server doesn't start on boot
-    - happens only when the flask app itself is incorrect, so it can't render any templates.
+    - When the routes in the `server.py` are incorrect, it can't render any templates.
+    - If it is still not working, SSH into the hat and run the following command to check the logs for the server:
+      ```journalctl -u hat.service```
