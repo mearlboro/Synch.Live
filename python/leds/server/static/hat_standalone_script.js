@@ -41,37 +41,3 @@ effectdurationValue.innerHTML = effectdurationSlider.value;
 effectdurationSlider.oninput = function() {
     effectdurationValue.innerHTML = this.value;
 };
-
-//document.getElementById("defaultOpen").click();
-//
-//$('.tablinks').click(function(){
-//    var activetab = $(this).attr('id');
-//    localStorage.setItem('activetab', activetab );
-//});
-//
-//$(function() {  //short hand for $(document).ready()
-//    var activetab = localStorage.getItem('activetab');
-//    document.getElementById(activetab).click();
-//});
-
-//function changedColor() {
-//    var newRGBHex = document.getElementById("colorPicker").value;
-//    var newRGBValues = hexToRgb(newRGBHex);
-//    const request = new XMLHttpRequest();
-//    request.open('POST', '/ProcessNewColor/${JSON.stringify(newRGBValues)}');
-//    request.send();
-//    window.alert(newRGBValues);
-//}
-//
-//function hexToRgb(hex){
-//    var c;
-//    if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
-//        c= hex.substring(1).split('');
-//        if(c.length== 3){
-//            c= [c[0], c[0], c[1], c[1], c[2], c[2]];
-//        }
-//        c= '0x'+c.join('');
-//        return [(c>>16)&255, (c>>8)&255, c&255].join(',');
-//    }
-//    throw new Error('Bad Hex');
-//}

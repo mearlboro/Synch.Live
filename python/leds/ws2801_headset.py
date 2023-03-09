@@ -6,7 +6,8 @@ import random
 import time
 from math import floor
 from typing import List, Tuple
-import random
+
+
 
 # hardware controllers
 import Adafruit_WS2801 as LED
@@ -103,7 +104,7 @@ class WS2801Headset(Headset):
 
         for i in self.CROWN_RANGE:
             if col is not None:
-                self.pixels.set_pixel(i, LED.RGB_to_color(col))
+                self.pixels.set_pixel(i, LED.RGB_to_color(*col))
             else:
                 self.pixels.set_pixel(i, LED.RGB_to_color(*self.crown_col))
         self.pixels.show()
@@ -154,7 +155,7 @@ class WS2801Headset(Headset):
 
 
     def crown_fadein_colour(self,
-            dt: float = 0.01, col: Tuple[int, int, int] = (255, 255, 255), dur: float = 5.0
+            dt: float = 0.01, col: Tuple[int, int, int] = None, dur: float = 5.0
         ) -> None:
         """
         All leds in the crown should fade in to the `col` param or, if that is
@@ -165,6 +166,8 @@ class WS2801Headset(Headset):
 
         self.crown_off()
         sleep_duration = float((dur - 1.5) / 100)
+        if col is None:
+            col = self.crown_col
         r, g, b = col
         for j in range(100):
             for i in self.CROWN_RANGE:
@@ -271,18 +274,23 @@ class WS2801Headset(Headset):
                 col = (0, 0, 0)
                 if switcher == 0:
                     if i % 2 == 0:
+                        # Blue
                         col = (0, 0 ,255)
                     else:
+                        # Red
                         col = (255, 0, 0)
                 if switcher == 1:
                     if i % 2 == 1:
+                        # Blue
                         col = (0, 0 ,255)
                     else:
+                        # Red
                         col = (255, 0, 0)
 
                 self.pixels.set_pixel(i, LED.RGB_to_color(*col))
             self.pixels.show()
             time.sleep(dt)
+            # Mechanism to switch alternate colours between red and blue
             if switcher == 0:
                 switcher = 1
             else:
@@ -302,8 +310,10 @@ class WS2801Headset(Headset):
                     # Dark red
                     col = (102, 0, 0)
                 elif random_number <= 20:
+                    # Relatively lighter red
                     col = (255, 51, 51)
                 elif random_number <= 30:
+                    # Orange
                     col = (255, 128, 0)
                 else:
                     # Orange
@@ -370,8 +380,7 @@ class WS2801Headset(Headset):
                     col = (0, 0, 0)
                 self.pixels.set_pixel(i, LED.RGB_to_color(*col))
             self.pixels.show()
-            dt = random.uniform(0.05, 0.25)
-            time.sleep(dt)
+            time.sleep(random.uniform(0.05, 0.25))
         self.crown_off()
 
     def crown_trial_config(self, r=255, g=255, b=255, blink_freq=1, effect_dur=1) -> None:
@@ -379,48 +388,60 @@ class WS2801Headset(Headset):
          Set the colour, blink frequency and effect duration to the custom configuration, and run for 5 seconds.
         """
         super().crown_trial_config_log()
-        if blink_freq is not 0:
-            sleep_duration = float(1/blink_freq)
-            if effect_dur > 5:
-                timer = floor(5 / sleep_duration)
-            else:
-                timer = floor(effect_dur / sleep_duration)
-        else:
-            timer = 1
-            sleep_duration = float(5)
 
-        for _ in range(timer):
-            if blink_freq is not 0:
-                self.crown_off()
-            for i in self.CROWN_RANGE:
-                col = (r, g, b)
-                self.pixels.set_pixel(i, LED.RGB_to_color(*col))
+        # Limit loop (effect) run-time to 5 seconds.
+        if effect_dur > 5:
+            effect_dur = 5
+
+        t_end_5 = time.time() + 5
+
+        if blink_freq is not 0:
+            sleep_duration = float(60 / blink_freq) - 0.25
+            t_end = time.time() + effect_dur
+
+
+            # Blinking effect for effect_dur seconds
+            while time.time() < t_end:
+                for i in self.CROWN_RANGE:
+                    col = (r, g, b)
+                    self.pixels.set_pixel(i, LED.RGB_to_color(*col))
+                self.pixels.show()
+                time.sleep(sleep_duration)
+                if blink_freq is not 0:
+                    self.crown_off()
+                    time.sleep(0.25)
+
+        # Lights stay solidly on the colour (r, g, b) while the trial time of 5 seconds is not finished.
+        while time.time() < t_end_5:
+            WS2801Headset((r, g, b), (r, g, b), 0.5, 1.5).crown_on()
+            for i in self.PILOT_RANGE:
+                self.pixels.set_pixel(i, LED.RGB_to_color(*self.pilot_col))
             self.pixels.show()
-            time.sleep(sleep_duration)
 
         self.crown_off()
 
     def crown_run_config(self, r=43, g=67, b=220, blink_freq=1, effect_dur=5) -> None:
         """
-         Set the colour, blink frequency and effect duration to the custom configuration, and run for 5 seconds.
+         Set the colour, blink frequency and effect duration to the custom configuration, and run effect for
+         effect_dur seconds. Then the crown lights stay solidly on at the same colour.
         """
         super().crown_run_config()
         if blink_freq is not 0:
-            sleep_duration = float(1/blink_freq)
-            timer = floor(effect_dur / sleep_duration)
-        else:
-            timer = 1
-            sleep_duration = float(5)
+            sleep_duration = float(60/blink_freq) -0.25
+            t_end = time.time() + effect_dur
 
-        for _ in range(timer):
-            if blink_freq is not 0:
-                self.crown_off()
-            for i in self.CROWN_RANGE:
-                col = (r, g, b)
-                self.pixels.set_pixel(i, LED.RGB_to_color(*col))
-            self.pixels.show()
-            time.sleep(sleep_duration)
+            # Blinking effect for effect_dur seconds
+            while time.time() < t_end:
+                for i in self.CROWN_RANGE:
+                    col = (r, g, b)
+                    self.pixels.set_pixel(i, LED.RGB_to_color(*col))
+                self.pixels.show()
+                time.sleep(sleep_duration)
+                if blink_freq is not 0:
+                    self.crown_off()
+                    time.sleep(0.25)
 
+        # Make the crown lights and pilot lights stay solidly on when the blinking effect ends
         WS2801Headset((r, g, b), (r, g, b), 0.5, 1.5).crown_on()
         for i in self.PILOT_RANGE:
             self.pixels.set_pixel(i, LED.RGB_to_color(*self.pilot_col))

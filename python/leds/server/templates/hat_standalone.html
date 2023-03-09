@@ -1,4 +1,46 @@
-{% extends "layout.html" %}
+{% set navigation = [
+  dict(caption='Home', href=url_for('go_to_observer')), 
+  dict(caption='Hat 4', href="http://192.168.100.104:5000/"), 
+  dict(caption='Hat 5', href="http://192.168.100.105:5000/")] %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="{{ url_for('static', filename='output.css') }}">
+<title>{% block title %}Synch.Live{% endblock %}</title>
+<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+<!--<link href="../static/style.css" rel="stylesheet">-->
+<link href="../static/hat_standalone.css" rel="stylesheet">
+<script src="../static/hat_standalone_script.js"></script> 
+</head>
+<body class="container bg-white dark:bg-black text-black dark:text-white mx-auto px-4 py-4 flex flex-col gap-4">
+<header class="flex flex-row gap-6 items-center text-xl">
+<p class="text-6xl font-medium"><a href="/main.html">Synch.Live Hat</a></p>
+<nav>
+  <ul class="flex flex-row items-center divide-x">
+    {% for item in navigation %}
+        <li class="px-4 {% if request.path == item.href %}text-gray-500{% endif %}">
+            {% if item.href != request.path %}
+                <a href="{{ item.href }}">{{ item.caption }}</a>
+            {% else %}
+                {{ item.caption }}
+            {% endif %}
+        </li>
+    {% endfor %}
+</ul>
+  <!--
+  <ul class="flex flex-row items-center divide-x">
+    
+      <a href="{{ url_for('go_to_observer') }}">Home</a>
+      <a href="http://192.168.100.104:5000/">Hat 4</a>
+      <a href="http://192.168.100.105:5000/">Hat 5</a>
+    <a href="http://192.168.100.100:5000/">Observer</a>
+    
+  </ul> -->
+
+</nav>
+</header>
+<hr class="h-1 bg-gray-800 dark:bg-gray-200" />
 {% from "_taghelpers.html" import render_h1, render_h2, render_section %}
 {% block content %}
 
@@ -40,12 +82,12 @@
 
       <ul class="text-1xl font-medium flex flex-row gap-4 items-center">
       
-        <label for="blickfrequency">Blinks per second:</label>
-        <input type="number" id="blickfrequency" name="blickfrequency" min="0" max="5" value="{{ freq|default('0') }}">
+        <label for="blickfrequency">Blinks per minute:</label>
+        <input type="number" id="blickfrequency" name="blickfrequency" min="0" max="30" value="{{ freq|default('0') }}">
         
 
         <label for="effectduration">Effect duration:</label>
-        <input type="number" id="effectduration" name="effectduration" min="1" max="20" value="{{ dur|default('3') }}">
+        <input type="number" id="effectduration" name="effectduration" min="0" max="120" value="{{ dur|default('0') }}">
 
       </ul>
 
