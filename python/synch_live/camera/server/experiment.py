@@ -33,7 +33,7 @@ def observe():
         
         return redirect(url_for('experiment.observe'))
     
-    return render_template('observe.html', form=form, time=time.time(), task = video_processor.task)
+    return render_template('observe.html', form=form, time=time.time(), task = video_processor.task, psi = video_processor.psi)
 
 
 class TaskSettings(Form):

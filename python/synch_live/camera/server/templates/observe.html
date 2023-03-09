@@ -10,7 +10,8 @@
 
     <img src="{{ url_for('tracking.feed', nonce=time) }}" alt="Tracking feed" class="max-w-xl">
 
-    <p>Current task: {{ task }}</p>
+    <p>Current task: {{ task }} </p>
+    <p>Psi: {{ psi }}</p>
 
     {{ render_form(form, 'Submit')}}
 
