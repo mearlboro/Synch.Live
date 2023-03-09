@@ -3,10 +3,6 @@ import datetime
 import sqlite3
 from io import StringIO
 
-# This must be old because it's overridden below
-# today = datetime.date.today().strftime('%Y-%m-%d')
-# datapath = '/instance/database.db'
-
 '''
 def get_db():
     if 'db' not in g:
@@ -42,7 +38,7 @@ def init_app(app):
 '''
 
 today = datetime.date.today().strftime('%Y-%m-%d')
-datapath = './database.db'
+datapath = './instance/database.db'
 
 # creating table 'trajectories' in database.db
 def create_table_trajectories():
@@ -180,7 +176,7 @@ def clean_query():
     cursor = connection.cursor()
 
     # after this number of days we delete data from the database
-    days_ago = 7
+    days_ago = 1
 
     # calculate the date 7 days ago from the current date
     date_cutoff = (datetime.datetime.now() - datetime.timedelta(days=days_ago)).date()
@@ -190,13 +186,13 @@ def clean_query():
         FROM trajectories
         WHERE experiment_id IN (SELECT experiment_id 
         FROM experiment_parameters 
-        WHERE experiment_is_test = 'YES' AND date(date) <= date(?))''', [date_cutoff])
+        WHERE experiment_is_test = 'NO' AND date(date) <= date(?))''', [date_cutoff])
     connection.commit()
 
     # deleting from the table 'experiment_parameters'
     cursor.execute('''DELETE
         FROM experiment_parameters 
-        WHERE experiment_is_test = 'YES' AND date(date) <= date(?)''', [date_cutoff])
+        WHERE experiment_is_test = 'NO' AND date(date) <= date(?)''', [date_cutoff])
 
     connection.commit()
     connection.close()

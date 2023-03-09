@@ -12,7 +12,8 @@ def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
         SECRET_KEY='dev',
-        DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
+        ### Commented out db so we don't have multiple dbs
+        #DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
         VIDEO_CONFIG=os.path.join(app.instance_path, 'video_config.yml'),
         ANSIBLE_DIR=os.path.join(app.root_path, '../../../../ansible'),
     )
