@@ -12,7 +12,7 @@
     {{ render_h1('Task updates:') }}
     <p>Current task: {{task}}</p>
     <turbo-stream-source src="{{ url_for('setup_items.messages') }}"></turbo-stream-source>
-    <form action="{{ url_for('setup.stop_setup') }}" method="get">
+    <form action="{{ url_for('setup_items.stop_setup') }}" method="get">
         {{ render_submit_field(value="Stop") }}
     </form>
     <ol id="messages"></ol>
