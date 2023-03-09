@@ -8,13 +8,15 @@ bp = Blueprint('download', __name__, url_prefix='/download')
 
 @bp.route('/get_data')
 def get_data():
-    
+
     # sql query must be done outside of form in order to update dynamically in the app
     id_list = get_all_experiment_ids_query()
-    form = DataInfoDropdown(request.form)
+    form = DataInfoDropdown(request.args)
     form.experiment_id.choices = id_list
+    
 
     if form.experiment_id.data and form.validate():
+        
         experiment_id = form.experiment_id.data        
 
         response = process_query(experiment_id)

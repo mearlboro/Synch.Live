@@ -176,7 +176,7 @@ def clean_query():
     cursor = connection.cursor()
 
     # after this number of days we delete data from the database
-    days_ago = 1
+    days_ago = 7
 
     # calculate the date 7 days ago from the current date
     date_cutoff = (datetime.datetime.now() - datetime.timedelta(days=days_ago)).date()
