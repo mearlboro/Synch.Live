@@ -28,6 +28,7 @@ def create_app(test_config=None):
         return [
             dict(href=url_for('main'), caption='Home'),
             dict(href=url_for('setup.start_setup'), caption='Setup'),
+            dict(href=url_for('setup_items.start_setup'), caption='Setup Items'),
             dict(href=url_for('tracking.control'), caption='Experiment'),
             dict(href=url_for('download.get_data'), caption='Data'),
         ]
@@ -61,8 +62,9 @@ def create_app(test_config=None):
         view_func=lambda **kw: send_from_directory('node_modules', path=f"{kw['filename']}.js"),
     )
 
-    from . import setup, experiment, tracking, download, players_listener
+    from . import setup, setup_items, experiment, tracking, download, players_listener
     app.register_blueprint(setup.bp)
+    app.register_blueprint(setup_items.bp)
     app.register_blueprint(experiment.bp)
     app.register_blueprint(tracking.bp)
     app.register_blueprint(download.bp)
