@@ -8,8 +8,8 @@ for easier access. User can also try out various effects and animations from
 
 ## Contents
 
-The `server` package contains 4 main components, `static`, `templates`, `server.py`
-and `config.yaml` (currently not shown on GitHub, exists on the hat upon save).
+The `server` package contains 4 main components: `static` folder, `templates` folder, `server.py`
+and `config.yaml` (an example of it is on GitHub, saved and changed on the hats through the web application).
 
 ### `server.py`
 
@@ -36,34 +36,40 @@ Folder with all the HTML templates used by Flask to render pages.
 
 ### `config.yaml`
 
-It contains the configuration settings for the RGB colours, blink frequency and effect duration for the headset. This
-file is not shown on GitHub but exists on the hat upon save button in the interface.
+It contains the configuration settings for the RGB colours, blink frequency and effect duration for the headset. The
+example of this file is shown on GitHub but it is different on all the hats based on the passed configurations.
 
 ## Setup Notes
 
 1. Install required packages from `requirements.txt`.
-2. Make sure that the latest code is on the hats from `python` folder for `leds`.
+2. Make sure that the latest code is on the hats from `python` folder for `leds`. This was done using the WinSCP, but
+   can be potentially done using existing Ansible scripts.
 
-- WinSCP: open-source SSH File Transfer Protocol.
+    ``` 
+    Instruction for using WinSCP: open-source SSH File Transfer Protocol.
+   
     1. Fill in the details on the starter page:
-    ```
-    Host name: player4
-    Port number: 22
-    User name: pi
-    Password: ...
-    ```
+    
+       Host name: player4
+       Port number: 22
+       User name: pi
+       Password: the password for the pi
+
     2. Click on “Advanced”.
     3. Under the “Connection” tab, go to “Tunnel”.
-    4. Enter the following details: (Make sure to use your own Private key file. I’m not sure if Putty private key (
-       .PPK) format is
-       needed, but is best to use this as it is what is best for me. Look online for how to convert
-       your private key to a .ppk key)
+    4. Enter the following details: 
+       
+       Host name: synchlive.ddns.net
+       Port number: 1984
+       User name: pi
+       Private key file: find the directory with your SSH key
+   
     5. Click “OK” at the bottom of the window.
     6. Click “Save”. Make sure the save password checkbox is ticked on the popup that appear.
        Then click “OK”.
-    7. Now you can just click on the “player4” label on the left-hand pane, and click login to view
+    7. Now you can just click on the “player4” label on the left-hand pane, and click login to view, transfer
        and edit files on the hat
-
+    ```
 
 ## Running the code for development
 
