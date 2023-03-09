@@ -247,15 +247,6 @@ class EmergenceCalculator():
         return psi_filt
 
 
-    def exit(self) -> None:
-        """
-        Gracefully shut down JVM. Call whenever done with the calculator.
-        """
-        if jp.isJVMStarted():
-            logging.info('Shutting down JVM...')
-            jp.shutdownJVM()
-
-
 @click.command()
 @click.option('--filename',  help = 'Numpy array dump of microscopic features of the system', required = True)
 @click.option('--threshold', help = 'Number of timesteps to wait before calculation, at least as many as the dimenstions of the system')
@@ -271,8 +262,9 @@ def test(filename: str, threshold: int = SAMPLE_THRESHOLD) -> None:
         if psi:
             print(f't{i}: {psi}')
 
-    calc.exit()
-
+    if jp.isJVMStarted():
+        logging.info('Shutting down JVM...')
+        jp.shutdownJVM()
 
 if __name__ == "__main__":
     test()

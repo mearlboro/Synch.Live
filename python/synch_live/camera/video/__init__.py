@@ -197,10 +197,6 @@ class VideoProcessor():
 
     def set_manual_psi(self, psi: float) -> None:
         if self.task != 'manual':
-            if self.task == 'psi':
-                if self.calc:
-                    self.calc.exit()
-
             self.task = 'manual'
             self.config.game.task = 'manual'
 
@@ -503,7 +499,3 @@ class VideoProcessor():
             if self.video_writer:
                 logging.info('Closing video writer...')
                 self.video_writer.release()
-
-        if self.task == 'emergence':
-            if self.calc:
-                self.calc.exit()
