@@ -70,8 +70,9 @@ file is not shown on GitHub but exists on the hat upon save button in the interf
 1. Comment out the lines in server.py which are related to the LEDs.
 2. Make changes in HTML, CSS or `server.py`.
 3. Push to GitHub and transfer the updated files to the hats using WinSCP.
+4. [Add stuff about systemd to start server on boot for new hats]
 
-## How to Use
+## How to Use [rewrite this for development and user testing]
 
 To use this Flask web application, follow these steps:
 
