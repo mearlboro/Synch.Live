@@ -73,12 +73,42 @@ example of this file is shown on GitHub but it is different on all the hats base
 
 ## Running the code for development
 
-1. Comment out the lines in server.py which are related to the LEDs.
-2. Make changes in HTML, CSS or `server.py`.
-3. Push to GitHub and transfer the updated files to the hats using WinSCP.
-4. [Add stuff about systemd to start server on boot for new hats]
+### Making changes on hat 4 and 5
 
-## How to Use [rewrite this for development and user testing]
+1. Clone this repository to your local machine.
+2. Make changes in `server.py` or any of the HTML/CSS files.
+3. In development mode, you need to comment out the lines in `leds/server/server.py` that relate
+   to `WS2801Headset`. You will also need to comment out all of the routese that contain `leds.` (this is all of the
+   routes after `"/main"`). This is because all of these imports and routes are related to LEDs, so they will not work
+   locally on your machine.
+5. Run the app as follows:
+
+ ```
+ cd /python
+ python3 leds/server/server.py local
+ 
+ or 
+ 
+ python leds/server/server.py local
+ ```
+
+6. Go to `localhost:5000` or `http://127.0.0.1:5000/` in your web browser. If import errors appear, check again that
+   you have commented out everything related to the `leds` in `server.py`.
+7. Make sure the hats are turned on.
+8. After introducing the changes, transfer the updated files from `leds` folder to the hats using WinSCP or Ansible.
+9. Open your web browser and navigate to http://192.168.100.104:5000/ (for player 4) or http://192.168.100.105:5000/ (
+   for player 5) to view the web application.
+
+### Distributing the code to other hats
+
+Currently, only hat 4 and 5 have the files with recently developed Flask web application. If you want to extend it to
+other hats, you need to do the following:
+
+- Install Flask and PyYaml on the hat
+- Transfer recent files on the hat
+- Setup of the systemd service
+
+## How to Use
 
 To use this Flask web application, follow these steps:
 
