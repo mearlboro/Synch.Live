@@ -1,11 +1,15 @@
 import os
 import threading
+from multiprocessing import current_process
 
 from flask import Flask, render_template, url_for, send_from_directory
 from . import download
 
 from synch_live.camera.video.proxy import VideoProcessorServer
 from ..video.pool import VideoProcessHandle
+
+def is_parent_process():
+    return current_process().__getattribute__('_parent_pid') is None
 
 
 def create_app(test_config=None):
@@ -49,7 +53,7 @@ def create_app(test_config=None):
     except OSError:
         pass
 
-    if threading.current_thread() is threading.main_thread():
+    if is_parent_process() and threading.current_thread() is threading.main_thread():
         VideoProcessHandle().exec(VideoProcessorServer, app.config['VIDEO_CONFIG'])
 
     @app.route('/')
