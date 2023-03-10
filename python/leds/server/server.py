@@ -62,7 +62,7 @@ def create_app(server_type):
 
     @app.route("/")
     def main():
-        return render_template('hat_standalone.html', lastTwoDigits=lastTwoDigits)
+        return webpage()
 
     @app.route("/main")
     def go_to_observer():

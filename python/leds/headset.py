@@ -189,13 +189,13 @@ class Headset(ABC):
 
     def crown_trial_config_log(self, r=255, g=255, b=255, blink_freq=1, effect_dur=1) -> None:
         """
-        Set the colour, blink frequency and effect duration to the custom configuration, and run for 5 seconds.
+        Set the colour, blink frequency and effect duration to the custom configuration, and run for 10 seconds.
         """
         logging.info("Begin trial of custom configuration")
 
     def crown_run_config(self, r=255, g=255, b=255, blink_freq=1, effect_dur=1) -> None:
         """
-        Set the colour, blink frequency and effect duration to the custom configuration, and run for 5 seconds.
+        Set the colour, blink frequency and effect duration to the custom configuration, and run for effect_dur seconds.
         """
         logging.info("Begin running of custom configuration")
 
