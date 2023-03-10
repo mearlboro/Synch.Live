@@ -52,7 +52,9 @@ class VideoProcessorServer:
     @staticmethod
     def next_frame() -> bytes | StopIteration:
         try:
-            return next(VideoProcessorServer.processor.generate_frame())
+            if VideoProcessorServer.processor:
+                return next(VideoProcessorServer.processor.generate_frame())
+            raise StopIteration
         except StopIteration as e:
             return e
 
