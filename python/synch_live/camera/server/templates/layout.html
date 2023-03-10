@@ -15,7 +15,7 @@
     <nav>
         <ul class="flex flex-row items-center divide-x">
             {% for item in navigation() %}
-                <li class="px-4 {% if item.href.startswith(['/', request.blueprint] | join) %}text-gray-500{% endif %}">
+                <li class="px-4 {% if item.href.startswith(['/', request.blueprint, '/'] | join) %}text-gray-500{% endif %}">
                     {% if item.href != request.path %}
                         <a href="{{ item.href }}">{{ item.caption }}</a>
                     {% else %}
