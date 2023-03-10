@@ -1,7 +1,7 @@
 import logging
 import os
 import signal
-from multiprocessing import parent_process
+from multiprocessing import current_process
 from types import SimpleNamespace
 from typing import Generator
 
@@ -13,6 +13,10 @@ from synch_live.camera.video.pool import VideoProcessHandle
 from synch_live.camera.tools.config import parse
 from . import VideoProcessor
 from ..tools.colour import hsv_to_hex
+
+
+def is_parent_process():
+    return current_process().__getattribute__('_parent_pid') is None
 
 
 class VideoProcessorServer:
@@ -46,11 +50,11 @@ class VideoProcessorServer:
             except KeyboardInterrupt:
                 pass
 
-        if parent_process() is not None:
+        if not is_parent_process():
             signal.signal(signal.SIGINT, _cleanup)
 
     @staticmethod
-    def next_frame() -> bytes | StopIteration:
+    def next_frame() -> bytes or StopIteration:
         try:
             if VideoProcessorServer.processor:
                 return next(VideoProcessorServer.processor.generate_frame())
