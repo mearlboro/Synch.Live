@@ -9,7 +9,7 @@
         <form action="{{ url_for('setup.start_setup') }}" method="post">
             {{ render_submit_field(value="Start") }}
         </form>
-        <form action="{{ url_for('setup.stop_setup') }}" method="get">
+        <form action="{{ url_for('setup.stop_setup') }}" method="post">
             {{ render_submit_field(value="Stop") }}
         </form>
     </div>

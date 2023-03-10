@@ -24,7 +24,8 @@ def start_setup():
     form = SetupTasks(request.form)
 
     if request.method == 'POST' and form.validate():
-
+        playbook_name = None
+        tags = None
         if form.task.data == 'lights':
             playbook_name = 'test_lights.yml'
             task = 'Testing lights...'
@@ -49,7 +50,7 @@ def start_setup():
                                                                   tags=tags,
                                                                   finished_callback=finished_callback)
                                                                 
-        return redirect(url_for('setup_items.start'))
+        return redirect(url_for('setup_items.start_setup'))
     return render_template('setup_items.html', form=form, task=task)
 
 
@@ -69,7 +70,7 @@ def messages():
     return Response(generate(), mimetype="text/event-stream")
 
 
-@bp.route('/stop')
+@bp.route('/stop', methods=['POST'])
 def stop_setup():
     if _runner is not None:
         _runner.cancel_callback = lambda: True

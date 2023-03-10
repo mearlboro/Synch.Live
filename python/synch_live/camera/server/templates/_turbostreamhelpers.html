@@ -7,7 +7,7 @@
     </turbo-stream>
 {% endmacro %}
 {% macro render_turbo_stream_source(src, label='') %}
-    <turbo-stream-source data-controller="turbo-stream" hidden src="{{ src }}"
+    <turbo-stream-source data-controller="turbo-stream" src="{{ src }}"
                          data-turbo-stream-connected-pulse-class="bg-sky-400 animate-ping"
                          data-turbo-stream-disconnected-pulse-class="bg-red-400 animate-none"
                          data-turbo-stream-connected-dot-class="bg-sky-500"

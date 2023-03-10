@@ -60,7 +60,7 @@ def messages():
     return Response(generate(), mimetype="text/event-stream")
 
 
-@bp.route('/stop')
+@bp.route('/stop', methods=['POST'])
 def stop_setup():
     if _runner is not None:
         _runner.cancel_callback = lambda: True
