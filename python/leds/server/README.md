@@ -78,7 +78,7 @@ example of this file is shown on GitHub but it is different on all the hats base
 1. Clone this repository to your local machine.
 2. Make changes in `server.py` or any of the HTML/CSS files.
 3. In development mode, you need to comment out the lines in `leds/server/server.py` that relate
-   to `WS2801Headset`. You will also need to comment out all of the routese that contain `leds.` (this is all of the
+   to `WS2801Headset`. You will also need to comment out all of the routese that contain `leds` (this is all of the
    routes after `"/main"`). This is because all of these imports and routes are related to LEDs, so they will not work
    locally on your machine.
 5. Run the app as follows:
@@ -98,6 +98,46 @@ example of this file is shown on GitHub but it is different on all the hats base
 8. After introducing the changes, transfer the updated files from `leds` folder to the hats using WinSCP or Ansible.
 9. Open your web browser and navigate to http://192.168.100.104:5000/ (for player 4) or http://192.168.100.105:5000/ (
    for player 5) to view the web application.
+
+### Making changes to led functionality
+
+1. Clone this repository to your local machine.
+2. Make changes in `ws2801_headset.py` and `headset.py` to edit LED functionality. In order to add new functionality,
+   it may be necessary to add new buttons in the `hat_standalone.html` file, and new app routes in eh `server.py` file,
+   both located in the `server` folder.
+3. Copy the code onto the hats. You can do this by following 'Step 4' from the 'Setup Notes' section above.
+4. Open the hat webpage.
+    1. If connected on the same network as the Synch.Live router, then go to the following web address:
+       `192.168.100.1xx:5000`. Replace the 'xx' with the hat number. For example, to access 'hat 04', replace 'xx'
+       with '04'
+       so that the address is `192.168.100.104:5000`.
+    2. Otherwise, if connecting via SSH, on a different connection from the hats:
+        1. Make sure that the Synch.Live router is connected to the wider internet. This will need port forwarding setup
+           from your home router to the Synch.Live router.
+        2. Setup Putty to allow you to view the hat's page on your local browser:
+            1. Open Putty.
+            2. Set the 'Host Name' as `synchlive.ddns.net`.
+            3. Set the 'Port number' to the port number set up on your home router to forward to the Synch.Live router.
+            4. In the 'Auth' tab in the sidebar, upload your SSH private key in .ppk format. Make sure that the
+               corresponding public key is saved to the observer's list of accepted SSH keys.
+            5. In the 'Tunnels' tab, set the 'Source Port' to `5000` and the 'Destination' as `localhost:xxxx` where
+               'xxxx' is any port number in the range 1000-9000. It is important that this isn't the same as anybody
+               else who will be accessing the page remotely at the same time as you.
+            6. In the 'Data' tab, set the "Auto-login username" to `pi`.
+            7. In the 'Session' tab, press `Save`.
+        3. Run the Putty session setup in the previous step. It may be necessary to enter the passphrase to your SSH
+           key.
+        4. Enter the following command into the command line: `ssh -L xxxx:localhost:5000 playerY -N` where 'xxxx' is
+           the
+           port number set in the 'Tunnels' tab in Step 2, and 'Y' is the hat number you want to connect to.
+        5. Go to `localhost:5000` in your browser. You should be able to see the hat's webpage.
+           ```
+           If the webpage does not show, it might be fixed by rebooting the Flask server on the hat. To do this, 
+           run the following code on the Hat's command line, within the `server` folder inside the `leds` folder:
+           `sudo systemctl restart hat`. Then, refresh the browser page.
+           ```
+5. Run the relevant code, via the GUI, to check that the hat functionality is running as required.
+6. Push the new/edited code to the Synch.Live Git repo. Copy the code to all the Hats.
 
 ### Distributing the code to other hats
 
