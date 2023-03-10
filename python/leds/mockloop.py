@@ -7,7 +7,7 @@ import typing
 from headset import Headset
 
 # initialise logging to file
-import logger
+import leds.logger
 
 
 def mock_loop(leds: Headset, period: float, rand: float, repeats: int = 100) -> None:
