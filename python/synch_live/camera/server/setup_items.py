@@ -44,12 +44,12 @@ def start_setup():
             lock.acquire()
             global _runner, _runner_process
             (_runner_process, _runner) = ansible_runner.run_async(private_data_dir=current_app.config['ANSIBLE_DIR'],
-                                                                playbook=playbook_name, forks=10, limit='players',
-                                                                event_handler=event_handler,
-                                                                tags=tags,
-                                                                finished_callback=finished_callback)
+                                                                  playbook=playbook_name, forks=10, limit='players',
+                                                                  event_handler=event_handler,
+                                                                  tags=tags,
+                                                                  finished_callback=finished_callback)
                                                                 
-            
+        return redirect(url_for('setup_items.start'))
     return render_template('setup_items.html', form=form, task=task)
 
 

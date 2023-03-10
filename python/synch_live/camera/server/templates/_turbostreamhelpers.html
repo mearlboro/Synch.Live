@@ -1,7 +1,23 @@
+{% from "_componenthelpers.html" import render_label, render_pulse %}
 {% macro render_turbo_stream(action, target) %}
     <turbo-stream action="{{ action }}" target="{{ target }}">
         <template>
             {{ caller() | safe }}
         </template>
     </turbo-stream>
+{% endmacro %}
+{% macro render_turbo_stream_source(src, label='') %}
+    <turbo-stream-source data-controller="turbo-stream" hidden src="{{ src }}"
+                         data-turbo-stream-connected-pulse-class="bg-sky-400 animate-ping"
+                         data-turbo-stream-disconnected-pulse-class="bg-red-400 animate-none"
+                         data-turbo-stream-connected-dot-class="bg-sky-500"
+                         data-turbo-stream-disconnected-dot-class="bg-red-500">
+        {% if label %}
+            {% call render_label(label) %}
+                {{ render_pulse(turbo_stream=True) }}
+            {% endcall %}
+        {% else %}
+            {{ render_pulse(turbo_stream=True) }}
+        {% endif %}
+    </turbo-stream-source>
 {% endmacro %}

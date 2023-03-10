@@ -1,14 +1,23 @@
 {% extends "layout.html" %}
 {% from "_taghelpers.html" import render_h1 %}
 {% block title %}Synch.Live Observer Control{% endblock %}
-{% from "_componenthelpers.html" import render_pulse %}
+{% from "_turbostreamhelpers.html" import render_turbo_stream_source %}
 {% from "_formhelpers.html" import render_submit_field %}
 {% block content %}
     {{ render_h1('Setup') }}
-    <turbo-stream-source src="{{ url_for('setup.messages') }}"></turbo-stream-source>
-    <form action="{{ url_for('setup.stop_setup') }}" method="get">
-        {{ render_submit_field(value="Stop") }}
-    </form>
-    <ol id="messages"></ol>
-    {{ render_pulse() }}
+    <div class="flex flex-row gap-4">
+        <form action="{{ url_for('setup.start_setup') }}" method="post">
+            {{ render_submit_field(value="Start") }}
+        </form>
+        <form action="{{ url_for('setup.stop_setup') }}" method="get">
+            {{ render_submit_field(value="Stop") }}
+        </form>
+    </div>
+    <ol id="messages">
+        {% for status in statuses %}
+            {% set line = status["stdout"] %}
+            {% include 'line.html' %}
+        {% endfor %}
+    </ol>
+    {{ render_turbo_stream_source(url_for('setup.messages'), 'Connected') }}
 {% endblock %}

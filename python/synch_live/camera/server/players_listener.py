@@ -15,16 +15,15 @@ def live_players():
     render_turbo_stream = get_template_attribute('_turbostreamhelpers.html', 'render_turbo_stream')
 
     def render_job(job):
-        player_id = 0
         if job['action'] == 'replace':
-            target = f'player_{player_id}'
+            target = f'player_{job["player_id"]}'
         else:
             target = 'players'
         return render_turbo_stream(job['action'], target,
                                    caller=lambda: render_template('player_link.html', player=dict(
-                                       id=player_id,
+                                       id=job['player_id'],
                                        href=f'http://{job["host"]}:{job["port"]}',
-                                       caption=job['name']
+                                       caption=f'Player {job["player_id"]}'
                                    )))
 
     @stream_with_context
@@ -45,12 +44,27 @@ class PlayerListener(ServiceListener):
 
     def update_service(self, zc: Zeroconf, type_: str, name: str) -> None:
         info = zc.get_service_info(type_, name)
-        self.queue.put(dict(name=info.get_name(), action='replace', host=info.server, port=info.port))
+        if not info.server.startswith("player"):
+            return
+        name = info.server.rstrip(".local")
+        player_id = name.lstrip("player")
+        self.queue.put(dict(name=name, action='replace', host=info.server, port=info.port,
+                            player_id=player_id))
 
     def remove_service(self, zc: Zeroconf, type_: str, name: str) -> None:
         info = zc.get_service_info(type_, name)
-        self.queue.put(dict(name=info.get_name(), action='remove', host=info.server, port=info.port))
+        if not info.server.startswith("player"):
+            return
+        name = info.server.rstrip(".local")
+        player_id = name.lstrip("player")
+        self.queue.put(dict(name=name, action='remove', host=info.server, port=info.port,
+                            player_id=player_id))
 
     def add_service(self, zc: Zeroconf, type_: str, name: str) -> None:
         info = zc.get_service_info(type_, name)
-        self.queue.put(dict(name=info.get_name(), action='append', host=info.server, port=info.port))
+        if not info.server.startswith("player"):
+            return
+        name = info.server.rstrip(".local")
+        player_id = name.lstrip("player")
+        self.queue.put(dict(name=name, action='append', host=info.server, port=info.port,
+                            player_id=player_id))
