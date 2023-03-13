@@ -10,15 +10,19 @@ Rosas FE*, Mediano PAM*, Jensen HJ, Seth AK, Barrett AB, Carhart-Harris RL, et a
 causal emergence in multivariate data_](https://doi.org/10.1371/journal.pcbi.1008289).
 PLoS Comput Biol 16(12):e1008289.
 
-
 ## Contents
 
-The `camera` package contains three sub packages, `core`, `server` and `tools`
-and a folder `config` to store YAML config files.
+The `camera` package contains several sub packages, which are described below:
+- `core` - core tools for performing image detection
+- `server` - Flask app for the Observer UI
+- `video` - a package for handling the video feed in a separate process to the server
+- `db` - a package that connects to an SQLite database and includes functions for writing experiment parameters and trajectories to the database
+- `tools` - a package that can be used to test the `core` functionality in a development environment
+
+It also contains a folder `config` to store YAML config files.
 
 ### `core`
-A package including all the core tools for performing image detection, tracking,
-and emergence computation on a video file of flocking.
+A package including all the core tools for performing image detection, tracking, and emergence computation on a video file of flocking.
 
 - `detection.py` - use HSV filters on an OpenCV image to detect the lights of
 the players on each frame
@@ -31,18 +35,24 @@ the next position of each tracked object
 
 The code in `emergence.py` is contributed by [Dr. Pedro Mediano](https://github.com/pmediano).
 
+
 ### `server`
 
-- `server.py` - runs a Flask app to stream footage and a web control panel for
-calibration and running experiments
-* `video.py` - helper code used for fetching frames from the sensor or from a video
-file and streaming
-* `templates/` - contains HTML templates used by the Flask server to render the web UI
-    * `index.html` - start and stop tracking, links to all pages
-    * `calibrate.html` - front-end to calibrate detector, tracking, camera
-    * `observer.html` - front-end to watch real-time experiment, and update the
-experimental behaviour (e.g. the task to be solved by players)
+Contains the web app code structured using Flask blueprints. The app structure uses the following files:
+* `__init__.py` - initialises the Flask app and registers the individual page blueprints
+* `players_listener.py` - page to detect hat players connected to the local network and display links for them
+* `setup.py` and `setup_items.py` - web pages for running Ansible scripts from the web app. `setup.py` runs all Ansible scripts (note that this takes a long time to run). `setup_itmes.py` allows the user to select a specific script to run from a menu; at present this does not contain all possible scripts but could be extended to do so
+* `tracking.py` - page for setting experiment parameters (including calibration .yaml forms) and starting / stopping the experiment
+* `experiment.py` - page for viewing the experiment and switching between manual and emergence mode
+* `download.py` - page for downloading data from the database
 
+Visual styling code is contained in the following sub-folders:
+
+* `templates/` - contains HTML templates used by the Flask server to render the web UI
+
+* `static/` - contains CSS, .js and other static elements for rendering the web UI
+
+* `styles/` - contains Tailwind style code
 
 ### `tools`
 A package that can be used to run the tools in `core` for development and testing
@@ -54,6 +64,10 @@ the experiment, but using non-real time OpenCV trackers
 - `colour.py` - tools to convert from OpenCV HSV to HTML hex and back
 - `config.py` - tools used to manipulate config files
 
+### `video`
+
+A package that contains helper code to stream and fetch frames from the sensor or from a video file in a thread-safe way. See the README in the folder for additional detail.
+
 ### Config
 The config folder contains YAML files with detection, tracking, camera and
 experimental settings. A default config is in `camera/config/default.yml` which
@@ -63,28 +77,41 @@ A new config should be added for each new experimental configuration: for exampl
 if a new space is being used, it is likely that settings need to change according
 to the dimensions and illumination of the space.
 
-
 ## Setup Notes
 
-### Packaging
+### Running the code
+
+The following commands install all Synch.Live packaging. We recommend using pip install within a virtual environment that runs on Python 3.7. This specific version is required for the current Observer Pi OpenCV set-up, so if you use a more recent version locally then you may find that your code does not run on the Observer.
 
     $ cd python
-    $ pip install -e .
+    $ pip install -e.
+
+Run the following also; note that `npm` must be installed on the machine. Npm installation is global (i.e. not contained within the virtual enviornment).
+
+    $ cd python/synch_live/camera/server
+    $ npm install
+
+The Flask app can be run (in debug mode) using the following commands:
+
+    $ cd python
+    $ flask --app synch_live.camera.server run --debug
+
+If you are running the code on the Observer, then the Flask app will start on boot automatically. If you want to restart the app, run the following from anywhere in the system:
+
+    $ sudo systemctl restart flask
 
 ### infordynamics.jar
 `emergence.py` uses the [Java Information Dynamics Toolkit (JIDT)](https://github.com/jlizier/jidt/)
 by [Dr. Joe Lizier](https://github.com/jlizier). A copy is included in the current repository.
 
-The version used is a slightly modified `v1.5-dist` rebuilt with `ant` and is included in
-the `camera/` folder as `infodynamics.jar`. The JIDT code is called using JPype.
+The version used is a slightly modified `v1.5-dist` rebuilt with `ant` and is included in the `camera/` folder as `infodynamics.jar`. The JIDT code is called using JPype.
 The following steps were taken to produce our version of JIDT:
 
     $ sudo apt install ant
     $ git clone git@github.com:jlizier/jidt.git
 
 Then the file `java/source/infodynamics/measures/continuous/MutualInfoMultiVariateCommon.java`
-is edited to keep the vectors of observation sets in the `finaliseAddObservations()` function
-by commenting out the following lines:
+is edited to keep the vectors of observation sets in the `finaliseAddObservations()` function by commenting out the following lines:
 
     vectorOfSourceObservations = null;
     vectorOfDestinationObservations = null;
@@ -94,34 +121,13 @@ Finally an `infodynamics.jar` package is built by calling
     $ ant jar
 
 
-## Running the code for development
-
-To run parts of the code locally you must install the pkgs in `python/camera/requirements.txt`
-
-We recommend packaging with `pipenv` and the code should be run inside a `pipenv`
-shell in the `camera/` folder. The `pipenv` only requires installing the requirements
-once unless more packages are added.
-
-    $ cd python/camera
-    $ pipenv install -r requirements.txt
-    $ pipenv shell
-
 ### Extracting and plotting trajectories
 
-To extract trajectorie from video using non-real time tracking use
-
-    $ cd python/camera/tools
-    $ python trajectories.py track --filename $video_file --out $traj_file
-
-The extracted trajectories will be saved as a numpy dump.
-
-To plot the extracted trajectories use
-
-    $ cd python/camera/tools
-    $ python trajectories.py plot --filename $traj_file --out $image_file
-
+The code that was previously used to extract trajectories is in `trajectories.py`, however this is no longer working due to deprecation of some OpenCV features. You can download trajectories from the SQLite database instead (stored on the Observer) via the web app.
 
 ### Image processing tools
+
+> **Note**: Not recently tested - note that this may not work smoothly with the database .csv as it was written for a numpy dump, so may require some adjustments
 
 To inspect colours of an image, and produce HSV values of colour ranges
 
@@ -136,6 +142,8 @@ found.
 
 ### Calculating emergence
 
+> **Note**: Not recently tested - note that this may not work smoothly with the database .csv as it was written for a numpy dump, so may require some adjustments
+
 To test the emergence calculator on the trajectories, run
 
     $ cd python/camera/core
@@ -144,29 +152,11 @@ To test the emergence calculator on the trajectories, run
 
 ### Mocking the streaming server
 
-Then to run a local server mocking the PiCamera by feeding in video footage from
-`media`, use a testing config set through an environmental variable, for example
-
-    $ cd python
-    $ CONFIG_PATH='./camera/config/default.yml' python camera/server/server.py local
-
-or
-
-    $ cd python
-    $ export CONFIG_PATH='./camera/config/default.yml'
-    $ python camera/server/server.py local
+Then to run a local server mocking the PiCamera by feeding in video footage from `media`, use a testing config set through an environmental variable and place the video in the `/python/instance` folder.
 
 ## Running the Observer
 
-To run the server on the Observer of the Synch.Live system, the config file can
-be set in the same way using the env varibale `CONFIG_PATH`
-
-#### Raspberry Pi
-
-> **Note**: this can only be run on a RaspberryPi with a PiCamera attached.
-
-    $ cd python
-    $ python3 camera/server/server.py observer
+To run the server on the Observer of the Synch.Live system, the config file can be set in the same way using the env varibale `CONFIG_PATH`
 
 #### Generic Camera
 
@@ -181,6 +171,8 @@ You can run the observer if you have a camera connected to your computer, this c
 
 ##### Linux
 
+> **Note**: Not recently tested; code likely needs updating to run with updated system
+
 Your user must be a part of the `video` group, or you must have permission to access the video device in `/dev/videoN`
 
 check which camera device you may want to use `mpv`
@@ -191,10 +183,11 @@ in this case my webcam is at index 0.
 
 If you do not see your video stream, then check the available video devices with `ls /dev | grep video` and try other indices.
 
-Using the index of your camera that you found earlir, run
+Using the index of your camera that you found earlir, update the CONFIG_PATH and re-start the Flask app.
 
     $ cd python
-    $ CONFIG_PATH=./camera/config/generic-camera.yml python3 camera/server/server.py observer
+    $ CONFIG_PATH=./camera/config/generic-camera.yml
+    $ flask --app synch_live.camera.server run
 
 
 # Troubleshooting
