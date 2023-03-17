@@ -33,7 +33,7 @@ upon response. It is also able to allow the server to send updates to the client
 [Server-sent events](http://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events) or
 [WebSockets](http://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API).
 You should read the docs on [Turbo Drive](https://turbo.hotwired.dev/handbook/drive)
-and [Turbo Streams](https://turbo.hotwired.dev/handbook/streams) respectively to see how this works.
+and [Turbo Streams](https://turbo.hotwired.dev/handbook/streams) respectively to see how this works—particularly as regards form submissions.
 Turbo Streams in particular are used to provide live updates from `ansible_runner` when running Ansible plays,
 and `zeroconf` when listening for advertised mDNS services.
 The `turbo-rails` package provides the `turbo-stream-source` element seen in the docs.
