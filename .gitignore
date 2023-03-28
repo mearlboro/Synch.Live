@@ -31,7 +31,6 @@ share/python-wheels/
 MANIFEST
 
 # Flask stuff:
-instance/
 .webassets-cache
 
 # pipenv
