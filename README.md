@@ -18,25 +18,25 @@ The code contains four folders:
 cd Synch.Live1.0/python
 pip install -e.
 ```
-4. TODO: ensure the `/python` folder contains an `/instance` folder for the database and sample video.
-
-5. Install npm on your machine. Use `brew install npm` for Mac and see [here](https://phoenixnap.com/kb/install-node-js-npm-on-windows) for Windows. Once npm is successfully installed (check by running `npm -v` in the command line), navigate to the folder `/python/synch_live/camera/server` and run the following:
+4. Install npm on your machine. Use `brew install npm` for Mac and see [here](https://phoenixnap.com/kb/install-node-js-npm-on-windows) for Windows. Once npm is successfully installed (check by running `npm -v` in the command line), navigate to the folder `/python/synch_live/camera/server` and run the following:
 ```
 cd Synch.Live1.0/python/synch_live/camera/server
 npm install
 ```
-6. Run the flask app from the `/python` folder with the `--debug` option:
+5. Run the flask app from the `/python` folder with the `--debug` option:
 ```
 cd Synch.Live1.0/python
 flask --app synch_live.camera.server run --debug
 ```
-7. Go to `localhost:5000` in your browser. If this doesn't connect, try `127.0.0.1:5000`.
+6. Go to `localhost:5000` in your browser. If this doesn't connect, try `127.0.0.1:5000`.
 
-8. Navigate around the app. You should be able to run a test video.
+7. Navigate around the app. You should be able to run a test video.
 
 ## Installation on the Observer pi
 
 There are several ways to get the latest code onto the Observer. If you connect it to the internet, then you can `scp` any updated files to the Observer to replace previous versions. There are also Ansible scripts in the `ansible` folder to update code, but these are very slow to run. So we recommend `scp` instead.
+
+To get in to the observer, connect to the Synch.Live router and `ssh` to `pi@observer.local`.
 
 TODO:
 - Setup of system daemons and MDNS
