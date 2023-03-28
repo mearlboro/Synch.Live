@@ -1,4 +1,5 @@
 import textwrap
+import subprocess
 from threading import Lock
 from multiprocessing import SimpleQueue
 
@@ -23,17 +24,15 @@ def start_setup():
     task = 'Waiting for task...'
     form = SetupTasks(request.form)
 
-    if request.method == 'POST' and form.validate():
+    if request.method == 'POST':
         playbook_name = None
         tags = None
         if form.task.data == 'lights':
             playbook_name = 'test_lights.yml'
             task = 'Testing lights...'
-            tags = 'rainbow'
         elif form.task.data == 'clocks':
             playbook_name = 'sync_time.yml'
             task = 'Synchronising clocks...'
-            tags = None
 
         def event_handler(event):
             status_queue.put(event)
@@ -44,7 +43,8 @@ def start_setup():
         if not lock.locked():
             lock.acquire()
             global _runner, _runner_process
-            (_runner_process, _runner) = ansible_runner.run_async(private_data_dir=current_app.config['ANSIBLE_DIR'],
+            # TODO: update hard-coded ansible directory 
+            (_runner_process, _runner) = ansible_runner.run_async(private_data_dir='./src/synch-live/ansible',
                                                                   playbook=playbook_name, forks=10, limit='players',
                                                                   event_handler=event_handler,
                                                                   tags=tags,
@@ -72,8 +72,12 @@ def messages():
 
 @bp.route('/stop', methods=['POST'])
 def stop_setup():
+    # TODO: update directory away from hard-coded filepath
+    subprocess.call(['sh','./src/synch-live/ansible/ansible_stop_lights.sh'])
+    '''
     if _runner is not None:
         _runner.cancel_callback = lambda: True
+    '''
     return redirect(url_for('main'))
 
 class SetupTasks(Form):

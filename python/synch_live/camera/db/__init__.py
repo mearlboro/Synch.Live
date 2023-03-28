@@ -38,7 +38,7 @@ def init_app(app):
 '''
 
 today = datetime.date.today().strftime('%Y-%m-%d')
-datapath = '~/instance/database.db'
+datapath = './instance/database.db'
 
 # creating table 'trajectories' in database.db
 def create_table_trajectories():

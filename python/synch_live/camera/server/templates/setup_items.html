@@ -9,7 +9,7 @@
     {{ render_form(form, 'Start!') }}
 
     {{ render_h1('Task updates:') }}
-    <p>Current task: {{task}}</p>
+    <!--p>Current task: {{task}}</p>-->
     <form action="{{ url_for('setup_items.stop_setup') }}" method="post">
         {{ render_submit_field(value="Stop") }}
     </form>
