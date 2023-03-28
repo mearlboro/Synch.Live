@@ -1,0 +1,14 @@
+<?xml version="1.0" standalone='no'?><!--*-nxml-*-->
+<!DOCTYPE service-group SYSTEM "avahi-service.dtd">
+
+<service-group>
+
+  <name replace-wildcards="yes">Synch.Live observer control interface</name>
+
+  <service>
+    <type>_http._tcp</type>
+    <subtype>_observer._synch_live._sub._http._tcp</subtype>
+    <port>5000</port>
+  </service>
+
+</service-group>
