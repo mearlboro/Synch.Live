@@ -73,6 +73,7 @@ def messages():
 @bp.route('/stop', methods=['POST'])
 def stop_setup():
     # TODO: update directory away from hard-coded filepath
+    # may need to change filepath depending on whether you run this on the pi or your computer
     subprocess.call(['sh','./src/synch-live/ansible/ansible_stop_lights.sh'])
     '''
     if _runner is not None:
