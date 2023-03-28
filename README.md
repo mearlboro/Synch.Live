@@ -42,7 +42,11 @@ TODO:
 - Setup of system daemons and MDNS
 
 # Troubleshooting
-This section contains a log of the main issues encountered during the development of the udpated Observer app in Q1 2023.
+This section contains a log of the main issues encountered during the development of the udpated Observer app in Q1 2023 and outstanding TODOs.
+
+TODO:
+- The Observer is set up for automatic hat detection. The resulting link to the hat has a trailing fullstop `.` (i.e. `player4.local.:5000` rather than `player4.local:5000`). This link works OK on Macs but not on Windows. The fix should be straighforward and should be somewhere in `python/synch_live/camera/server/players_listener.py`, which is where the automatic hat detection is impelemented. 
+
 - **OpenCV version issues** The current Observer uses Python 3.7 and has a compatible OpenCV package installed (4.4.0.46). But later Python versions are not compatible with this package, so if you want to upgrade the Observer's Python version then you will also need to figure out a way to get a later version of OpenCV installed. There are several issues you may run into:
   - Some OpenCV versions do not have pre-compiled binary executables available for Debian. This means that installing new versions can take a very long time (in the order of hours).
   - Some OpenCV  versions are not compatible with either / both the Observer's camera and the code. You won't find out if this is the case until after installation, which can be frustrating if that has taken hours!
