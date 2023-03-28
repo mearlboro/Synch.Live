@@ -74,6 +74,27 @@
       shell: "raspi-config nonint do_rgpio 0"
       when: (RGPIO == True) and (rgpio_status.stdout != '0')
 
+- name: Config files for observer
+  tags: setup
+  hosts: observer
+  become: true
+  
+  tasks:
+    - name: Copy systemd service
+      copy:
+        src: lib/systemd/system/synch-live-observer-server.service
+        dest: /lib/systemd/system/synch-live-observer-server.service
+        owner: root
+        group: root
+        mode: 0644
+    - name: Copy avahi service
+      copy:
+        src: etc/avahi/services/synch-live-observer-server.service
+        dest: /etc/avahi/services/synch-live-observer-server.service
+        owner: root
+        group: root
+        mode: 0644
+
 
 - name: Config files for players
   tags: setup
