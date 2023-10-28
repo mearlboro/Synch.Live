@@ -59,3 +59,9 @@ dmypy.json
 # vim swap files
 *.swp
 *.swo
+
+# no need to save settings or media
+setup/boot/
+media/video
+media/trajectories
+
