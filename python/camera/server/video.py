@@ -173,7 +173,7 @@ class VideoProcessor():
 
         Returns
         ------
-            synch param between 0 (unsync) and 1 (full sync)
+            synch param between 0 (sync) and 1 (unsync)
         """
         if self.task == 'manual':
             return self.psi / 10.0
@@ -360,6 +360,7 @@ class VideoProcessor():
                 # acquire the lock, set the output frame, and release the lock
                 with self.lock:
                     self.output_frame = frame.copy()
+        time.sleep(0.1)
 
 
     def generate_frame(self) -> Generator[bytes, None, None]:

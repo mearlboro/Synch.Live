@@ -22,9 +22,9 @@ def dump_trajectories(traj: List[List[np.ndarray]], out: str, players: int) -> N
     # TODO: issues with the 11th player
     new_traj = []
     for i, state in enumerate(traj):
-        if len(state) == players:
+        if len(state) == 10:
             new_traj.append(state)
-        elif len(state) < players:
+        elif len(state) < 10:
             print(f"{i} {state}")
     nptraj = np.array(new_traj)
     nptraj.dump(out)

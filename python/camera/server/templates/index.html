@@ -4,9 +4,47 @@
   </head>
   <body>
     <h1>Synch.Live experiment tracking</h1>
+
+    <form action="{{ url_for('calibrate') }}" method="post">
+      <p>
+      <label for="max_players">Number of players to be tracked:</label>
+      <input type="number" id="max_players" name="max_players" value="{{ opts.tracking.max_players }}" min="3">
+      </p>
+      <p>
+      <label for="min_contour">Min contour length (px)  </label>
+      <input type="number" id="min_contour" name="min_contour" value="{{ opts.detection.min_contour }}" min="10" max="200">
+      </p>
+      <p>
+      <label for="max_contour">Max contour length (px)  </label>
+      <input type="number" id="max_contour" name="max_contour" value="{{ opts.detection.max_contour }}" min="10" max="1000">
+      </p>
+      <p>
+      <label for="min_colour"> Min tracking colour (HSV)</label>
+      <input type="color" id="min_colour" name="min_colour" value="{{ opts.detection.min_colour }}">
+      </p>
+      <p>
+      <label for="max_colour"> Max tracking colour (HSV)</label>
+      <input type="color" id="max_colour" name="max_colour" value="{{ opts.detection.max_colour }}">
+      </p>
+
+    {% if not use_picamera %}
+      <p>
+      <label for="save_file"> Save to file:</label>
+      <input type="checkbox" id="save_file" name="save_file" value="{{ save_file }}">
+      <input type="text" id="conf_path" name="conf_path" value="{{ conf_path }}">
+      </p>
+
+      <p>
+      <button type="submit">Update Settings</button>
+      </p>
+    </form>
+    {% endif %}
+
+
+
     <ul>
 	    <li><a href="/start_tracking" >Start Tracking</a></li>
-	    <li><a href="/stop_tracking" >Stop Tracking</a></li>
+        <li><a href="/stop_tracking" >Stop Tracking</a></li>
         <li><a href="/calibrate" >Calibrate PiCamera (tracking must be started)</a></li>
         <li><a href="/observe" >Observe running experiment</a></li>
     </ul>
