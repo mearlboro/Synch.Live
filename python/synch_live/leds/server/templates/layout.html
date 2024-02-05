@@ -1,0 +1,42 @@
+{% set navigation = [
+        dict(caption='Home', href=url_for('go_to_observer')), 
+        dict(caption='Hat 4', href="http://192.168.100.104:5000/"), 
+        dict(caption='Hat 5', href="http://192.168.100.105:5000/")] %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{{ url_for('static', filename='output.css') }}">
+    <title>{% block title %}Synch.Live{% endblock %}</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <!--<link href="../static/style.css" rel="stylesheet">-->
+    <link href="../static/hat_standalone.css" rel="stylesheet">
+    <script src="../static/hat_standalone_script.js"></script>
+</head>
+<body class="container bg-white dark:bg-black text-black dark:text-white mx-auto px-4 py-4 flex flex-col gap-4">
+  <header class="flex flex-row gap-6 items-center text-xl">
+    <p class="text-6xl font-medium"><a href="/main.html">Synch.Live Hat</a></p>
+      <nav>
+        <ul class="flex flex-row items-center divide-x">
+          {% for item in navigation %}
+              <li class="px-4 {% if request.path == item.href %}text-gray-500{% endif %}">
+                  {% if item.href != request.path %}
+                      <a href="{{ item.href }}">{{ item.caption }}</a>
+                  {% else %}
+                      {{ item.caption }}
+                  {% endif %}
+              </li>
+          {% endfor %}
+        </ul>
+      </nav>
+</header>
+<hr class="h-1 bg-gray-800 dark:bg-gray-200" />
+<main class="flex flex-col gap-6">
+  {% block content %}{% endblock %}
+</main>
+<footer>
+  {% block footer %}
+  {% endblock %}
+</footer>
+</body>
+</html>

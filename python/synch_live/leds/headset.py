@@ -8,7 +8,7 @@ import time
 from typing import List, Tuple
 
 # initialise logging to file
-import synch_live.camera.core.logger
+import leds.logger
 
 """
 Abstract class implementing the main behaviour of the LED headset
@@ -118,6 +118,17 @@ class Headset(ABC):
             col = self.crown_col
         logging.info(f"Fade into colour {col} for duration {dt * 256}")
 
+        
+    def crown_fade_between_colours(self,
+            dt: float = 0.01, col1: Tuple[int, int, int] = (0, 0, 0), col2: Tuple[int, int, int] = (0, 0, 0)
+        ) -> None:
+        """
+        All leds in the crown should fade in to the `col2` param  from 'col1' param in `dt` second
+        increments
+        """
+        logging.info(f"Begin fade from colour {col1} into colour {col2} for duration {dt * 256}")
+
+
     def crown_fadeout(self, dt: float = 0.01) -> None:
         """
         All leds in the crown should fade out from the current colour to black,
@@ -140,7 +151,7 @@ class Headset(ABC):
         logging.info(f"Begin breathing effect with {delay} delay")
 
         self.crown_off()
-        self.crown_fadein_colour(dt, col)
+        self.crown_fadein_colour(dt, col = col)
         time.sleep(delay)
         self.crown_fadeout(dt)
         time.sleep(delay)
@@ -153,7 +164,50 @@ class Headset(ABC):
         """
         logging.info("Cycling through rainbow colours")
 
+        
+    def crown_police(self, dt: float = 1.0) -> None:
+        """
+        All leds in the crown flash alternative colours for `dt` seconds through either blue
+        or red, starting from alternate colours.
+        """
+        logging.info("Cycling police lights")
 
+        
+    def crown_fire(self, dt: float = 1.0) -> None:
+        """
+        All leds change between varying shades of red, orange and yellow randomly.
+        """
+        logging.info("Begin fire animation")
+
+        
+    def crown_party(self, dt: float = 1.0) -> None:
+        """
+        All leds change between varying disco-esque colours.
+        """
+        logging.info("Begin party animation")
+
+        
+    def crown_paparazzi(self) -> None:
+        """
+        Some leds in the crown flash white randomly while others stay black.
+        """
+        logging.info("Begin paparazzi effect")
+
+        
+    def crown_trial_config_log(self, r=255, g=255, b=255, blink_freq=1, effect_dur=1) -> None:
+        """
+        Set the colour, blink frequency and effect duration to the custom configuration, and run for 10 seconds.
+        """
+        logging.info("Begin trial of custom configuration")
+
+        
+    def crown_run_config(self, r=255, g=255, b=255, blink_freq=1, effect_dur=1) -> None:
+        """
+        Set the colour, blink frequency and effect duration to the custom configuration, and run for effect_dur seconds.
+        """
+        logging.info("Begin running of custom configuration")
+
+        
     def crown_rainbow_repeat(self,
             dt: float = 0.01, duration: float = 2
         ) -> None:

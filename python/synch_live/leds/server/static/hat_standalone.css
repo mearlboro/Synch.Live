@@ -1,0 +1,93 @@
+input {
+    margin: 10px 0;
+}
+
+.banner {
+    background-color: greenyellow;
+}
+button {
+    margin: 0px 0px 0px 12px;
+}
+
+
+
+/* Style the tab */
+.tab {
+    /* overflow: hidden;
+    background-color: #f1f1f1;
+    border: 2px solid #414141; */
+    border-bottom: 3px solid #1F2937;
+    padding: 0px;
+    position:relative;
+}
+
+
+
+.tab button {
+    /*
+    background-color: inherit;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    transition: 0.3s;*/
+
+    border: 1px solid #1F2937;
+    background: inherit;
+    padding: 4px 12px;
+    border-radius: 10px 10px 0 0;
+    position: relative;
+    top: 1px;
+    transition: 0.3s;
+}
+
+.tab button:hover {
+    background-color: rgb(209 213 219);
+}
+
+.tab button.active {
+    background-color: #1F2937;
+    color:  #ffffff;
+    /*border-bottom: 1px solid white;*/
+}
+
+.tabcontent {
+    display: none;
+    padding: 0px 12px;
+    /*border: 3px solid #1F2937;*/
+    border-top: none;
+    position:relative;
+}
+
+.tabcontent button {
+    padding: 12px 12px;
+    background-color: #e5e7eb;
+    border-radius: 8px 8px 8px 8px;
+    width: 100px;
+    height: 100px;
+
+}
+
+.tabcontent button:hover {
+    background-color:  rgb(209 213 219);
+
+}
+
+.butts {
+    padding: 12px 18px;
+    background-color: #e5e7eb;
+    border-radius: 8px 8px 8px 8px;
+    transition: 0.3s;
+
+  }
+
+.butts:hover {
+    background-color: rgb(209 213 219)
+}
+
+.butts:active {
+    background-color: rgb(31 41 55)
+}
+
+
