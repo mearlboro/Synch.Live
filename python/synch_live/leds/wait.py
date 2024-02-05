@@ -4,7 +4,7 @@ import sys
 from ws2801_headset import WS2801Headset
 
 # initialise logging to file
-import logger
+import synch_live.camera.core.logger
 
 if len(sys.argv):
     mode = sys.argv[1]

@@ -12,7 +12,7 @@ import Adafruit_GPIO.SPI as SPI
 import RPi.GPIO as GPIO
 
 # initialise logging to file
-import logger
+import synch_live.camera.core.logger
 
 # import abstract headset class
 from headset import Headset

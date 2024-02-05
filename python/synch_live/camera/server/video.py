@@ -11,18 +11,18 @@ from types import SimpleNamespace
 from typing import Any, Dict, List, Tuple, Generator
 
 # initialise logging to file
-import camera.core.logger
+import synch_live.camera.core.logger
 
 # import relevant project libs
-from camera.tools.colour   import hex_to_hsv
-from camera.tools.config   import parse, unwrap_resolution
-from camera.core.emergence import EmergenceCalculator, compute_macro
-from camera.core.detection import Detector
-from camera.core.tracking  import EuclideanMultiTracker
+from synch_live.camera.tools.colour import hex_to_hsv
+from synch_live.camera.tools.config import parse, unwrap_resolution
+from synch_live.camera.core.emergence import EmergenceCalculator, compute_macro
+from synch_live.camera.core.detection import Detector
+from synch_live.camera.core.tracking import EuclideanMultiTracker
 
 
 class Camera():
-    def __init__(self, cam_type: Any, config: SimpleNamespace, camera_stream = None) -> None:
+    def __init__(self, cam_type: Any, config: SimpleNamespace, camera_stream=None) -> None:
         """
         Wrapper around a video stream either fetching frames from a real camera,
         or mocking it using a local video file.
@@ -46,7 +46,6 @@ class Camera():
         self.cam_type = cam_type
         self.camera_stream = camera_stream
 
-
     def start(self) -> VideoStream:
         """
         Initialise the video stream according to prameters, set image resolution
@@ -63,8 +62,8 @@ class Camera():
         """
         if self.cam_type == 'pi':
             resolution = unwrap_resolution(self.config.resolution)
-            self.video_stream_obj = VideoStream(usePiCamera = 1,
-                resolution = resolution, framerate = self.config.framerate)
+            self.video_stream_obj = VideoStream(usePiCamera=1,
+                                                resolution=resolution, framerate=self.config.framerate)
             self.video_stream = self.video_stream_obj.start()
             self.picamera = self.video_stream_obj.stream.camera
 
@@ -83,7 +82,6 @@ class Camera():
 
         return self.video_stream
 
-
     def update_settings(self, config: SimpleNamespace):
         if self.cam_type == 'pi':
             self.picamera.iso = self.config.iso
@@ -99,7 +97,7 @@ class VideoProcessor():
     a macroscopic feature of the system.
     """
 
-    def __init__(self, config: SimpleNamespace, camera_stream = None):
+    def __init__(self, config: SimpleNamespace, camera_stream=None):
         """
         Initialise system behaviour and paths using the server configuration in
         config, and videostream, tracker and detector objects
@@ -139,13 +137,13 @@ class VideoProcessor():
         record_path = self.config.server.RECORD_PATH
         if record and os.path.exists(record_path):
             logging.info(f"Recording Enabled, recording to path {record_path}")
-            self.record      = record
+            self.record = record
             self.record_path = record_path
         else:
             self.record = False
 
         self.task = self.config.game.task
-        self.camera_stream  = camera_stream
+        self.camera_stream = camera_stream
 
         # initialize the output frame and a lock used to ensure thread-safe
         # exchanges of the output frames (useful when multiple browsers/tabs
@@ -155,12 +153,11 @@ class VideoProcessor():
         self.video_stream = None
         self.video_writer = None
 
-        self.tracking_thread = threading.Thread(target = self.tracking)
+        self.tracking_thread = threading.Thread(target=self.tracking)
         self.lock = threading.Lock()
 
         self.calc = None
         self.psi = 0.0
-
 
     @property
     def Sync(self) -> float:
@@ -184,7 +181,6 @@ class VideoProcessor():
         else:
             return self.psi
 
-
     def set_manual_psi(self, psi: float) -> None:
         if self.task != 'manual':
             if self.task == 'psi':
@@ -197,7 +193,6 @@ class VideoProcessor():
         self.psi = psi
 
         logging.info(f"Manually setting psi to {psi}")
-
 
     def update_tracking_conf(self, max_players: int) -> None:
         """
@@ -219,10 +214,9 @@ class VideoProcessor():
 
         logging.info(f"Updated max_players from Web UI to {max_players} and reinitialised tracker")
 
-
     def update_detection_conf(self,
-            min_contour: int, max_contour: int, min_colour, max_colour
-        ) -> None:
+                              min_contour: int, max_contour: int, min_colour, max_colour
+                              ) -> None:
         """
         Following a form submission in the front-end, reinitialise detector with
         new parameters, as well as update config
@@ -240,8 +234,8 @@ class VideoProcessor():
         """
         self.config.detection.min_contour = int(min_contour)
         self.config.detection.max_contour = int(max_contour)
-        self.config.detection.min_colour  = parse(hex_to_hsv(min_colour))
-        self.config.detection.max_colour  = parse(hex_to_hsv(max_colour))
+        self.config.detection.min_colour = parse(hex_to_hsv(min_colour))
+        self.config.detection.max_colour = parse(hex_to_hsv(max_colour))
 
         self.detector = Detector(self.config.detection)
 
@@ -251,10 +245,9 @@ class VideoProcessor():
         logging.info(f"  min_colour  : {hex_to_hsv(min_colour)} ")
         logging.info(f"  max_colour  : {hex_to_hsv(max_colour)} ")
 
-
     def update_picamera(self,
-            iso: int, shutter_speed: int, saturation: int, awb_mode: str
-        ) -> None:
+                        iso: int, shutter_speed: int, saturation: int, awb_mode: str
+                        ) -> None:
         """
         Following a form submission in the front-end, update picamera settings
         with new parameters, as well as update config
@@ -282,11 +275,10 @@ class VideoProcessor():
         self.camera.update_settings(self.config)
 
         logging.info(f"Updated PiCamera settings from Web UI:")
-        logging.info(f"  iso           : {iso          } ")
+        logging.info(f"  iso           : {iso} ")
         logging.info(f"  shutter_speed : {shutter_speed} ")
-        logging.info(f"  saturation    : {saturation   } ")
-        logging.info(f"  awb_mode      : {awb_mode     } ")
-
+        logging.info(f"  saturation    : {saturation} ")
+        logging.info(f"  awb_mode      : {awb_mode} ")
 
     def tracking(self) -> None:
         """
@@ -320,7 +312,7 @@ class VideoProcessor():
             logging.info('Error reading first frame. Exiting.')
             exit(0)
 
-        bboxes  = self.detector.detect_colour(frame)
+        bboxes = self.detector.detect_colour(frame)
         self.positions = self.tracker.update(bboxes)
 
         if self.config.tracking.annotate:
@@ -345,8 +337,8 @@ class VideoProcessor():
                 if self.task == 'emergence':
                     if len(self.positions) > 1:
                         # compute emergence of positions and update psi
-                        X = [ [ x + w/2, y + h/2 ]
-                                for (x, y, w, h) in self.positions ]
+                        X = [[x + w / 2, y + h / 2]
+                             for (x, y, w, h) in self.positions]
                         self.psi = self.calc.update_and_compute(np.array(X))
 
                 if self.config.tracking.annotate:
@@ -355,12 +347,11 @@ class VideoProcessor():
                     else:
                         psi_status = ''
                     frame = self.detector.draw_annotations(frame, self.positions,
-                                            extra_text = psi_status)
+                                                           extra_text=psi_status)
 
                 # acquire the lock, set the output frame, and release the lock
                 with self.lock:
                     self.output_frame = frame.copy()
-
 
     def generate_frame(self) -> Generator[bytes, None, None]:
         """
@@ -376,7 +367,7 @@ class VideoProcessor():
             in a HTML response
         """
         framerate = 12.0
-        frametime = 1.0/framerate
+        frametime = 1.0 / framerate
         while self.running:
             # wait until the lock is acquired
             begin = time.time()
@@ -391,15 +382,14 @@ class VideoProcessor():
                 if not flag:
                     continue
             # yield the output frame in the byte format
-            yield(b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' +
-                bytearray(encoded_frame) + b'\r\n')
+            yield (b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' +
+                   bytearray(encoded_frame) + b'\r\n')
             end = time.time()
             diff = end - begin
             if diff > frametime:
                 continue
             else:
-                time.sleep(frametime - diff) 
-
+                time.sleep(frametime - diff)
 
     def start(self) -> None:
         """
@@ -410,7 +400,7 @@ class VideoProcessor():
         if not self.tracking_thread.is_alive():
 
             # reinitialise tracking_thread in case previous run crashed
-            self.tracking_thread = threading.Thread(target = self.tracking)
+            self.tracking_thread = threading.Thread(target=self.tracking)
 
             self.camera = Camera(self.config.server.CAMERA, self.config.camera, self.camera_stream)
             self.video_stream = self.camera.start()
@@ -422,21 +412,21 @@ class VideoProcessor():
             # define video writer to save the stream
             if self.record:
                 codec = cv2.VideoWriter_fourcc(*'MJPG')
-                date  = datetime.datetime.now().strftime('%y-%m-%d_%H%M')
+                date = datetime.datetime.now().strftime('%y-%m-%d_%H%M')
                 resolution = unwrap_resolution(self.config.camera.resolution)
                 self.video_writer = cv2.VideoWriter(f'{self.record_path}/output_{date}.avi', codec,
-                    self.config.camera.framerate, resolution)
+                                                    self.config.camera.framerate, resolution)
 
             # positions of tracked objects
             self.positions = []
 
             # initialise emergence calculator
-            self.psi  = 0
+            self.psi = 0
             if self.task == 'emergence':
                 # TODO: add to config!!
                 self.calc = EmergenceCalculator(compute_macro,
-                    use_correction = True, psi_buffer_size = 36,
-                    observation_window_size = 720)
+                                                use_correction=True, psi_buffer_size=36,
+                                                observation_window_size=720)
                 logging.info("Initilised EmergenceCalculator")
             elif self.task == '':
                 logging.info("No task specified, continuing")
@@ -450,7 +440,6 @@ class VideoProcessor():
             self.running = True
             self.tracking_thread.start()
             self.lock = threading.Lock()
-
 
     def stop(self) -> None:
         """
@@ -479,5 +468,3 @@ class VideoProcessor():
         if self.task == 'emergence':
             if self.calc:
                 self.calc.exit()
-
-

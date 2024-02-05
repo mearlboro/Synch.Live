@@ -11,7 +11,7 @@ from headset import Headset
 from mockloop import mock_loop
 
 # initialise logging to file
-import logger
+import synch_live.camera.core.logger
 
 PSI_URL = 'http://observer:8888/sync'
 # people do not often perceive difference in delays shorter than 40ms

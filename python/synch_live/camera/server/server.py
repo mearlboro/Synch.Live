@@ -8,9 +8,9 @@ import yaml
 from types import SimpleNamespace
 from copy import deepcopy
 
-from camera.tools.config import parse, unparse, unwrap_hsv
-from camera.tools.colour import hsv_to_hex
-from video import VideoProcessor
+from synch_live.camera.tools.config import parse, unparse, unwrap_hsv
+from synch_live.camera.tools.colour import hsv_to_hex
+from synch_live.camera.video.video import VideoProcessorProxy
 
 awb_modes = [
     "off",
@@ -136,7 +136,7 @@ if __name__ == '__main__':
 
     host = os.environ.get('HOST', default = '0.0.0.0')
     port = int(os.environ.get('PORT', default = '8888'))
-    conf_path = os.environ.get('CONFIG_PATH', default = './camera/config/default.yml')
+    conf_path = os.environ.get('CONFIG_PATH', default = './synch_live/camera/config/default.yml')
     print(os.path.abspath("."))
 
     logging.info(f"Starting server, listening on {host} at port {port}, using config at {conf_path}")
