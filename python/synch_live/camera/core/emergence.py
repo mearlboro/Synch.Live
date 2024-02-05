@@ -245,6 +245,15 @@ class EmergenceCalculator():
         self.psi_filt = psi_filt
 
         return psi_filt
+      
+
+    def exit(self) -> None:
+        """
+        Gracefully shut down JVM. Call whenever done with the calculator.
+        """
+        if jp.isJVMStarted():
+            logging.info('Shutting down JVM...')
+            jp.shutdownJVM()
 
 
 @click.command()
@@ -262,9 +271,8 @@ def test(filename: str, threshold: int = SAMPLE_THRESHOLD) -> None:
         if psi:
             print(f't{i}: {psi}')
 
-    if jp.isJVMStarted():
-        logging.info('Shutting down JVM...')
-        jp.shutdownJVM()
+    calc.exit()
+
 
 if __name__ == "__main__":
     test()
