@@ -18,7 +18,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+.lib/
 lib64/
 parts/
 sdist/
@@ -31,7 +31,6 @@ share/python-wheels/
 MANIFEST
 
 # Flask stuff:
-instance/
 .webassets-cache
 
 # pipenv
@@ -59,3 +58,9 @@ dmypy.json
 # vim swap files
 *.swp
 *.swo
+
+# database
+*.db
+
+# node modules
+node_modules

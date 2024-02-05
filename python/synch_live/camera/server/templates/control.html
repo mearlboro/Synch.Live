@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+{% from "_formhelpers.html" import render_form, render_submit_field %}
+{% from "_taghelpers.html" import render_h1, render_h2, render_section %}
+{% from "_componenthelpers.html" import render_label %}
+{% block title %}Synch.Live Observer Control{% endblock %}
+{% set control_navigation = [dict(caption='Play', href=url_for('tracking.control')), dict(caption='Calibrate', href=url_for('tracking.calibrate'))] %}
+{% block content %}
+    {{ render_h1('Experiment') }}
+    <nav>
+        <ul class="text-2xl font-medium flex flex-row gap-4 items-center">
+            {% for item in control_navigation %}
+                <li class="{% if request.path == item.href %}text-gray-500{% endif %}">
+                    {% if request.path != item.href %}
+                        <a href="{{ item.href }}">{{ item.caption }}</a>
+                    {% else %}
+                        {{ item.caption }}
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </nav>
+    {% if tab == 'control' %}
+        <div>
+            <p>Enter the experiment ID and location, then click 'Start!'</p>
+            <p>Go to 'Calibrate' first if you want to update the experiment settings.</p>
+        </div>
+        {{ render_form(form, 'Start!')}}
+    {% elif tab == 'calibrate' %}
+        <div>
+            <p>The inputs are autofilled with the current settings.</p>
+            <p>To update settings, press 'Save'.</p>
+            <p>Go to 'Play' to start an experiment.</p>
+        </div>
+        {{ render_form(form, 'Save') }}
+        {% call render_section('Camera calibration') %}
+            {% call render_label('Pi Camera is not enabled.') %}
+            {% endcall %}
+        {% endcall %}
+    {% endif %}
+{% endblock %}

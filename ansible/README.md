@@ -39,6 +39,10 @@ To only run ansible for the `observer` (note the comma at the end)
 To only run ansible only for the `players`
 
         ansible-playbook install_software.yml --limit players
+        
+To run all ansible setup steps, you can use the nested playbook. Note that this takes quite a long time to run!
+
+        ansible-playbook setup.yml -f 10
 
 # Commanding the fleet
 

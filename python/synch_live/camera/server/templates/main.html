@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+{% from "_taghelpers.html" import render_h1 %}
+{% from "_turbostreamhelpers.html" import render_turbo_stream_source %}
+{% block title %}Synch.Live Observer Control{% endblock %}
+{% block content %}
+    {{ render_h1('Home') }}
+    {{ render_turbo_stream_source(url_for('players_listener.live_players'), "Finding hats…") }}
+    <nav>
+        <ul id="players" class="text-2xl font-medium flex flex-col gap-4">
+            {% for player in players %}
+                {% include 'player_link.html' %}
+            {% endfor %}
+        </ul>
+    </nav>
+{% endblock %}

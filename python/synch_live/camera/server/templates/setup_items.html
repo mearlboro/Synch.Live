@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+{% from "_formhelpers.html" import render_form %}
+{% from "_taghelpers.html" import render_h1, render_h2, render_section %}
+{% block title %}Synch.Live Observer Control{% endblock %}
+{% from "_turbostreamhelpers.html" import render_turbo_stream_source %}
+{% from "_formhelpers.html" import render_submit_field %}
+{% block content %}
+    {{ render_h1('Choose setup task') }}
+    {{ render_form(form, 'Start!') }}
+
+    {{ render_h1('Task updates:') }}
+    <!--p>Current task: {{task}}</p>-->
+    <form action="{{ url_for('setup_items.stop_setup') }}" method="post">
+        {{ render_submit_field(value="Stop") }}
+    </form>
+    <ol id="messages"></ol>
+    {{ render_turbo_stream_source(url_for('setup_items.messages'), 'Connected') }}
+{% endblock %}
