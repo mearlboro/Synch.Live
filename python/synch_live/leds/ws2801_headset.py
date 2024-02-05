@@ -22,8 +22,6 @@ from leds.headset import Headset
 Class implementing the behaviour of a LED headset on an actual RaspberryPi
 using the WS2801 LEDs
 """
-
-
 class WS2801Headset(Headset):
     """
     The characteristic values for the first version of the headset are hardcoded
@@ -31,15 +29,15 @@ class WS2801Headset(Headset):
     """
     COUNT = 30
     CROWN_RANGE = list(range(26))
-    PILOT_RANGE = [28]
+    PILOT_RANGE = [ 28 ]
 
     def __init__(self,
-                 crown_col: Tuple[int, int, int], pilot_col: Tuple[int, int, int],
-                 on_delay: float, off_delay: float,
-                 count: int = COUNT,
-                 crown_range: List[int] = CROWN_RANGE,
-                 pilot_range: List[int] = PILOT_RANGE,
-                 ) -> None:
+            crown_col: Tuple[int, int, int], pilot_col: Tuple[int, int, int],
+            on_delay: float, off_delay: float,
+            count: int = COUNT,
+            crown_range: List[int] = CROWN_RANGE,
+            pilot_range: List[int] = PILOT_RANGE,
+        ) -> None:
         """
         Initialise WS2801 pixel array. The array is split into two parts, the 'crown'
         which will blink and the 'pilot' light which must be always on and pure green.
@@ -60,8 +58,7 @@ class WS2801Headset(Headset):
             lights (not blinking) respectively
 
         """
-
-        super().__init__(crown_col, pilot_col, on_delay, off_delay, pilot_turnon=False)
+        super().__init__(crown_col, pilot_col, on_delay, off_delay, pilot_turnon = False)
 
         self.CROWN_RANGE = crown_range
         self.PILOT_RANGE = pilot_range
@@ -75,6 +72,7 @@ class WS2801Headset(Headset):
 
         self.pilot()
 
+        
     def all_off(self) -> None:
         """
         Turn off all LEDs in the headset
@@ -83,6 +81,7 @@ class WS2801Headset(Headset):
         self.pixels.show()
         super().all_off()
 
+        
     def pilot(self) -> None:
         """
         Turn on all LEDs in the pilot range in the headset
@@ -92,11 +91,11 @@ class WS2801Headset(Headset):
         self.pixels.show()
         super().pilot()
 
+        
     def crown_on(self, col: Tuple[int, int, int] = None) -> None:
         """
         Turn on all LEDS in the crown range in the headset. A specified colour can be passed in as a parameter.
         """
-
         for i in self.CROWN_RANGE:
             if col is not None:
                 self.pixels.set_pixel(i, LED.RGB_to_color(*col))
@@ -105,6 +104,7 @@ class WS2801Headset(Headset):
         self.pixels.show()
         super().crown_on()
 
+        
     def crown_off(self) -> None:
         """
         Turn off all LEDS in the crown range in the headset
@@ -114,6 +114,7 @@ class WS2801Headset(Headset):
         self.pixels.show()
         super().crown_off()
 
+        
     def crown_blink(self) -> None:
         """
         All LEDs in the crown should turn on for ON_DELAY time, then turn off
@@ -122,6 +123,7 @@ class WS2801Headset(Headset):
         time.sleep(self.ON_DELAY)
         self.crown_off()
 
+        
     def crown_blink_wait(self, rand: float) -> None:
         """
         All LEDs in the crown should be on for ON_DELAY time, then off for
@@ -142,14 +144,16 @@ class WS2801Headset(Headset):
             r = 0
 
         logging.info(f'Waiting {round(r, 3)}')
+
         time.sleep(r)
         self.crown_on()
         time.sleep(self.ON_DELAY)
         self.crown_off()
+        
 
     def crown_fadein_colour(self,
-                            dt: float = 0.01, col: Tuple[int, int, int] = None, dur: float = 5.0
-                            ) -> None:
+            dt: float = 0.01, col: Tuple[int, int, int] = (0, 0, 0)
+        ) -> None:
         """
         All leds in the crown should fade in to the `col` param or, if that is
         not specified, to the `crown_col` set in the constructor in `dt` second
@@ -159,7 +163,7 @@ class WS2801Headset(Headset):
 
         self.crown_off()
         sleep_duration = float((dur - 1.5) / 100)
-        if col is None:
+        if col is None or not (col[0] and col[1] and col[2]):
             col = self.crown_col
         r, g, b = col
         for j in range(100):
@@ -170,10 +174,11 @@ class WS2801Headset(Headset):
             if dt:
                 time.sleep(sleep_duration)
 
+                
     def crown_fade_between_colours(self,
-                                   dt: float = 0.03, col1: Tuple[int, int, int] = (255, 255, 255),
-                                   col2: Tuple[int, int, int] = (0, 0, 255), dur: float = 5.0
-                                   ) -> None:
+            dt: float = 0.03, col1: Tuple[int, int, int] = (255, 255, 255),
+            col2: Tuple[int, int, int] = (0, 0, 255), dur: float = 5.0
+        ) -> None:
         """
         All leds in the crown should fade in to the `col` param or, if that is
         not specified, to the `crown_col` set in the constructor in `dt` second
@@ -192,6 +197,7 @@ class WS2801Headset(Headset):
             self.pixels.show()
             time.sleep(sleep_duration)
 
+            
     def crown_fadeout(self, dt: float = 0.01) -> None:
         """
         All leds in the crown should fade out from the current colour to black,
@@ -209,10 +215,11 @@ class WS2801Headset(Headset):
             self.pixels.show()
             if dt:
                 time.sleep(dt)
+                
 
     def crown_breathe(self,
-                      dt: float = 0.01, delay: float = 0, col: Tuple[int, int, int] = (255, 255, 255)
-                      ) -> None:
+            dt: float = 0.01, delay: float = 0, col: Tuple[int, int, int] = (0, 0, 0)
+        ) -> None:
         """
         All leds in the crown should fade in to colour specified in `col` param,
         or the `crown_col` set in the constructor if that is not set, in `dt`
@@ -220,6 +227,7 @@ class WS2801Headset(Headset):
         increments
         """
         super().crown_breathe(dt, delay, col)
+
 
     def crown_rainbow(self, dt: float = 0.01) -> None:
         """
@@ -243,14 +251,16 @@ class WS2801Headset(Headset):
             self.pixels.show()
             time.sleep(dt)
 
+
     def crown_rainbow_repeat(self,
-                             dt: float = 0.01, duration: float = 2
-                             ) -> None:
+            dt: float = 0.01, duration: float = 2
+        ) -> None:
         """
         All leds in the crown cycle for `dt` seconds through the 256 possible
         colours for a total time of `duration` seconds
         """
         super().crown_rainbow_repeat(dt, duration)
+
 
     def crown_police(self, dt: float = 0.9) -> None:
         """
@@ -286,6 +296,7 @@ class WS2801Headset(Headset):
             else:
                 switcher = 0
         self.crown_off()
+        
 
     def crown_fire(self, dt: float = 0.2) -> None:
         """
@@ -313,6 +324,7 @@ class WS2801Headset(Headset):
             time.sleep(dt)
         self.crown_off()
 
+        
     def crown_party(self, dt: float = 0.2) -> None:
         """
         All leds change between varying disco-esque colours.
@@ -353,6 +365,7 @@ class WS2801Headset(Headset):
             time.sleep(dt)
         self.crown_off()
 
+        
     def crown_paparazzi(self) -> None:
         """
         Some leds in the crown flash white randomly while others stay black.
@@ -372,6 +385,7 @@ class WS2801Headset(Headset):
             self.pixels.show()
             time.sleep(random.uniform(0.05, 0.25))
         self.crown_off()
+        
 
     def crown_trial_config(self, r=255, g=255, b=255, blink_freq=1, effect_dur=1) -> None:
         """
@@ -412,8 +426,6 @@ class WS2801Headset(Headset):
         self.crown_off()
 
 
-
-
     def crown_run_config(self, r=43, g=67, b=220, blink_freq=1, effect_dur=5) -> None:
         """
          Set the colour, blink frequency and effect duration to the custom configuration, and run effect for
@@ -439,5 +451,4 @@ class WS2801Headset(Headset):
                 time.sleep(sleep_duration)
 
         WS2801Headset((r, g, b), (r, g, b), 0.5, 1.5).crown_on()
-
 

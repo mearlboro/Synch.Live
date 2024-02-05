@@ -61,7 +61,7 @@ class Headset(ABC):
 
     def crown_on(self) -> None:
         """
-        Turn on all LEDS in the crown range in the headset. A specified colour can be passed in as a parameter.
+        Turn on all LEDS in the crown range in the headset
         """
         logging.info('Crown on')
 
@@ -118,6 +118,7 @@ class Headset(ABC):
             col = self.crown_col
         logging.info(f"Fade into colour {col} for duration {dt * 256}")
 
+        
     def crown_fade_between_colours(self,
             dt: float = 0.01, col1: Tuple[int, int, int] = (0, 0, 0), col2: Tuple[int, int, int] = (0, 0, 0)
         ) -> None:
@@ -126,6 +127,7 @@ class Headset(ABC):
         increments
         """
         logging.info(f"Begin fade from colour {col1} into colour {col2} for duration {dt * 256}")
+
 
     def crown_fadeout(self, dt: float = 0.01) -> None:
         """
@@ -162,6 +164,7 @@ class Headset(ABC):
         """
         logging.info("Cycling through rainbow colours")
 
+        
     def crown_police(self, dt: float = 1.0) -> None:
         """
         All leds in the crown flash alternative colours for `dt` seconds through either blue
@@ -169,36 +172,42 @@ class Headset(ABC):
         """
         logging.info("Cycling police lights")
 
+        
     def crown_fire(self, dt: float = 1.0) -> None:
         """
         All leds change between varying shades of red, orange and yellow randomly.
         """
         logging.info("Begin fire animation")
 
+        
     def crown_party(self, dt: float = 1.0) -> None:
         """
         All leds change between varying disco-esque colours.
         """
         logging.info("Begin party animation")
 
+        
     def crown_paparazzi(self) -> None:
         """
         Some leds in the crown flash white randomly while others stay black.
         """
         logging.info("Begin paparazzi effect")
 
+        
     def crown_trial_config_log(self, r=255, g=255, b=255, blink_freq=1, effect_dur=1) -> None:
         """
         Set the colour, blink frequency and effect duration to the custom configuration, and run for 10 seconds.
         """
         logging.info("Begin trial of custom configuration")
 
+        
     def crown_run_config(self, r=255, g=255, b=255, blink_freq=1, effect_dur=1) -> None:
         """
         Set the colour, blink frequency and effect duration to the custom configuration, and run for effect_dur seconds.
         """
         logging.info("Begin running of custom configuration")
 
+        
     def crown_rainbow_repeat(self,
             dt: float = 0.01, duration: float = 2
         ) -> None:

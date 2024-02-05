@@ -20,8 +20,8 @@
   tasks:
   - name: Turn on pilot
     shell:
-      cmd: python3 wait.py pilot
-      chdir: /home/pi/leds
+      cmd: python3 -m leds.wait pilot
+      chdir: /home/pi/
 
 - name: Run breathing
   tags: test, breathe
@@ -29,8 +29,8 @@
   tasks:
   - name: Run breathing
     shell:
-      cmd: python3 wait.py breathe
-      chdir: /home/pi/leds
+      cmd: python3 -m leds.wait breathe
+      chdir: /home/pi/
 
 - name: Run rainbow
   tags: test, rainbow
@@ -38,8 +38,8 @@
   tasks:
   - name: Run rainbow
     shell:
-      cmd: python3 wait.py rainbow
-      chdir: /home/pi/leds
+      cmd: python3 -m leds.wait rainbow
+      chdir: /home/pi/
 
 - name: Turn on experimental lights and keep on to calibrate exposure
   tags: test, exposure
@@ -47,8 +47,8 @@
   tasks:
   - name: Run exposure
     shell:
-      cmd: python3 wait.py exposure
-      chdir: /home/pi/leds
+      cmd: python3 -m leds.wait exposure
+      chdir: /home/pi/
 
 
 - name: Run mock loop example
@@ -59,7 +59,7 @@
     cron:
       name: "synch-loop-test-{{ MINUTE }}"
       minute: "{{ MINUTE }}"
-      job: 'while [ "10" -gt "$(date +\%S)" ]; do /bin/sleep 0.1; done; python3 /home/pi/leds/mockloop.py'
+      job: 'while [ "10" -gt "$(date +\%S)" ]; do /bin/sleep 0.1; done; python3 -m leds.mockloop'
 
 
 - name: Stop lights
@@ -68,10 +68,10 @@
   tasks:
 
   - name: Turn off leds
-    shell: "python3 /home/pi/leds/stop.py"
+    shell: "python3 -m leds.stop"
 
   - name: Turn on pilot
-    shell: "python3 /home/pi/leds/wait.py pilot"
+    shell: "python3 -m leds.wait pilot"
 
   - name: Delete cron job
     cron:

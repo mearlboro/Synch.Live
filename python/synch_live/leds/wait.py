@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import sys
+
 from leds.ws2801_headset import WS2801Headset
 
 # initialise logging to file

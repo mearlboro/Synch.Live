@@ -1,0 +1,11 @@
+[Unit]
+Description=Server for Synch.Live observer control interface.
+
+[Service]
+User=pi
+WorkingDirectory=~
+Type=simple
+ExecStart=python3 -m flask --app synch_live.camera.server run
+
+[Install]
+WantedBy=multi-user.target

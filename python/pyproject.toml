@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages]
+find = {}
+
+[project]
+name = "synch-live"
+version = "0.0.1"
+dependencies = [
+    "click~=8.1.3",
+    "Flask~=2.2.2",
+    "imutils~=0.5.4",
+    "jpype1~=1.4",
+    "matplotlib~=3.5.3",
+    "numpy~=1.21.2",
+    "opencv-contrib-python~=4.4.0.46",
+    "pykalman~=0.9.5",
+    "pyyaml~=6.0",
+    "scipy~=1.7.3",
+    "ansible~=4.10",
+    "ansible-runner~=2.3",
+    "wtforms~=3.0",
+    "aiohttp~=3.8",
+    "asyncio~=3.4",
+    "zeroconf~=0.47.3",
+    "picamera",
+]
+requires-python = "~=3.7.0"

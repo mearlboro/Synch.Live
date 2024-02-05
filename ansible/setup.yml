@@ -1,0 +1,12 @@
+---
+
+- hosts: players
+
+- name: Configure hardware
+  import_playbook: config_hardware.yml
+- name: Install software
+  import_playbook: install_software.yml
+- name: Sync time
+  import_playbook: sync_time.yml
+- name: Rebook
+  import_playbook: reboot.yml
