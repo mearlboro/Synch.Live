@@ -1,6 +1,8 @@
 import cv2
 from collections import OrderedDict
 import datetime
+
+from flask import current_app
 from imutils.video import FileVideoStream, VideoStream
 import logging
 import numpy as np
@@ -9,9 +11,10 @@ import threading
 import time
 from types import SimpleNamespace
 from typing import Any, Dict, List, Tuple, Generator
+from yaml import safe_load
 
 # initialise logging to file
-import synch_live.camera.core.logger
+from ..core import logger
 
 # import relevant project libs
 from synch_live.camera.tools.colour import hex_to_hsv
@@ -19,6 +22,9 @@ from synch_live.camera.tools.config import parse, unwrap_resolution
 from synch_live.camera.core.emergence import EmergenceCalculator, compute_macro
 from synch_live.camera.core.detection import Detector
 from synch_live.camera.core.tracking import EuclideanMultiTracker
+
+# importing writing in database functions
+from synch_live.camera.db import *
 
 
 class Camera():
@@ -132,6 +138,7 @@ class VideoProcessor():
         """
         self.config = config
         self.running = False
+        self.experiment_id = 'None'
 
         record = self.config.server.RECORD
         record_path = self.config.server.RECORD_PATH
@@ -148,6 +155,7 @@ class VideoProcessor():
         # initialize the output frame and a lock used to ensure thread-safe
         # exchanges of the output frames (useful when multiple browsers/tabs
         # are viewing the stream)
+        self.frame_id = 0
         self.output_frame = None
 
         self.video_stream = None
@@ -177,16 +185,18 @@ class VideoProcessor():
         elif self.task == 'emergence':
             a = 0
             b = 3
+
+            # writing sigmoids in database.db in table 'experiment_parameters'
+            write_in_experiment_parameters_sigmoids(a, b, self.experiment_id)
+
             return 1.0 / (1 + np.exp((self.psi - a) / b))
+
+
         else:
             return self.psi
 
     def set_manual_psi(self, psi: float) -> None:
         if self.task != 'manual':
-            if self.task == 'psi':
-                if self.calc:
-                    self.calc.exit()
-
             self.task = 'manual'
             self.config.game.task = 'manual'
 
@@ -315,6 +325,10 @@ class VideoProcessor():
         bboxes = self.detector.detect_colour(frame)
         self.positions = self.tracker.update(bboxes)
 
+        # writing start coordinates in database.db in table 'trajectories'
+        if self.frame_id == 0:
+            write_in_trajectories_player_coordinates(self.experiment_id, self.frame_id, bboxes)
+
         if self.config.tracking.annotate:
             frame = self.detector.draw_annotations(frame, self.positions)
 
@@ -326,6 +340,9 @@ class VideoProcessor():
         while self.running:
             with self.lock:
                 frame = self.video_stream.read()
+
+                if frame is not None:
+                    self.frame_id += 1
 
                 if frame is not None and self.record:
                     self.video_writer.write(frame)
@@ -352,6 +369,10 @@ class VideoProcessor():
                 # acquire the lock, set the output frame, and release the lock
                 with self.lock:
                     self.output_frame = frame.copy()
+
+                # writing to database.db in table 'trajectories'
+                write_in_trajectories_player_coordinates(self.experiment_id, self.frame_id, bboxes)
+                write_in_trajectories_psis(self.calc.psi, self.calc.psi_filt, self.experiment_id, self.frame_id)
 
     def generate_frame(self) -> Generator[bytes, None, None]:
         """
@@ -431,6 +452,13 @@ class VideoProcessor():
             elif self.task == '':
                 logging.info("No task specified, continuing")
 
+            # writing parameters from emergenceCalculator to database table 'experiment_parameters'
+            write_in_experiment_parameters_emergenceCalculator(self.calc.use_correction,
+                                                               self.calc.psi_buffer_size,
+                                                               self.calc.observation_window_size,
+                                                               self.calc.use_local,
+                                                               self.experiment_id)
+
             logging.info("Initialised VideoProcessor with params:")
             logging.info(f"camera type: {self.config.server.CAMERA}")
             logging.info(f"task: {self.task}")
@@ -456,6 +484,13 @@ class VideoProcessor():
         logging.info('Stopping tracking thread...')
         self.running = False
 
+        # writing end time of the experiment in database.db in table 'experiment_parameters'
+        # TO DO: Does not execute if called after closing video stream due to threading issues
+        write_in_experiment_parameters_end_time(self.experiment_id)
+
+        # updating frame id at the end of the experiment
+        self.frame_id = 0
+
         if self.video_stream:
             logging.info('Closing video streamer...')
             self.video_stream.stop()
@@ -464,7 +499,3 @@ class VideoProcessor():
             if self.video_writer:
                 logging.info('Closing video writer...')
                 self.video_writer.release()
-
-        if self.task == 'emergence':
-            if self.calc:
-                self.calc.exit()

@@ -9,7 +9,7 @@ from types import SimpleNamespace
 from typing import Any, List, Tuple, Optional, Union
 
 # initialise logging to file
-import camera.core.logger
+from . import logger
 
 class Detector():
     def __init__(self, config: SimpleNamespace) -> None:

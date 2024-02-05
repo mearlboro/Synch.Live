@@ -6,9 +6,9 @@ from scipy.optimize import linear_sum_assignment
 from typing import List, Tuple
 
 # initialise logging to file
-import camera.core.logger
+from . import logger
 
-from camera.core.motion_model import ConstantMotionModel, KFMotionModel
+from .motion_model import ConstantMotionModel, KFMotionModel
 
 class EuclideanMultiTracker():
     def __init__(self,

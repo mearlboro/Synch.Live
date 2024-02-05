@@ -1,0 +1,5 @@
+{% from "_componenthelpers.html" import render_pulse %}
+<li id="player_{{ player.id }}" class="flex flex-row items-center gap-4">
+    {{ render_pulse() }}
+    <a href="{{ player.href }}">{{ player.caption }}</a>
+</li>

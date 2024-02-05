@@ -1,30 +1,18 @@
-<html>
-  <head>
-    <title>Synch.Live Observer</title>
-  </head>
-  <body>
-    <h1>Synch.Live Observer</h1>
-    <li><a href="/calibrate" >Calibrate PiCamera</a></li>
-    <li><a href="/stop_tracking" >Stop Tracking</a></li>
-    <p> {{ running_text }} </p>
-    <p>
-      Existing Live Feed:
-    </p>
-    <p>
-    <img src="{{ url_for('video_feed') }}">
-    </p>
-    <p>
-    Current task: {{ task }}
-    </p>
-    <p>
-	<form action="{{ url_for('observe') }}" method="post">
-		Enable emergence: <button name="psi" id="psi" value="1"> psi </button><br/>
-		Enable manual: <input type="range" min="0" max="10" value="{{ psi }}" class="slider" id="manPsi" name="manPsi"><br/>
-		<input type="submit" value="submit">
-	</form>
-    </p>
-    <p>
-    Psi: {{ psi }}
-    </p>
-  </body>
-</html>
+{% extends "layout.html" %}
+{% from "_formhelpers.html" import render_form, render_submit_field %}
+{% from "_taghelpers.html" import render_h1 %}
+{% block title %}Synch.Live Observer Control{% endblock %}
+{% block content %}
+    {{ render_h1('Experiment') }}
+    <form action="{{ url_for('tracking.toggle') }}" method="get">
+        {{ render_submit_field(value="Stop") }}
+    </form>
+
+    <img src="{{ url_for('tracking.feed', nonce=time) }}" alt="Tracking feed" class="max-w-xl">
+
+    <p>Current task: {{ task }} </p>
+    <p>Psi: {{ psi }}</p>
+
+    {{ render_form(form, 'Submit')}}
+
+{% endblock %}

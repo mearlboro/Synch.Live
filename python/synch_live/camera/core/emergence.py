@@ -19,7 +19,7 @@ import os
 from typing import Callable, Iterable
 
 # initialise logging to file
-import camera.core.logger
+from . import logger
 
 INFODYNAMICS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'infodynamics.jar')
 SAMPLE_THRESHOLD = 180
@@ -124,6 +124,9 @@ class EmergenceCalculator():
         self.use_local = use_local
 
         self.compute_macro = macro_fun
+
+        self.psi = PSI_START
+        self.psi_filt = PSI_START
 
         if not jp.isJVMStarted():
             logging.info('Starting JVM...')
@@ -237,8 +240,12 @@ class EmergenceCalculator():
         logging.info(f'Unfiltered Psi {self.sample_counter}: {psi}')
         logging.info(f'Filtered Psi {self.sample_counter}: {psi_filt}')
 
-        return psi_filt
+        # updated psi attributes for database writing access
+        self.psi = psi
+        self.psi_filt = psi_filt
 
+        return psi_filt
+      
 
     def exit(self) -> None:
         """

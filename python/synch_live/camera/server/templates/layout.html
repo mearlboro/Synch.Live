@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{{ url_for('static', filename='output.css') }}">
+    <title>{% block title %}Synch.Live{% endblock %}</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <script async src="{{ url_for('node_modules', filename='es-module-shims/dist/es-module-shims') }}"></script>
+    <script type="importmap">{{ importmap() | tojson }}</script>
+    <script type="module" src="{{ url_for('static', filename='main.js') }}"></script>
+</head>
+<body class="container bg-white dark:bg-black text-black dark:text-white mx-auto px-4 py-4 flex flex-col gap-4">
+<header class="flex flex-row gap-6 items-center text-xl">
+    <p class="text-6xl font-medium"><a href="{{ url_for('main') }}">Synch.Live</a></p>
+    <nav>
+        <ul class="flex flex-row items-center divide-x">
+            {% for item in navigation() %}
+                <li class="px-4 {% if item.href.startswith(['/', request.blueprint, '/'] | join) %}text-gray-500{% endif %}">
+                    {% if item.href != request.path %}
+                        <a href="{{ item.href }}">{{ item.caption }}</a>
+                    {% else %}
+                        {{ item.caption }}
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </nav>
+</header>
+<hr class="h-1 bg-gray-800 dark:bg-gray-200" />
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class="fixed right-8 bottom-8 flex flex-col gap-4">
+    {% for message in messages %}
+      <li data-controller="flash" class="py-2 px-4 rounded-lg bg-green-200 dark:bg-green-800 text-lg flex flex-row items-center gap-2">
+        {{ message }}
+        <button hidden data-flash-target="close" data-action="click->flash#hide">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+            <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-1.72 6.97a.75.75 0 10-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 101.06 1.06L12 13.06l1.72 1.72a.75.75 0 101.06-1.06L13.06 12l1.72-1.72a.75.75 0 10-1.06-1.06L12 10.94l-1.72-1.72z" clip-rule="evenodd"></path>
+          </svg>
+        </button>
+      </li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+<main class="flex flex-col gap-6">
+    {% block content %}{% endblock %}
+</main>
+<footer>
+    {% block footer %}
+    {% endblock %}
+</footer>
+</body>
+</html>
