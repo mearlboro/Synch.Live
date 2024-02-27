@@ -242,11 +242,13 @@ def plot(filename: str, out: str):
     # todo: remove out of bound points
     #if (0 < X[:, i, 0] < 1 and 0 < X[:, i, 1] < 1):
     for i in range(N-1):
-        plt.plot(X[:, i, 0], X[:, i, 1], alpha = 0.5, linewidth = 1)
+        plt.plot(X[:, i, 0], X[:, i, 1], alpha = 0.5, linewidth = 1, label=f'P{i}')
     plt.plot(X[:, N-1, 0], X[:, i, 1], linewidth = 2, color = 'black')
     plt.xlim([0, 1])
     plt.ylim([0, 1])
     plt.title(f'Player trajectories (with centre of mass)')
+
+    plt.legend()
 
     out = out + '/' + filename.split('/')[-1].split('.')[0] + '.png'
     print(f'Plotting trajectories to {out}')

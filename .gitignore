@@ -7,6 +7,9 @@ setup/etc/*
 setup/boot/*
 setup/.ssh/*
 
+# ignore media added for analysis
+media/
+
 # cache
 __pycache__/
 

@@ -259,10 +259,13 @@ def test(filename: str, threshold: int = SAMPLE_THRESHOLD) -> None:
     calc = EmergenceCalculator(compute_macro)
 
     X = np.load(filename, allow_pickle=True)
+    P = []
     for i in range(len(X)):
         psi = calc.update_and_compute(X[i])
         if psi:
-            print(f't{i}: {psi}')
+            P.append(psi)
+
+    np.savetxt(f"{filename.split('.')[0]}-psi.csv", P)
 
     calc.exit()
 
